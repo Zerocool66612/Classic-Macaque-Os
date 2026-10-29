@@ -1,0 +1,17 @@
+# Build output and local runtime data
+output/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+*.log
+*.so
+*.iso
+*.iso.sha256
+*.qcow2
+*.rom
+*.ROM
+Macaque HD/
+desktop-state*.json
