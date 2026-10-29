@@ -34,7 +34,7 @@ class TerminalView(QPlainTextEdit):
 
 class Terminal(QWidget):
     app_name='Terminal'
-    def __init__(self,d):
+    def __init__(self,d,command=None):
         super().__init__();self.d=d;self.fd=None;self.process=None;self.closed=False;self.screen=pyte.HistoryScreen(100,28,history=2000);self.stream=pyte.ByteStream(self.screen)
         self.screen.write_process_input=lambda text:self.send(text.encode())
         layout=QVBoxLayout(self);layout.setContentsMargins(0,0,0,0);self.view=TerminalView(self);layout.addWidget(self.view,1);self.status=QLabel('Linux shell · Ctrl+Shift+C / V copy and paste · Shift+PageUp / Down scroll');layout.addWidget(self.status)
@@ -43,7 +43,7 @@ class Terminal(QWidget):
             master,slave=pty.openpty();self.fd=master;os.set_blocking(master,False);self.resize_pty()
             env=dict(os.environ,TERM='xterm-256color')
             for key in ['QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH','LD_LIBRARY_PATH','PYTHONPATH']:env.pop(key,None)
-            try:self.process=subprocess.Popen([sys.executable,str(Path(__file__).with_name('terminal_child.py'))],stdin=slave,stdout=slave,stderr=slave,env=env,cwd=str(Path.home()),start_new_session=True,close_fds=True)
+            try:self.process=subprocess.Popen([sys.executable,str(Path(__file__).with_name('terminal_child.py')),*(command or [])],stdin=slave,stdout=slave,stderr=slave,env=env,cwd=str(Path.home()),start_new_session=True,close_fds=True)
             finally:os.close(slave)
             self.notifier=QSocketNotifier(master,QSocketNotifier.Read,self);self.notifier.activated.connect(self.read_ready)
             self.poll=QTimer(self);self.poll.timeout.connect(self.check_exit);self.poll.start(300);self.view.setFocus()

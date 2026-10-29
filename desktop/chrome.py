@@ -30,6 +30,7 @@ class TopBar(QWidget):
         self.settings=self.control('settings','⚙','Macaque Settings · Ctrl+,',d.settings)
         self.session=self.control('session','⏻','Macaque session controls');self.session_popup=self.popup(self.session,lambda menu:d.session_menu(menu))
         self.quick=QToolButton();self.quick.setText('Controls');self.quick.setToolTip('Sound, appearance, notifications and desktop controls');self.row.addWidget(self.quick);self.quick_menu=self.popup(self.quick,lambda menu:d.quick_settings(menu))
+        self.battery=QToolButton();self.battery.setAccessibleName('Laptop battery status');self.row.addWidget(self.battery);self.battery.clicked.connect(lambda:d.text_window('Battery status',self.battery.toolTip()));self.battery_timer=QTimer(self);self.battery_timer.timeout.connect(self.refresh_battery);self.battery_timer.start(10000);self.refresh_battery()
         self.clock=QToolButton();self.clock.setToolTip('Calendar and timers');self.row.addWidget(self.clock);self.calendar_menu=self.popup(self.clock,lambda menu:d.clock_menu(menu))
         for key,kind in [('network','network'),('sound','sound'),('notifications','bell'),('capture','capture'),('desktop','display'),('settings','gear'),('session','power')]:
             self.controls[key].setIcon(icon(kind,22));self.controls[key].setIconSize(QSize(17,17));self.controls[key].setText('')
@@ -51,6 +52,9 @@ class TopBar(QWidget):
     def apply_theme(self):
         c=self.d.colors();accent=self.d.state.get('accent','#287f70');pad=4 if self.d.state.get('compact_bar',True) else 7;self.setStyleSheet(f"QWidget#topBar {{background:{c['panel']};border-bottom:1px solid {c['border']};}} QToolButton {{background:transparent;color:{c['text']};border:0;border-radius:2px;padding:3px {pad}px;font-size:12px;}} QToolButton:hover,QToolButton:pressed {{background:{accent};color:#fff;}} QToolButton::menu-indicator {{image:none;}} QLabel {{color:{c['muted']};background:transparent;font-size:10px;padding:0 3px;}}")
         self.theme.setText('☀' if self.d.state.get('mode','light')=='dark' else '☾');self.theme.setToolTip('Switch appearance');self.update()
+    def refresh_battery(self):
+        from laptop_support import batteries,battery_summary
+        text,tip=battery_summary(batteries());self.battery.setText(text);self.battery.setToolTip(tip);self.battery.setVisible(bool(text));self.update_layout()
     def refresh_status(self):
         count=self.d.state.get('unread_notifications',0);quiet=self.d.state.get('do_not_disturb',False);self.notifications.setIcon(icon('quiet' if quiet else 'bell',22));self.notifications.setToolButtonStyle(Qt.ToolButtonTextBesideIcon);self.notifications.setText(str(count) if count else '');self.notifications.setToolTip(('Do Not Disturb · ' if quiet else '')+f'{count} unread Macaque notifications')
         self.switch.setText('▣ '+str(len(self.d.area.subWindowList())));self.update_layout()
@@ -65,7 +69,7 @@ class TopBar(QWidget):
         for b in self.controls.values():b.hide()
         self.version.hide()
         hidden=[5,8] # Special actions live in Controls; apps live in Macaque.
-        available=self.width()-self.quick.sizeHint().width()-self.clock.sizeHint().width()-45
+        available=self.width()-self.quick.sizeHint().width()-self.clock.sizeHint().width()-(self.battery.sizeHint().width() if self.battery.isVisible() else 0)-45
         used=sum(b.sizeHint().width() for i,b in enumerate(self.buttons) if i not in hidden)
         for index in [7,6,4,3,2,1]:
             if used<=available:break

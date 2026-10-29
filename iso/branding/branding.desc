@@ -8,9 +8,9 @@ windowPlacement: center
 strings:
   productName: Macaque Classic
   shortProductName: Macaque
-  version: '0.25 Preview'
-  shortVersion: '0.25'
-  versionedName: Macaque Classic 0.25
+  version: '0.26 Preview'
+  shortVersion: '0.26'
+  versionedName: Macaque Classic 0.26
   shortVersionedName: Macaque Classic
   bootloaderEntryName: Macaque Classic
   productUrl: ''

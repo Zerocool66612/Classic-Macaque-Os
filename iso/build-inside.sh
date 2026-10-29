@@ -33,7 +33,7 @@ unsquashfs -processors 2 -no-progress -d "$work/readback-root" "$work/readback.s
 [[ -f "$work/readback-root/etc/calamares/branding/macaque/show.qml" ]]
 [[ -f "$work/readback-root/usr/share/plymouth/themes/macaque/startup.png" ]]
 [[ -f "$work/readback-root/etc/lightdm/lightdm-gtk-greeter.conf" ]]
-name="macaque-classic-0.25-installer-$(date -u +%Y%m%d-%H%M%S).iso"
+name="macaque-classic-0.26-installer-$(date -u +%Y%m%d-%H%M%S).iso"
 cp -- "$image" "/output/$name"
 (cd /output && sha256sum "$name" > "$name.sha256")
 cp chroot/usr/share/macaque-build/manifest.txt /output/package-manifest.txt

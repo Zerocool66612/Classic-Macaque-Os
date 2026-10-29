@@ -1,4 +1,4 @@
-# Macaque Classic 0.25 installer build kit
+# Macaque Classic 0.26 installer build kit
 
 This repository contains the desktop source and ISO builder, **not a finished ISO**. Existing installations do not update automatically.
 
@@ -10,11 +10,11 @@ cd Classic-Macaque-Os
 bash build-iso.sh
 ```
 
-Install Docker first as described below. Boot and login artwork previews are `boot-design-preview.png` and `login-design-preview.png`; these are illustrative renders, not screenshots of a verified boot.
+Install Docker first as described below. The boot/login previews are illustrative renders, not verified boot screenshots.
 
 ## Build on Ubuntu / Kubuntu
 
-You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.25` and run:
+You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.26` and run:
 
 ```bash
 bash build-iso.sh
@@ -31,9 +31,17 @@ bash build-iso.sh
 
 The privileged Docker container is used for live-build mount/chroot operations. Only this kit and its output directory are mounted into it. The script does not write USB sticks, partition disks or install onto the host.
 
-On success, `output/` contains `macaque-classic-0.25-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
+On success, `output/` contains `macaque-classic-0.26-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
 
-## Changes in 0.25
+## Changes in 0.26
+
+**Laptop Wi-Fi and battery.** Controls > Wi-Fi & Network now scans actual nearby networks, shows signal/security/current connection, turns Wi-Fi on/off and connects to visible or hidden networks. Connect opens nmcli's interactive password prompt inside the normal Macaque Terminal frame. Type your Wi-Fi password and press Enter; input may be hidden. No password is placed in a command line, shell history or Macaque preferences. NetworkManager saves successful profiles and reconnects. Existing wired connections remain managed by NetworkManager. Wi-Fi actions affect the running Linux system, including when the desktop is launched as a prototype.
+
+The quiet top bar now shows laptop battery percentage and charging state, updated every ten seconds. Click for per-battery details. No battery indicator is shown on desktops with no system battery. Unknown readings are shown honestly; peripheral batteries are excluded. No remaining-time estimate is invented.
+
+Added Atheros, Broadcom brcm80211 and MediaTek firmware alongside existing Intel/Realtek firmware, wpasupplicant and rfkill. Proprietary Broadcom wl-only adapters are not covered. Physical airplane-mode switches, unsupported drivers and enterprise authentication may require additional setup. Real laptop Wi-Fi and charging tests remain necessary.
+
+## Changes inherited from 0.25
 
 **Classic startup and login.** Original platinum gray startup panel, Macaque emblem, blue progress bar tied to Plymouth boot progress, and matching LightDM login theme. Live USB still logs in automatically; installed systems display the login screen unless you choose automatic login in the installer. Login authentication stays with LightDM/PAM. Keyboard layout, accessibility, session and shutdown controls remain available. Password and question prompts are supported by the boot theme; Esc switches to boot messages. Very early firmware/GRUB screens and unsupported graphics modes may still show text. This is a startup theme, not a new screen-lock feature.
 

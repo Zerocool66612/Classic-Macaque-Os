@@ -73,3 +73,9 @@ plymouth
 plymouth-themes
 initramfs-tools
 adwaita-icon-theme
+
+firmware-atheros
+firmware-brcm80211
+firmware-mediatek
+wpasupplicant
+rfkill

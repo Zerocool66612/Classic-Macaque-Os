@@ -27,18 +27,7 @@ class Sound(QWidget):
         self.slider.blockSignals(False)
     def changed(self,value):self.value.setText(f'Volume: {value}%');self.timer.start(150)
 
-class Network(QWidget):
-    app_name='Network'
-    def __init__(self,d):
-        super().__init__();layout=QVBoxLayout(self);layout.addWidget(QLabel('Host network information · read only'));self.output=QTextEdit();self.output.setReadOnly(True);layout.addWidget(self.output,1);button=QPushButton('Refresh');button.clicked.connect(self.refresh);layout.addWidget(button);layout.addWidget(QLabel('Connection editing is not implemented here. No host settings window is opened.'));self.refresh()
-    def refresh(self):
-        from PySide6.QtNetwork import QNetworkInterface
-        text=[]
-        for interface in QNetworkInterface.allInterfaces():
-            if interface.flags() & QNetworkInterface.IsLoopBack:continue
-            text.append(interface.humanReadableName()+(' · enabled' if interface.flags() & QNetworkInterface.IsUp else ' · disabled'))
-            text.extend('  '+entry.ip().toString() for entry in interface.addressEntries());text.append('')
-        self.output.setPlainText('\n'.join(text) or 'No interfaces available. This does not verify Internet access.')
+from network_panel import Network
 
 class Storage(QWidget):
     app_name='Storage'
