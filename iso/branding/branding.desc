@@ -1,0 +1,33 @@
+---
+componentName: macaque
+welcomeStyleCalamares: true
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 1000px,680px
+windowPlacement: center
+strings:
+  productName: Macaque Classic
+  shortProductName: Macaque
+  version: '0.25 Preview'
+  shortVersion: '0.25'
+  versionedName: Macaque Classic 0.25
+  shortVersionedName: Macaque Classic
+  bootloaderEntryName: Macaque Classic
+  productUrl: ''
+  supportUrl: ''
+  knownIssuesUrl: ''
+  releaseNotesUrl: ''
+  donateUrl: ''
+sidebar: widget
+navigation: widget
+images:
+  productLogo: macaque-logo.png
+  productIcon: macaque-logo.png
+  productWelcome: welcome.png
+slideshow: show.qml
+slideshowAPI: 2
+style:
+  SidebarBackground: '#172d34'
+  SidebarText: '#e1eaed'
+  SidebarTextCurrent: '#ffffff'
+  SidebarBackgroundCurrent: '#287f70'

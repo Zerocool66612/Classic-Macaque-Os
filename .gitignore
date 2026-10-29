@@ -1,4 +1,4 @@
-# Build output and local runtime data
+# Generated output and local runtime data
 output/
 __pycache__/
 *.py[cod]

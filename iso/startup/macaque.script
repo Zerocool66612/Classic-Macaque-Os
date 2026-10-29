@@ -1,0 +1,37 @@
+# Original Macaque startup artwork and script.
+Window.SetBackgroundTopColor(0.68,0.68,0.68);
+Window.SetBackgroundBottomColor(0.68,0.68,0.68);
+card_image = Image("startup.png");
+scale = Math.Min(1, Math.Min(Window.GetWidth()/700, Window.GetHeight()/480));
+card_image = card_image.Scale(640*scale,400*scale);
+card = Sprite(card_image);
+x = Window.GetX() + (Window.GetWidth()-card_image.GetWidth())/2;
+y = Window.GetY() + (Window.GetHeight()-card_image.GetHeight())/2;
+card.SetPosition(x,y,0);
+bar_source = Image("progress.png");
+bar = Sprite();
+bar.SetPosition(x+91*scale,y+304*scale,1);
+fun progress_callback(duration, progress) {
+ progress = Math.Max(0.003,Math.Min(1,progress));
+ bar.SetImage(bar_source.Scale(Math.Max(1,458*scale*progress),16*scale));
+}
+Plymouth.SetBootProgressFunction(progress_callback);
+progress_callback(0,0);
+prompt_sprite = Sprite();
+prompt_sprite.SetPosition(Window.GetX()+20,Window.GetY()+Window.GetHeight()-85,100);
+input_sprite = Sprite();
+input_sprite.SetPosition(Window.GetX()+20,Window.GetY()+Window.GetHeight()-52,100);
+fun normal_callback() { prompt_sprite.SetOpacity(0); input_sprite.SetOpacity(0); }
+fun password_callback(prompt, bullets) {
+ prompt_sprite.SetImage(Image.Text(prompt,0,0,0)); prompt_sprite.SetOpacity(1);
+ text=""; for(i=0;i<bullets;i++) text += "*";
+ input_sprite.SetImage(Image.Text(text,0,0,0)); input_sprite.SetOpacity(1);
+}
+fun question_callback(prompt, entry) {
+ prompt_sprite.SetImage(Image.Text(prompt,0,0,0)); prompt_sprite.SetOpacity(1);
+ input_sprite.SetImage(Image.Text(entry,0,0,0)); input_sprite.SetOpacity(1);
+}
+Plymouth.SetDisplayNormalFunction(normal_callback);
+Plymouth.SetDisplayPasswordFunction(password_callback);
+Plymouth.SetDisplayQuestionFunction(question_callback);
+normal_callback();

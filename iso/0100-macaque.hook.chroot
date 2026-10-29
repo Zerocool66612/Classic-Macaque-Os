@@ -1,0 +1,23 @@
+#!/bin/sh
+set -eu
+/bin/sh /usr/local/libexec/macaque-cache-bootloader.sh
+python3 /usr/local/libexec/macaque-configure-installer.py
+python3 -c "import yaml; from pathlib import Path; p=Path('/etc/calamares/branding/macaque'); d=yaml.safe_load((p/'branding.desc').read_text()); assert (p/d['slideshow']).is_file(); o=yaml.safe_load(Path('/etc/calamares/modules/partition.conf').read_text()); assert o['initialSwapChoice']=='none' and o['userSwapChoices']==['none','file']"
+cd /opt/macaque-classic
+# Compile against the same distribution Qt used by Python, never ship the host .so.
+python3 native/prepare.py
+g++ -std=c++17 -shared -fPIC -O2 $(pkg-config --cflags Qt6Widgets) \
+ native/embedded-strip.cpp $(pkg-config --libs Qt6Widgets) -o native/libclassic-strip-embedded.so
+python3 -c 'from PySide6.QtWidgets import QApplication; from PySide6.QtWebEngineWidgets import QWebEngineView; import chess'
+QT_QPA_PLATFORM=offscreen MACAQUE_SILENT=1 python3 run_checks.py > /usr/share/macaque-build/checks.log 2>&1 || { cat /usr/share/macaque-build/checks.log; exit 1; }
+plymouth-set-default-theme macaque
+update-initramfs -u -k all
+test "$(plymouth-set-default-theme)" = macaque
+for image in /boot/initrd.img-*; do
+    [ -f "$image" ] || { echo 'Missing generated initramfs' >&2; exit 1; }
+    lsinitramfs "$image" > /tmp/macaque-initramfs-files
+    grep -q 'plymouth/themes/macaque/macaque.script' /tmp/macaque-initramfs-files
+    grep -q 'plymouth/themes/macaque/startup.png' /tmp/macaque-initramfs-files
+done
+dpkg-query -W > /usr/share/macaque-build/manifest.txt
+systemctl enable lightdm NetworkManager

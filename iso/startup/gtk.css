@@ -1,0 +1,15 @@
+/* Original Macaque Platinum login theme, based on GTK's built-in Adwaita. */
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");
+window { color: #171717; background-color: #cecece; font-family: "DejaVu Sans"; }
+#login_window { background-image: linear-gradient(#eeeeee, #cecece); border: 2px solid #303030; border-radius: 3px; box-shadow: 3px 4px 0 alpha(black,0.35); padding: 24px; }
+#panel_window { background-image: linear-gradient(#f5f5f5,#bdbdbd); color: #171717; border-bottom: 1px solid #444444; }
+#panel_window menubar, #panel_window menuitem { background-color: transparent; color: #171717; }
+entry { color: #111111; background: #ffffff; border: 2px inset #777777; border-radius: 0; padding: 8px; min-height: 22px; }
+entry:focus { border-color: #557bb3; box-shadow: 0 0 0 1px #557bb3; }
+button { background-image: linear-gradient(#fafafa,#c0c0c0); color: #111111; border: 1px solid #444444; border-top-color: white; border-left-color: white; border-radius: 3px; padding: 7px 15px; }
+button:hover { background-image: linear-gradient(white,#d1dcec); }
+button:active { background-image: linear-gradient(#b0b0b0,#dddddd); }
+button:focus { outline: 2px solid #557bb3; outline-offset: 2px; }
+#login_button { border: 2px solid #435e86; font-weight: bold; }
+label { color: #171717; }
+.error { color: #9d2020; }

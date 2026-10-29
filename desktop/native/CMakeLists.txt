@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(ClassicStripEmbedded VERSION 2.0.6 LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+add_library(classic-strip-embedded SHARED embedded-strip.cpp)
+target_link_libraries(classic-strip-embedded PRIVATE Qt6::Widgets)
+set_target_properties(classic-strip-embedded PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")

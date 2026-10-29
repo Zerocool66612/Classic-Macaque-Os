@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then exec dbus-run-session -- "$0"; fi
+export QT_QPA_PLATFORM=xcb
+export MACAQUE_NATIVE_SESSION=1
+export XDG_CURRENT_DESKTOP=Macaque
+export XDG_SESSION_DESKTOP=macaque
+mkdir -p "$HOME/.local/state/macaque"
+openbox --config-file /etc/xdg/macaque/openbox.xml &
+wm=$!
+trap 'kill "$wm" 2>/dev/null || true' EXIT HUP INT TERM
+cd /opt/macaque-classic
+if ! python3 desktop.py >> "$HOME/.local/state/macaque/session.log" 2>&1; then
+ xterm -title 'Macaque startup failed — diagnostics' -e sh -c 'tail -80 "$HOME/.local/state/macaque/session.log"; echo "Press Enter to end session"; read answer'
+fi

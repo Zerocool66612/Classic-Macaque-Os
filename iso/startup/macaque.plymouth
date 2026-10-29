@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Macaque Classic
+Description=Original platinum startup screen for Macaque Classic
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/macaque
+ScriptFile=/usr/share/plymouth/themes/macaque/macaque.script
