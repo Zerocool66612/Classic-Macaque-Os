@@ -22,7 +22,7 @@ def configure(root):
     users=yaml.safe_load((modules/'users.conf').read_text());users['doAutologin']=False;(modules/'users.conf').write_text(yaml.safe_dump(users))
     welcome=yaml.safe_load((modules/'welcome.conf').read_text());welcome['requirements']['requiredStorage']=25;welcome['requirements']['requiredRam']=4.0;(modules/'welcome.conf').write_text(yaml.safe_dump(welcome))
     packages=yaml.safe_load((modules/'packages.conf').read_text());packages['update_db']=False;packages['skip_if_no_internet']=False;(modules/'packages.conf').write_text(yaml.safe_dump(packages))
-    boot=yaml.safe_load((modules/'bootloader.conf').read_text());boot['efiBootloaderId']='debian';(modules/'bootloader.conf').write_text(yaml.safe_dump(boot))
+    boot=yaml.safe_load((modules/'bootloader.conf').read_text());boot['efiBootloaderId']='debian';boot['grubInstall']='/usr/local/libexec/macaque-grub-install';(modules/'bootloader.conf').write_text(yaml.safe_dump(boot))
     branding=base/'branding/macaque'
     if branding.exists():shutil.rmtree(branding)
     shutil.copytree(root/'usr/share/macaque-installer-branding',branding)

@@ -9,6 +9,7 @@ def configure(root):
     for name in ['etc/macaque-live','etc/lightdm/lightdm.conf.d/50-macaque.conf','etc/sudoers.d/live','etc/sudoers.d/live-config']:
         p=root/name
         if p.is_file() or p.is_symlink():p.unlink()
+    marker=root/'etc/macaque-installed';marker.parent.mkdir(parents=True,exist_ok=True);marker.write_text('Macaque installed target\n')
     main=root/'etc/lightdm/lightdm.conf'
     if main.is_file():
         main.write_text(''.join(line for line in main.read_text().splitlines(keepends=True) if not line.lstrip().startswith(('autologin-user=', 'autologin-user-timeout=', 'autologin-session='))))

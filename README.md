@@ -1,4 +1,4 @@
-# Macaque Classic 0.26 installer build kit
+# Macaque Classic 0.27 installer build kit
 
 This repository contains the desktop source and ISO builder, **not a finished ISO**. Existing installations do not update automatically.
 
@@ -10,11 +10,11 @@ cd Classic-Macaque-Os
 bash build-iso.sh
 ```
 
-Install Docker first as described below. The boot/login previews are illustrative renders, not verified boot screenshots.
+Install Docker first as described below.
 
 ## Build on Ubuntu / Kubuntu
 
-You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.26` and run:
+You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.27` and run:
 
 ```bash
 bash build-iso.sh
@@ -31,9 +31,17 @@ bash build-iso.sh
 
 The privileged Docker container is used for live-build mount/chroot operations. Only this kit and its output directory are mounted into it. The script does not write USB sticks, partition disks or install onto the host.
 
-On success, `output/` contains `macaque-classic-0.26-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
+On success, `output/` contains `macaque-classic-0.27-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
 
-## Changes in 0.26
+## Changes in 0.27
+
+**Bootloader installation checks.** Calamares now invokes a checked GRUB installer that removes a stale device.map, forces fresh device probing with --recheck, refuses forced blocklist installation, regenerates grub.cfg, verifies the installed root UUID, kernel/initramfs and normal.mod, and records /var/log/macaque-bootloader.json. The selected disk/ESP still comes from Calamares; no helper silently writes other disks.
+
+**Two internal disks:** choose the intended bootloader drive in the installer and make that same drive first in the laptop firmware's boot order. An older GRUB on the other disk can still produce a missing UUID rescue prompt. Rebuilding alone cannot change firmware boot order or repair an already-installed disk. The observed failure was bypassed by pointing GRUB to the readable second disk; the exact on-disk cause remains unconfirmed.
+
+This kit is not a finished ISO. Boot files/configuration checks are not a substitute for reboot testing. Actual BIOS/UEFI installs remain unverified in the authoring environment.
+
+## Changes inherited from 0.26
 
 **Laptop Wi-Fi and battery.** Controls > Wi-Fi & Network now scans actual nearby networks, shows signal/security/current connection, turns Wi-Fi on/off and connects to visible or hidden networks. Connect opens nmcli's interactive password prompt inside the normal Macaque Terminal frame. Type your Wi-Fi password and press Enter; input may be hidden. No password is placed in a command line, shell history or Macaque preferences. NetworkManager saves successful profiles and reconnects. Existing wired connections remain managed by NetworkManager. Wi-Fi actions affect the running Linux system, including when the desktop is launched as a prototype.
 
@@ -83,3 +91,11 @@ sudo calamares -d 2>&1 | tee ~/installer-debug.log
 If installation is already running, finish or close that instance first. Files in the live home folder are temporary; save diagnostics externally before restarting.
 
 Builds use current Debian repositories and a moving container tag, so they are not byte-for-byte reproducible. Preserve upstream notices and dependency licenses. No new general source license is selected by this kit.
+
+## Desktop concepts
+
+AI-generated visual concepts, not screenshots of the running release.
+
+![Light desktop concept](docs/concept-light.png)
+
+![Dark desktop concept](docs/concept-dark.png)

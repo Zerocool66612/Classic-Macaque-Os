@@ -1,3 +1,5 @@
+0.27: checked GRUB installation and fresh device probing; root UUID/menu/module checks and install diagnostic report. Actual bootloader writes, ISO assembly and BIOS/UEFI reboot remain untested here.
+
 0.26: real NetworkManager Wi-Fi scan/radio UI and embedded nmcli authentication; sysfs battery percentage/charging in the top bar. All 19 suites pass offscreen, including fake nmcli scan and battery edge cases. Actual laptop adapter, authentication and battery hardware remain unverified.
 
 0.24: embedded PTY Terminal uses Macaque MDI frame; original installer branding; version-matched cached BIOS/UEFI GRUB setup. Real PTY tests pass. Offline target preparation and package install calls are fixture/mocked checks, not a physical installation. ISO assembly and reboot remain unverified here.
