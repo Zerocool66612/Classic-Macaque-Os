@@ -1,4 +1,4 @@
-# Macaque Classic 0.27 installer build kit
+# Macaque Classic 0.28 installer build kit
 
 This repository contains the desktop source and ISO builder, **not a finished ISO**. Existing installations do not update automatically.
 
@@ -14,7 +14,7 @@ Install Docker first as described below.
 
 ## Build on Ubuntu / Kubuntu
 
-You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.27` and run:
+You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.28` and run:
 
 ```bash
 bash build-iso.sh
@@ -31,9 +31,13 @@ bash build-iso.sh
 
 The privileged Docker container is used for live-build mount/chroot operations. Only this kit and its output directory are mounted into it. The script does not write USB sticks, partition disks or install onto the host.
 
-On success, `output/` contains `macaque-classic-0.27-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
+On success, `output/` contains `macaque-classic-0.28-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
 
-## Changes in 0.27
+## Changes in 0.28
+
+**Login-style menu bar.** The desktop's light top bar now uses the login screen's platinum gradient (#f5f5f5 to #bdbdbd), dark lettering, bright upper edge and fine lower border. Dark mode uses the same raised treatment in graphite. Compact menu spacing, battery status, Controls and the white monkey mark remain; the mark has a teal backing for contrast. The change affects desktop styling only.
+
+## Changes inherited from 0.27
 
 **Bootloader installation checks.** Calamares now invokes a checked GRUB installer that removes a stale device.map, forces fresh device probing with --recheck, refuses forced blocklist installation, regenerates grub.cfg, verifies the installed root UUID, kernel/initramfs and normal.mod, and records /var/log/macaque-bootloader.json. The selected disk/ESP still comes from Calamares; no helper silently writes other disks.
 
@@ -99,3 +103,11 @@ AI-generated visual concepts, not screenshots of the running release.
 ![Light desktop concept](docs/concept-light.png)
 
 ![Dark desktop concept](docs/concept-dark.png)
+
+## Actual menu-bar previews
+
+Captured from the running Qt desktop in light and dark mode.
+
+![Platinum top bar](docs/topbar-light.png)
+
+![Graphite top bar](docs/topbar-dark.png)

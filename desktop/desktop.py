@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.27'
+VERSION='0.28'
 
 from menu_compat import Menu as QMenu
 
@@ -101,7 +101,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     disk_changed=Signal()
     preferences_changed=Signal(str,object)
     def __init__(self,base=None):
-        super().__init__();self.setWindowTitle('Macaque Classic 0.27 — Macaque Desktop');self.resize(1360,880)
+        super().__init__();self.setWindowTitle('Macaque Classic 0.28 — Macaque Desktop');self.resize(1360,880)
         self.base=Path(base or os.environ.get('MACAQUE_DATA_DIR') or QStandardPaths.writableLocation(QStandardPaths.AppDataLocation));self.base.mkdir(parents=True,exist_ok=True);self.disk=Disk(self.base);self.state_path=self.base/'desktop-state.json'
         if self.disk.migrations and self.state_path.exists() and not (self.base/'desktop-state.before-0.6.json').exists():shutil.copy2(self.state_path,self.base/'desktop-state.before-0.6.json')
         try:self.state=json.loads(self.state_path.read_text())
@@ -519,7 +519,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def text_window(self,title,text,size=(490,340)):
         box=QTextEdit();box.setReadOnly(True);box.setPlainText(text);return self.window(title,box,size)
     def about(self):
-        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic 0.27</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
+        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic 0.28</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
     def control_panels(self):
         panel=QWidget();layout=QVBoxLayout(panel);grid=QGridLayout();layout.addLayout(grid)
         actions=[('Appearance','appearance',self.appearance),('Date & Time','clock',self.calendar),('Sound','computer',lambda:self.launch('Sound')),('Memory','computer',self.memory),('Desktop Disk','disk',lambda:self.text_window('Desktop Disk',f'Macaque HD is stored at:\n{self.disk.root}\n\nAvailable on host filesystem: {self.format_bytes(self.free_space())}')),('Screen Saver','computer',self.screensaver)]

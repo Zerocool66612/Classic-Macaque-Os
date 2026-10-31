@@ -8,7 +8,7 @@ from menu_compat import Menu as QMenu
 class TopBar(QWidget):
     def __init__(self,d):
         super().__init__();self.d=d;self.setObjectName('topBar');self.setAttribute(Qt.WA_StyledBackground,True);self.setFixedHeight(32);self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);self.row=QHBoxLayout(self);self.row.setContentsMargins(3,0,3,0);self.row.setSpacing(0);self.buttons=[]
-        self.system=self.menu('Macaque',white_monkey());self.system.aboutToShow.connect(d.system_menu);self.buttons[0].setToolTip('About This Computer and system menu');self.buttons[0].setText('');self.buttons[0].setToolButtonStyle(Qt.ToolButtonIconOnly);self.buttons[0].setFixedWidth(30);self.buttons[0].setAccessibleName('About This Computer and system menu')
+        self.system=self.menu('Macaque',white_monkey());self.system.aboutToShow.connect(d.system_menu);self.buttons[0].setToolTip('About This Computer and system menu');self.buttons[0].setText('');self.buttons[0].setToolButtonStyle(Qt.ToolButtonIconOnly);self.buttons[0].setFixedWidth(30);self.buttons[0].setObjectName('monkeyMenuButton');self.buttons[0].setAccessibleName('About This Computer and system menu')
         self.appmenu=self.menu('Macaque Files',icon('folder'));self.appmenu.aboutToShow.connect(d.application_menu);self.buttons[1].setMaximumWidth(140);self.buttons[1].setSizePolicy(QSizePolicy.Maximum,QSizePolicy.Preferred)
         for name,title,callback in [('file','File',d.file_menu),('edit','Edit',d.edit_menu),('view','View',d.view_menu),('special','Special',d.special_menu),('windows','Window',d.window_menu)]:
             menu=self.menu(title);setattr(self,name,menu);menu.aboutToShow.connect(callback)
@@ -50,7 +50,25 @@ class TopBar(QWidget):
         self.apps.clear();self.apps.addAction('All Applications…',lambda:self.d.launch('Applications'));self.apps.addSeparator()
         for name in APP_NAMES:self.apps.addAction(icon(app_kind(name)),name,lambda checked=False,n=name:self.d.launch(n))
     def apply_theme(self):
-        c=self.d.colors();accent=self.d.state.get('accent','#287f70');pad=4 if self.d.state.get('compact_bar',True) else 7;self.setStyleSheet(f"QWidget#topBar {{background:{c['panel']};border-bottom:1px solid {c['border']};}} QToolButton {{background:transparent;color:{c['text']};border:0;border-radius:2px;padding:3px {pad}px;font-size:12px;}} QToolButton:hover,QToolButton:pressed {{background:{accent};color:#fff;}} QToolButton::menu-indicator {{image:none;}} QLabel {{color:{c['muted']};background:transparent;font-size:10px;padding:0 3px;}}")
+        dark=self.d.state.get('mode','light')=='dark'
+        accent=self.d.state.get('accent','#287f70');pad=4 if self.d.state.get('compact_bar',True) else 7
+        # Match LightDM's Macaque Platinum panel in light mode, retaining the
+        # same raised edge and gradient treatment for the graphite variant.
+        top,bottom,text,edge,border,muted=('#50565c','#2b3035','#f4f4f4','#70767c','#111417','#c4c8cc') if dark else ('#f5f5f5','#bdbdbd','#171717','#ffffff','#444444','#454545')
+        self.setStyleSheet(f"""
+            QWidget#topBar {{
+                background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 {top},stop:1 {bottom});
+                border-top:1px solid {edge};border-bottom:1px solid {border};
+            }}
+            QWidget#topBar QToolButton {{background:transparent;color:{text};border:0;
+                border-radius:2px;padding:3px {pad}px;font-size:12px;}}
+            QWidget#topBar QToolButton:hover,QWidget#topBar QToolButton:pressed {{background:{accent};color:#fff;}}
+            QWidget#topBar QToolButton:focus {{border:1px dotted {border};}}
+            QWidget#topBar QToolButton::menu-indicator {{image:none;}}
+            QWidget#topBar QToolButton#monkeyMenuButton {{background:{accent};border-radius:3px;margin:2px 3px;padding:2px;}}
+            QWidget#topBar QToolButton#monkeyMenuButton:hover {{background:#195c50;}}
+            QWidget#topBar QLabel {{color:{muted};background:transparent;font-size:10px;padding:0 3px;}}
+        """)
         self.theme.setText('☀' if self.d.state.get('mode','light')=='dark' else '☾');self.theme.setToolTip('Switch appearance');self.update()
     def refresh_battery(self):
         from laptop_support import batteries,battery_summary
