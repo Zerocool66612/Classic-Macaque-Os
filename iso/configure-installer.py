@@ -19,7 +19,7 @@ def configure(root):
     options=yaml.safe_load(partition.read_text()) or {} if partition.exists() else {}
     options.update(userSwapChoices=['none','file'],initialSwapChoice='none')
     partition.write_text(yaml.safe_dump(options,sort_keys=False))
-    users=yaml.safe_load((modules/'users.conf').read_text());users['doAutologin']=False;(modules/'users.conf').write_text(yaml.safe_dump(users))
+    users=yaml.safe_load((modules/'users.conf').read_text());users['doAutologin']=False;users['passwordRequirements']={'minLength':8,'maxLength':128};users['allowWeakPasswords']=False;(modules/'users.conf').write_text(yaml.safe_dump(users))
     welcome=yaml.safe_load((modules/'welcome.conf').read_text());welcome['requirements']['requiredStorage']=25;welcome['requirements']['requiredRam']=4.0;(modules/'welcome.conf').write_text(yaml.safe_dump(welcome))
     packages=yaml.safe_load((modules/'packages.conf').read_text());packages['update_db']=False;packages['skip_if_no_internet']=False;(modules/'packages.conf').write_text(yaml.safe_dump(packages))
     boot=yaml.safe_load((modules/'bootloader.conf').read_text());boot['efiBootloaderId']='debian';boot['grubInstall']='/usr/local/libexec/macaque-grub-install';(modules/'bootloader.conf').write_text(yaml.safe_dump(boot))

@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory() as temp:
  root=Path(temp);base=root/'etc/calamares';mods=base/'modules';mods.mkdir(parents=True)
  sequence=['partition','mount','unpackfs','users','displaymanager','sources-media','bootloader-config','grubcfg','bootloader','packages','sources-media-unmount','sources-final','umount']
  (base/'settings.conf').write_text(yaml.safe_dump({'sequence':[{'exec':sequence}]}))
- for name,content in {'displaymanager':{},'users':{},'welcome':{'requirements':{}},'packages':{'backend':'apt','operations':[{'remove':['live-boot']}]},'bootloader':{'efiBootLoader':'grub'}}.items():(mods/(name+'.conf')).write_text(yaml.safe_dump(content))
+ for name,content in {'displaymanager':{},'users':{'passwordRequirements':{'libpwquality':['dictcheck=1','minlen=8']},'defaultGroups':['sudo']},'welcome':{'requirements':{}},'packages':{'backend':'apt','operations':[{'remove':['live-boot']}]},'bootloader':{'efiBootLoader':'grub'}}.items():(mods/(name+'.conf')).write_text(yaml.safe_dump(content))
  shutil.copytree(ROOT/'iso/branding',root/'usr/share/macaque-installer-branding');config.configure(root)
  d=yaml.safe_load((base/'settings.conf').read_text());seq=d['sequence'][0]['exec'];assert 'bootloader-config' not in seq and 'sources-media' not in seq and 'sources-final' not in seq
  assert seq.index('shellprocess')<seq.index('grubcfg')<seq.index('bootloader');assert d['prompt-install']
@@ -30,5 +30,8 @@ with tempfile.TemporaryDirectory() as temp:
  assert yaml.safe_load((mods/'partition.conf').read_text())['initialSwapChoice']=='none'
  assert yaml.safe_load((mods/'packages.conf').read_text())['update_db'] is False
  assert yaml.safe_load((mods/'bootloader.conf').read_text())['grubInstall']=='/usr/local/libexec/macaque-grub-install'
+ users=yaml.safe_load((mods/'users.conf').read_text());assert users['passwordRequirements']=={'minLength':8,'maxLength':128}
+ assert users['allowWeakPasswords'] is False and users['defaultGroups']==['sudo']
  config.configure(root)
+ assert yaml.safe_load((mods/'users.conf').read_text())['passwordRequirements']=={'minLength':8,'maxLength':128}
 print('Offline BIOS/EFI package selection, checksum guards, job sequence and Macaque branding checks passed (mocked package install).')
