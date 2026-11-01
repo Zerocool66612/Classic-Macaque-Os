@@ -15,3 +15,10 @@ def prepare(root='/',run=subprocess.run,lookup=pwd.getpwnam):
 if __name__=='__main__':
     if os.geteuid()!=0:raise SystemExit('Live account setup requires root.')
     prepare()
+    marker=b'MACAQUE_LIVE_USER_READY_V1\n'
+    print(marker.decode().strip(),flush=True)
+    try:
+        fd=os.open('/dev/ttyS0',os.O_WRONLY|os.O_NONBLOCK|os.O_NOCTTY)
+        try:os.write(fd,marker)
+        finally:os.close(fd)
+    except OSError:pass

@@ -1,3 +1,5 @@
+0.30.3 diagnostic boot candidate: restore recommends, MODULES=most, visible live kernel/systemd output, diskless BIOS QEMU userspace gate in builder. Runner arguments/marker detection verified with fixtures; generated ISO boot and physical boot not performed here.
+
 0.30.2: candidate repair for live USB authentication/startup failure. Explicit libpam-systemd/login dependencies; greetd common PAM policies; live-user initialization ordered before greetd; live-only tty2 recovery autologin removed from installed targets. Account writes and PAM policy tested with fixtures, not actual PAM authentication. Physical boot and exact original failure cause remain unverified.
 
 0.30.1: bundle labwc-rc.xml with the desktop and use it for installed session staging and nested previews. Regression check executes test_creative.py from the staged installed layout. Fixes the 0.30 chroot hook failure; no ISO assembly/boot performed here.

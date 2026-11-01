@@ -8,11 +8,11 @@ echo "Build workspace: $work"
 lb config --mode debian --distribution trixie --architectures amd64 \
  --binary-image iso-hybrid --archive-areas 'main contrib non-free-firmware' \
  --bootloaders 'syslinux grub-efi' --uefi-secure-boot enable \
- --debian-installer none --apt-recommends false --firmware-chroot true \
+ --debian-installer none --apt-recommends true --firmware-chroot true \
  --mirror-bootstrap https://deb.debian.org/debian/ \
  --mirror-chroot https://deb.debian.org/debian/ \
  --mirror-binary https://deb.debian.org/debian/ \
- --bootappend-live 'boot=live quiet splash components username=macaque hostname=macaque-classic locales=en_US.UTF-8 keyboard-layouts=us' \
+ --bootappend-live 'boot=live loglevel=7 systemd.show_status=1 plymouth.enable=0 console=ttyS0,115200n8 console=tty0 components username=macaque hostname=macaque-classic locales=en_US.UTF-8 keyboard-layouts=us' \
  --iso-application 'Macaque Classic Installer Preview' --iso-volume MACAQUE_CLASSIC
 mkdir -p config/package-lists config/hooks/live
 cp /kit/iso/packages.txt config/package-lists/macaque.list.chroot
@@ -34,7 +34,8 @@ unsquashfs -processors 2 -no-progress -d "$work/readback-root" "$work/readback.s
 [[ -f "$work/readback-root/etc/calamares/branding/macaque/show.qml" ]]
 [[ -f "$work/readback-root/usr/share/plymouth/themes/macaque/startup.png" ]]
 [[ -f "$work/readback-root/etc/greetd/config.toml" ]]
-name="macaque-classic-0.30.2-installer-$(date -u +%Y%m%d-%H%M%S).iso"
+python3 /kit/iso/boot-check.py "$image" /output/boot-check.log
+name="macaque-classic-0.30.3-installer-$(date -u +%Y%m%d-%H%M%S).iso"
 cp -- "$image" "/output/$name"
 (cd /output && sha256sum "$name" > "$name.sha256")
 cp chroot/usr/share/macaque-build/manifest.txt /output/package-manifest.txt

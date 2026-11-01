@@ -16,6 +16,8 @@ test "$(plymouth-set-default-theme)" = macaque
 for image in /boot/initrd.img-*; do
     [ -f "$image" ] || { echo 'Missing generated initramfs' >&2; exit 1; }
     lsinitramfs "$image" > /tmp/macaque-initramfs-files
+    grep -Eq '(scripts/live|lib/live/boot)' /tmp/macaque-initramfs-files
+    grep -q 'kernel/fs/squashfs/squashfs.ko' /tmp/macaque-initramfs-files
     grep -q 'plymouth/themes/macaque/macaque.script' /tmp/macaque-initramfs-files
     grep -q 'plymouth/themes/macaque/startup.png' /tmp/macaque-initramfs-files
 done

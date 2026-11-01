@@ -20,6 +20,7 @@ def prepare(dest):
     write('usr/share/themes/Macaque Platinum/gtk-3.0/gtk.css',(startup/'gtk.css').read_text())
     for source,target in [('login.png','usr/share/backgrounds/macaque-login.png'),('user.png','usr/share/pixmaps/macaque-user.png')]:
         f=dest/target;f.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(startup/source,f)
+    write('etc/initramfs-tools/conf.d/macaque-live','MODULES=most\n')
     write('etc/default/grub.d/50-macaque-splash.cfg','GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"\nGRUB_DISTRIBUTOR="Macaque Classic"\n')
 
     write('usr/local/libexec/macaque-offline-bootloader.py',(ROOT/'iso/offline-bootloader.py').read_text(),0o755)
