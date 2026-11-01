@@ -1,3 +1,25 @@
+# Macaque Classic 0.30.4
+
+A classic-inspired desktop on modern Linux, with a native Wayland session, Classic Control Strip, traffic-light window controls, internal apps and light/dark themes. Project direction and original Control Strip: **Drew Owen**.
+
+[ISO downloads and release notes](https://github.com/Zerocool66612/Classic-Macaque-Os/releases) · [Source build instructions](#build-the-iso-on-ubuntu--kubuntu)
+
+## Desktop gallery
+
+Current 0.30.4 UI, rendered from the Qt desktop code with the real embedded Control Strip and example data. These are offscreen UI captures, not photographs of a hardware boot. The author has reached the desktop in VirtualBox with 3D acceleration enabled; physical USB boot and installation remain under testing.
+
+### Dark mode
+
+![Macaque Classic 0.30.4 dark desktop with Files, Notes, Teapot Studio and Control Strip](docs/desktop-0.30.4-dark.png)
+
+### Light mode
+
+![Macaque Classic 0.30.4 light desktop with Files, Notes, Teapot Studio and Control Strip](docs/desktop-0.30.4-light.png)
+
+The system menu uses the new white macaque profile, with green only on hover/press. ISO files belong under **Releases → Assets**; GitHub's source ZIP is a build kit, not a bootable ISO. Check the version shown on each release before downloading.
+
+---
+
 # 0.30.4 system-menu polish
 
 The system-menu button now has a transparent idle background. Its accent appears only on hover or press. The white icon is an original right-facing macaque silhouette with a rounded crown, projecting muzzle and ear cutout. Boot/session behavior is unchanged from 0.30.3.
