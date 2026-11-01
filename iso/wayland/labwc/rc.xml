@@ -6,6 +6,15 @@
   <default />
   <keybind key="C-A-t"><action name="Execute" command="/usr/local/bin/macaque-action terminal" /></keybind>
   <keybind key="C-A-l"><action name="Execute" command="/usr/local/bin/macaque-lock" /></keybind>
+  <keybind key="XF86AudioLowerVolume"><action name="Execute" command="/usr/local/bin/macaque-action volume-down" /></keybind>
+  <keybind key="XF86AudioRaiseVolume"><action name="Execute" command="/usr/local/bin/macaque-action volume-up" /></keybind>
+  <keybind key="XF86AudioMute"><action name="Execute" command="/usr/local/bin/macaque-action mute" /></keybind>
+  <keybind key="XF86AudioMicMute"><action name="Execute" command="/usr/local/bin/macaque-action mic-mute" /></keybind>
+  <keybind key="XF86MonBrightnessDown"><action name="Execute" command="/usr/local/bin/macaque-action brightness-down" /></keybind>
+  <keybind key="XF86MonBrightnessUp"><action name="Execute" command="/usr/local/bin/macaque-action brightness-up" /></keybind>
+  <keybind key="Print"><action name="Execute" command="/usr/local/bin/macaque-action screenshot" /></keybind>
+  <keybind key="S-Print"><action name="Execute" command="/usr/local/bin/macaque-action screenshot-region" /></keybind>
+  <keybind key="C-Print"><action name="Execute" command="/usr/local/bin/macaque-action screenshot-full" /></keybind>
  </keyboard>
  <mouse><default /></mouse>
  <windowRules>

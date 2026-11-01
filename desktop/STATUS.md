@@ -1,3 +1,5 @@
+0.31: installer password validation correction included; Screenshot app and Wayland grim/slurp capture; Laptop Controls and global media-key routing through PipeWire/logind; stable top-level ISO output with separate boot-check status. New service/capture boundaries checked using mocks, UI offscreen. Hardware/real Wayland capture not verified here.
+
 0.30.4: transparent idle system-menu button, accent hover/pressed state and a new white macaque side-profile icon. Boot stack unchanged from 0.30.3; user reached the desktop in VirtualBox after enabling 3D acceleration. Physical USB boot remains unverified.
 
 0.30.3 diagnostic boot candidate: restore recommends, MODULES=most, visible live kernel/systemd output, diskless BIOS QEMU userspace gate in builder. Runner arguments/marker detection verified with fixtures; generated ISO boot and physical boot not performed here.

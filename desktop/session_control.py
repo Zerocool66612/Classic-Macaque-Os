@@ -2,7 +2,7 @@
 """Small user-only control socket for compositor shortcuts; no arbitrary commands."""
 import hashlib,os,socket,sys
 from pathlib import Path
-ACTIONS=('terminal','power','updates','files')
+ACTIONS=('terminal','power','updates','files','screenshot','screenshot-region','screenshot-full','volume-up','volume-down','mute','mic-mute','brightness-up','brightness-down')
 def socket_path(env=None):
     env=os.environ if env is None else env
     runtime=env.get('XDG_RUNTIME_DIR','');display=env.get('WAYLAND_DISPLAY','')
@@ -41,7 +41,12 @@ def serve(desktop):
                 b.clear()
                 c.write(b'ok\n');c.flush();c.disconnectFromServer()
                 def launch():
-                    if action=='terminal':desktop.launch_terminal()
+                    if action in ('volume-up','volume-down','mute','mic-mute','brightness-up','brightness-down'):desktop.hardware_keys.run(action)
+                    elif action.startswith('screenshot'):
+                        panel=desktop.launch('Screenshot').content
+                        if action!='screenshot':
+                            panel.mode.setCurrentText('Select region' if action.endswith('region') else 'Full screen');panel.capture()
+                    elif action=='terminal':desktop.launch_terminal()
                     else:desktop.launch({'power':'Battery & Power','updates':'Software Update','files':'Macaque Files'}[action])
                 QTimer.singleShot(0,desktop,launch)
             client.readyRead.connect(read);client.disconnected.connect(client.deleteLater);QTimer.singleShot(3000,client,client.disconnectFromServer)

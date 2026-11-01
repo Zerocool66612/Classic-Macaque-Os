@@ -33,5 +33,5 @@ if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('iso');parser.add_argument('log');args=parser.parse_args()
  ok=check(args.iso,args.log)
  Path(args.log+'.result.json').write_text(json.dumps({'bios_live_userspace_reached':ok,'wayland_tested':False,'uefi_tested':False,'physical_usb_tested':False},indent=2)+'\n')
- if not ok:raise SystemExit('ISO boot check failed or timed out. Keep boot-check.log and boot-check.qemu.log; do not flash this candidate.')
+ if not ok:raise SystemExit('ISO boot check failed or timed out. Keep boot-check.log and boot-check.qemu.log; the ISO needs manual boot validation.')
  print('ISO BIOS boot check passed: kernel, live filesystem and live user setup reached. Graphics/UEFI/hardware are not covered.')

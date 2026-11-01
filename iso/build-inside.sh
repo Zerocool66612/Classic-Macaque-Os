@@ -34,9 +34,14 @@ unsquashfs -processors 2 -no-progress -d "$work/readback-root" "$work/readback.s
 [[ -f "$work/readback-root/etc/calamares/branding/macaque/show.qml" ]]
 [[ -f "$work/readback-root/usr/share/plymouth/themes/macaque/startup.png" ]]
 [[ -f "$work/readback-root/etc/greetd/config.toml" ]]
-python3 /kit/iso/boot-check.py "$image" /output/boot-check.log
-name="macaque-classic-0.30.4-installer-$(date -u +%Y%m%d-%H%M%S).iso"
+name="macaque-classic-0.31-installer-$(date -u +%Y%m%d-%H%M%S).iso"
 cp -- "$image" "/output/$name"
 (cd /output && sha256sum "$name" > "$name.sha256")
 cp chroot/usr/share/macaque-build/manifest.txt /output/package-manifest.txt
 printf '\nCreated: /output/%s\n' "$name"
+if python3 /kit/iso/boot-check.py "/output/$name" /output/boot-check.log; then
+ echo 'Automated BIOS userspace check passed; physical graphics/USB still need testing.'
+else
+ echo 'ISO created in output. Automated boot check did not confirm startup; test this preview manually before installation.' >&2
+fi
+if [[ -f /output/boot-check.log.result.json ]]; then cp /output/boot-check.log.result.json "/output/$name.boot-check.json"; fi

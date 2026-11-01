@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.30.4'
+VERSION='0.31'
 
 from menu_compat import Menu as QMenu
 
@@ -101,7 +101,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     disk_changed=Signal()
     preferences_changed=Signal(str,object)
     def __init__(self,base=None):
-        super().__init__();self.setWindowTitle('Macaque Classic 0.29 — Macaque Desktop');self.resize(1360,880)
+        super().__init__();self.setWindowTitle(f'Macaque Classic {VERSION} — Macaque Desktop');self.resize(1360,880)
         self.base=Path(base or os.environ.get('MACAQUE_DATA_DIR') or QStandardPaths.writableLocation(QStandardPaths.AppDataLocation));self.base.mkdir(parents=True,exist_ok=True);self.disk=Disk(self.base);self.state_path=self.base/'desktop-state.json'
         if self.disk.migrations and self.state_path.exists() and not (self.base/'desktop-state.before-0.6.json').exists():shutil.copy2(self.state_path,self.base/'desktop-state.before-0.6.json')
         try:self.state=json.loads(self.state_path.read_text())
@@ -116,6 +116,8 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         try:self.native_strip=NativeStrip(self);self.strip=self.native_strip.widget;self.sync_strip_theme()
         except Exception as ex:
             self.strip=QLabel('Control Strip could not load — Help → Diagnostics',self.area.viewport());self.strip.setStyleSheet('background:#ffebbd;color:#111;padding:6px;');self.strip.resize(410,35);self.strip.move(10,600);self.strip.show();self.strip_error=str(ex)
+        from laptop_controls import HardwareKeys
+        self.hardware_keys=HardwareKeys(self)
         from removable_drives import RemovableMonitor
         self.removable=RemovableMonitor(self)
         self.top_bar.help.addAction('Diagnostics',self.diagnostics);QTimer.singleShot(0,self.initial)
@@ -152,7 +154,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def play_sound(self,key):
         if os.environ.get('MACAQUE_SILENT')!='1':return self.sound_theme.play(key)
     def quick_settings(self,menu):
-        menu.clear();menu.addAction('Battery & Power…',lambda:self.launch('Battery & Power'));menu.addAction('USB Drives…',lambda:self.launch('USB Drives'));menu.addAction('Software Update…',lambda:self.launch('Software Update'));menu.addSeparator();menu.addAction('Terminal…',self.launch_terminal);menu.addAction('Settings…',self.settings);menu.addAction('Web Browser…',lambda:self.launch('Macaque Web'));workspace=menu.addMenu('Workspaces');self.workspace_menu(workspace);menu.addAction('Downloads…',lambda:self.launch('Downloads'));menu.addAction('App Compatibility…',lambda:self.launch('Classic Mac Apps'));menu.addAction('Flatpak Apps…',lambda:self.launch('Flatpak Apps'));menu.addAction('Classic Sounds…',lambda:self.launch('Classic Sounds'));menu.addSeparator()
+        menu.clear();menu.addAction('Battery & Power…',lambda:self.launch('Battery & Power'));menu.addAction('USB Drives…',lambda:self.launch('USB Drives'));menu.addAction('Software Update…',lambda:self.launch('Software Update'));menu.addSeparator();menu.addAction('Screenshot…',lambda:self.launch('Screenshot'));menu.addAction('Laptop Controls…',lambda:self.launch('Laptop Controls'));menu.addAction('Terminal…',self.launch_terminal);menu.addAction('Settings…',self.settings);menu.addAction('Web Browser…',lambda:self.launch('Macaque Web'));workspace=menu.addMenu('Workspaces');self.workspace_menu(workspace);menu.addAction('Downloads…',lambda:self.launch('Downloads'));menu.addAction('App Compatibility…',lambda:self.launch('Classic Mac Apps'));menu.addAction('Flatpak Apps…',lambda:self.launch('Flatpak Apps'));menu.addAction('Classic Sounds…',lambda:self.launch('Classic Sounds'));menu.addSeparator()
         mode=menu.addAction('Dark Mode');mode.setCheckable(True);mode.setChecked(self.state.get('mode','light')=='dark');mode.triggered.connect(self.toggle_dark)
         quiet=menu.addAction('Do Not Disturb');quiet.setCheckable(True);quiet.setChecked(self.state.get('do_not_disturb',False));quiet.toggled.connect(lambda v:self.set_preference('do_not_disturb',v))
         muted=menu.addAction('Mute Desktop Sounds');muted.setCheckable(True);muted.setChecked(not self.state.get('sounds_enabled',True));muted.toggled.connect(lambda v:(self.set_preference('sounds_enabled',not v),self.sound_theme.stop() if v else None))
@@ -264,7 +266,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         pm=pm.copy((pm.width()-size.width())//2,(pm.height()-size.height())//2,size.width(),size.height())
         self.area.setBackground(QBrush(pm))
     def shortcuts(self):
-        for shortcut,callback in [('Ctrl+Alt+1',lambda:self.switch_workspace(0)),('Ctrl+Alt+2',lambda:self.switch_workspace(1)),('Ctrl+Alt+3',lambda:self.switch_workspace(2)),('Ctrl+Alt+4',lambda:self.switch_workspace(3)),('Ctrl+Alt+L',lambda:self.launch('Battery & Power').content.lock()),('Ctrl+,',self.settings),('Ctrl+Shift+D',self.show_desktop),('Ctrl+Shift+P',self.capture_desktop),('Ctrl+Shift+Left',lambda:self.snap_window('left')),('Ctrl+Shift+Right',lambda:self.snap_window('right')),('F6',self.launch_palette),('Ctrl+Shift+Space',self.launch_palette),('Ctrl+N',lambda:self.launch('Macaque Text')),('Ctrl+O',self.open_dialog),('Ctrl+S',self.save_active),('Ctrl+Shift+S',lambda:self.save_active(True)),('Ctrl+W',self.close_active),('Ctrl+Q',self.close),('Ctrl+F',self.find),('F11',self.fullscreen),('Ctrl+I',self.info_active)]:
+        for shortcut,callback in [('Print',lambda:self.launch('Screenshot')),('Ctrl+Alt+1',lambda:self.switch_workspace(0)),('Ctrl+Alt+2',lambda:self.switch_workspace(1)),('Ctrl+Alt+3',lambda:self.switch_workspace(2)),('Ctrl+Alt+4',lambda:self.switch_workspace(3)),('Ctrl+Alt+L',lambda:self.launch('Battery & Power').content.lock()),('Ctrl+,',self.settings),('Ctrl+Shift+D',self.show_desktop),('Ctrl+Shift+P',self.capture_desktop),('Ctrl+Shift+Left',lambda:self.snap_window('left')),('Ctrl+Shift+Right',lambda:self.snap_window('right')),('F6',self.launch_palette),('Ctrl+Shift+Space',self.launch_palette),('Ctrl+N',lambda:self.launch('Macaque Text')),('Ctrl+O',self.open_dialog),('Ctrl+S',self.save_active),('Ctrl+Shift+S',lambda:self.save_active(True)),('Ctrl+W',self.close_active),('Ctrl+Q',self.close),('Ctrl+F',self.find),('F11',self.fullscreen),('Ctrl+I',self.info_active)]:
             action=QAction(self);action.setShortcut(QKeySequence(shortcut));action.triggered.connect(callback);self.addAction(action)
     def clock(self):
         seconds=self.state.get('clock_seconds',False)
@@ -397,6 +399,17 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         try:result=fn();self.disk_changed.emit();self.play_sound(sound);return result
         except (OSError,ValueError,KeyError) as ex:self.error(ex)
     def launch(self,name,key=None):
+        if name in ('Screenshot','Laptop Controls'):
+            from screenshots import Screenshots
+            from laptop_controls import LaptopControls
+            cls=Screenshots if name=='Screenshot' else LaptopControls
+            target=self.area.activeSubWindow()
+            for window in self.area.subWindowList():
+                if isinstance(window.content,cls):
+                    if name=='Screenshot' and target is not window:window.content.target=target
+                    self.activate_window(window);return window
+            panel=Screenshots(self,target) if name=='Screenshot' else LaptopControls(self)
+            return self.window(name,panel,(690,510))
         if name in ('Macaque Web','Workspaces','Welcome Center'):
             cls,size={'Macaque Web':(Browser,(1050,690)),'Workspaces':(WorkspaceOverview,(1060,440)),'Welcome Center':(Welcome,(690,560))}[name]
             for w in self.area.subWindowList():
