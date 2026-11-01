@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.30'
+VERSION='0.30.1'
 
 from menu_compat import Menu as QMenu
 

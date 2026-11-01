@@ -8,7 +8,7 @@ def stage(dest,live=False):
         p=dest/target;p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/source,p);p.chmod(mode)
     for name in ['macaque-greeter','macaque-greeter-client','macaque-lock','macaque-action']:
         put('usr/local/bin/'+name,'wayland/'+name,0o755)
-    put('etc/xdg/macaque/labwc/rc.xml','wayland/labwc/rc.xml')
+    put('etc/xdg/macaque/labwc/rc.xml','../desktop/labwc-rc.xml')
     put('etc/xdg/macaque/greeter/rc.xml','wayland/greeter/rc.xml')
     put('usr/share/themes/Macaque Platinum/openbox-3/themerc','wayland/themerc')
     put('usr/share/themes/Macaque Platinum/gtk-3.0/gtk.css','startup/gtk.css')

@@ -1,4 +1,4 @@
-# Macaque Classic 0.30 — Wayland preview
+# Macaque Classic 0.30.1 — Wayland preview
 
 A classic-inspired Qt desktop with an embedded Control Strip, internal apps and a Debian 13 live/install image builder. The new OS session uses **native Wayland** through labwc, with greetd/gtkgreet login. This download is a **source/build kit, not a finished ISO**. Existing installations do not change until you build/install the new image or explicitly install an update.
 
@@ -11,7 +11,7 @@ git clone https://github.com/Zerocool66612/Classic-Macaque-Os.git
 cd Classic-Macaque-Os
 ```
 
-For the downloaded kit, open its extracted `macaque-classic-installer-kit-v0.30` folder in a terminal. If Docker is not installed:
+For the downloaded kit, open its extracted `macaque-classic-installer-kit-v0.30.1` folder in a terminal. If Docker is not installed:
 
 ```bash
 sudo apt update
@@ -27,9 +27,13 @@ bash build-iso.sh
 
 The privileged Docker container runs Debian live-build mount/chroot operations. It mounts only this kit and its output folder, not host disks or your home directory. It does not flash USB sticks or install Macaque on the build computer.
 
-A successful build writes `output/macaque-classic-0.30-installer-DATE-TIME.iso`, its SHA-256 checksum, logs, a package manifest and a desktop `.deb`. The `iso/` folder contains builder source. It is not the boot image. Write the finished `.iso` with your USB imaging tool, then boot that USB. Test on an empty virtual disk before installing to a laptop. Calamares lets you review disk changes before applying them.
+A successful build writes `output/macaque-classic-0.30.1-installer-DATE-TIME.iso`, its SHA-256 checksum, logs, a package manifest and a desktop `.deb`. The `iso/` folder contains builder source. It is not the boot image. Write the finished `.iso` with your USB imaging tool, then boot that USB. Test on an empty virtual disk before installing to a laptop. Calamares lets you review disk changes before applying them.
 
 Keep source unchanged while building. Retained `output/build-*` folders are diagnostic workspaces. The builder reads back the entire generated SquashFS and checks BIOS/EFI entries; this does not replace a boot test.
+
+## 0.30.1 packaging repair
+
+The desktop now includes its own labwc configuration. Both the installed session and nested preview use that same file. Build-kit checks run test_creative.py from the staged /opt/macaque-classic layout, where the 0.30 build failed. This fixes the reported hook failure; full ISO assembly/boot still requires the builder machine.
 
 ## What changed for Wayland
 
@@ -50,7 +54,7 @@ Debian's labwc package depends on the `xwayland` package, so compatibility binar
 On the installed Macaque target only:
 
 ```bash
-sudo apt install ./packages/macaque-classic_0.30_amd64.deb
+sudo apt install ./packages/macaque-classic_0.30.1_amd64.deb
 ```
 
 APT may download dependencies. The package builds the native Control Strip against the target Qt, backs up the prior greetd configuration once, configures the new Wayland login and selects greetd for the next boot. Save your work and reboot. It does not change GRUB, partitions, kernels or user files. Display-manager migration and privileged package installation have not been tested on hardware here; there is no automatic rollback. For recovery, a text console can restore the previous LightDM service/configuration if that older installation still has it.
@@ -84,6 +88,6 @@ The default installation uses no swap, with an optional swap file. Install Prepa
 
 The 22 desktop suites pass using Qt offscreen. The build-kit tests check staged files, configuration, offline installer jobs, cached-package guards and bootloader arguments with fixtures/mocks. Wayland environment selection, Flatpak arguments, power-policy commands and shortcut request validation are covered. The local runtime denies Unix sockets, so the live shortcut transport test is explicitly skipped and a real compositor session cannot run here.
 
-No v0.30 ISO was assembled or booted in this environment. GPU/DRM startup, greetd/PAM login, actual locking/unlocking, screen capture, lid/suspend/resume, Wi-Fi authentication, removable-media authorization and the privileged desktop migration require target-machine testing. Fractional scaling, multiple monitors and external application compatibility are not validated. See `desktop/STATUS.md`.
+No v0.30.1 ISO was assembled or booted in this environment. GPU/DRM startup, greetd/PAM login, actual locking/unlocking, screen capture, lid/suspend/resume, Wi-Fi authentication, removable-media authorization and the privileged desktop migration require target-machine testing. Fractional scaling, multiple monitors and external application compatibility are not validated. See `desktop/STATUS.md`.
 
 Project direction and original Control Strip: Drew Owen. AI-assisted development. No general project redistribution license has been selected; upstream dependency notices remain in effect. Design previews and older desktop images in the repository are illustrations/historical captures, not proof of this Wayland build running.

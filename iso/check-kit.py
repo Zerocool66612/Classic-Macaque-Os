@@ -1,5 +1,5 @@
 """Static/generation checks only. Does not claim to build or boot an ISO."""
-import importlib.util,tempfile,subprocess,xml.etree.ElementTree as ET,hashlib
+import importlib.util,tempfile,subprocess,xml.etree.ElementTree as ET,hashlib,os,sys
 from pathlib import Path
 root=Path(__file__).resolve().parent.parent
 spec=importlib.util.spec_from_file_location('prepare',root/'iso/prepare.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
@@ -17,6 +17,9 @@ assert {'calamares','calamares-settings-debian','python3-pyside6.qttest','plymou
 with tempfile.TemporaryDirectory() as temp:
  dest=Path(temp)/'image';module.prepare(dest)
  assert (dest/'opt/macaque-classic/desktop.py').exists()
+ desktop=dest/'opt/macaque-classic'
+ assert (desktop/'labwc-rc.xml').read_bytes()==(dest/'etc/xdg/macaque/labwc/rc.xml').read_bytes()
+ subprocess.run([sys.executable,str(desktop/'test_creative.py')],cwd=desktop,env=dict(os.environ,QT_QPA_PLATFORM='offscreen'),check=True)
  assert (dest/'usr/local/libexec/macaque-swap-helper.py').is_file()
  assert not list((dest/'opt/macaque-classic/native').glob('*.so'))
  assert (dest/'opt/macaque-classic/chess/__init__.py').exists()

@@ -4,7 +4,7 @@ import os,sys,shutil,subprocess,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent
 REQUIRED=('labwc','dbus-run-session','swayidle','swaylock','wlopm')
-CONFIG=(ROOT.parent/'iso/wayland/labwc/rc.xml').read_text() if (ROOT.parent/'iso/wayland/labwc/rc.xml').is_file() else '<labwc_config><keyboard><default/></keyboard><mouse><default/></mouse></labwc_config>'
+CONFIG=(ROOT/'labwc-rc.xml').read_text()
 def main():
     missing=[n for n in REQUIRED if not shutil.which(n)]
     if missing:raise RuntimeError('Missing: '+', '.join(missing)+'. Run bash install-creative-apps.sh first.')
