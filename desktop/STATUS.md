@@ -1,3 +1,5 @@
+0.32: seven Laptop & Reliability panels: Touchpad, Displays with independent rollback, Power Profiles, Bluetooth, Audio Devices, Recovery & Diagnostics and Installer Status. All 28 desktop suites and build-kit checks pass using offscreen Qt and simulated hardware services. Installer logging tested with harmless child processes. ISO assembly, live hardware, physical installation and reboot remain unverified.
+
 0.31: installer password validation correction included; Screenshot app and Wayland grim/slurp capture; Laptop Controls and global media-key routing through PipeWire/logind; stable top-level ISO output with separate boot-check status. New service/capture boundaries checked using mocks, UI offscreen. Hardware/real Wayland capture not verified here.
 
 0.30.4: transparent idle system-menu button, accent hover/pressed state and a new white macaque side-profile icon. Boot stack unchanged from 0.30.3; user reached the desktop in VirtualBox after enabling 3D acceleration. Physical USB boot remains unverified.

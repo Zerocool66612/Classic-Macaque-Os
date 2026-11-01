@@ -32,6 +32,9 @@ class LaptopControls(QWidget):
         row=QHBoxLayout();v.addLayout(row)
         for text,op in [('Mute / unmute','mute'),('Microphone mute','mic-mute')]:b=QPushButton(text);b.clicked.connect(lambda checked=False,a=op:self.run({'action':a}));row.addWidget(b)
         b=QPushButton('Battery, lid and idle settings…');b.clicked.connect(lambda:d.launch('Battery & Power'));v.addWidget(b)
+        links=QHBoxLayout();v.addLayout(links)
+        for title,name in [('Touchpad','Touchpad'),('Displays','Displays'),('Power profiles','Power Profiles'),('Audio devices','Audio Devices')]:
+            button=QPushButton(title);button.clicked.connect(lambda checked=False,n=name:d.launch(n));links.addWidget(button)
         b=QPushButton('Refresh');b.clicked.connect(self.refresh);v.addWidget(b)
         note=QLabel('The brightness and speaker symbols on your laptop’s F-key row work across the Wayland session. Some keyboards require Fn or Fn Lock. Ordinary F1–F12 shortcuts remain available to apps. Brightness requires a backlight device; VM brightness is usually unavailable.');note.setWordWrap(True);v.addWidget(note);v.addStretch();self.timer=QTimer(self);self.timer.timeout.connect(self.refresh);self.timer.start(5000);self.refresh()
     def refresh(self):self.run({'action':'status'})

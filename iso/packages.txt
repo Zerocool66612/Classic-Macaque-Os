@@ -91,3 +91,7 @@ libpam-systemd
 libpam-modules
 libpam-runtime
 passwd
+bluez
+blueman
+power-profiles-daemon
+wlr-randr

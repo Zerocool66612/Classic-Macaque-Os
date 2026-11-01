@@ -12,4 +12,12 @@ export WLR_XWAYLAND=/usr/bin/false
 unset DISPLAY XAUTHORITY QT_PLUGIN_PATH QT_QPA_PLATFORM_PLUGIN_PATH
 if [ "${MACAQUE_NESTED_WAYLAND:-0}" != 1 ]; then unset WAYLAND_DISPLAY; fi
 mkdir -p "$HOME/.local/state/macaque"
-exec labwc -C /etc/xdg/macaque/labwc -S '/usr/bin/python3 /opt/macaque-classic/wayland_session.py' >> "$HOME/.local/state/macaque/compositor.log" 2>&1
+config_dir=/etc/xdg/macaque/labwc
+if [ -f /opt/macaque-classic/input_settings.py ]; then
+ if generated_dir=$(/usr/bin/python3 /opt/macaque-classic/input_settings.py --render "$config_dir/rc.xml"); then
+  config_dir=$generated_dir
+ else
+  echo "Touchpad preferences could not be generated; using the system compositor configuration." >&2
+ fi
+fi
+exec labwc -C "$config_dir" -S '/usr/bin/python3 /opt/macaque-classic/wayland_session.py' >> "$HOME/.local/state/macaque/compositor.log" 2>&1

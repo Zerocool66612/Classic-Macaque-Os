@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.31'
+VERSION='0.32'
 
 from menu_compat import Menu as QMenu
 
@@ -399,6 +399,12 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         try:result=fn();self.disk_changed.emit();self.play_sound(sound);return result
         except (OSError,ValueError,KeyError) as ex:self.error(ex)
     def launch(self,name,key=None):
+        if name in ('Touchpad','Displays','Power Profiles','Bluetooth','Audio Devices','Recovery & Diagnostics','Installer Status'):
+            from reliability_panels import Touchpad,Displays,PowerProfiles,Bluetooth,AudioDevices,Diagnostics,InstallerStatus
+            cls={'Touchpad':Touchpad,'Displays':Displays,'Power Profiles':PowerProfiles,'Bluetooth':Bluetooth,'Audio Devices':AudioDevices,'Recovery & Diagnostics':Diagnostics,'Installer Status':InstallerStatus}[name]
+            for window in self.area.subWindowList():
+                if isinstance(window.content,cls):self.activate_window(window);return window
+            return self.window(name,cls(self),(780,650))
         if name in ('Screenshot','Laptop Controls'):
             from screenshots import Screenshots
             from laptop_controls import LaptopControls

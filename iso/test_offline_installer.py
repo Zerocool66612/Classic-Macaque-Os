@@ -32,6 +32,7 @@ with tempfile.TemporaryDirectory() as temp:
  assert yaml.safe_load((mods/'bootloader.conf').read_text())['grubInstall']=='/usr/local/libexec/macaque-grub-install'
  users=yaml.safe_load((mods/'users.conf').read_text());assert users['passwordRequirements']=={'minLength':8,'maxLength':128}
  assert users['allowWeakPasswords'] is False and users['defaultGroups']==['sudo']
+ finished=yaml.safe_load((mods/'finished.conf').read_text());assert finished['restartNowMode']=='user-unchecked' and finished['restartNowCommand']=='systemctl reboot'
  config.configure(root)
  assert yaml.safe_load((mods/'users.conf').read_text())['passwordRequirements']=={'minLength':8,'maxLength':128}
 print('Offline BIOS/EFI package selection, checksum guards, job sequence and Macaque branding checks passed (mocked package install).')

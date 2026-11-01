@@ -3,7 +3,7 @@ import ast,json,math,operator,os,shutil,uuid
 from pathlib import Path
 
 CONTROL_PANELS=['Appearance','Date & Time','Memory','Desktop Disk','Sound & Devices','Screen Saver']
-APP_NAMES=['Macaque Text','Macaque Notes','Calculator','Macaque Search','Macaque Tiles','Macaque Clips','Date & Time','Appearance','Help Center','Macaque Files','Network','Sound','Display','Storage','System Monitor','GIMP','Audacity','OBS Studio','Chess','Macaque Paint','Tasks','Clockwork','Media Player','Archive Viewer','Character Map','Teapot Studio','Wallpapers','Mouse','Settings','Notifications','Classic Sounds','Backup & Recovery','Classic Mac Apps','Flatpak Apps','Downloads','Macaque Web','Workspaces','Welcome Center','Terminal','Battery & Power','USB Drives','Software Update','Screenshot','Laptop Controls']
+APP_NAMES=['Macaque Text','Macaque Notes','Calculator','Macaque Search','Macaque Tiles','Macaque Clips','Date & Time','Appearance','Help Center','Macaque Files','Network','Sound','Display','Storage','System Monitor','GIMP','Audacity','OBS Studio','Chess','Macaque Paint','Tasks','Clockwork','Media Player','Archive Viewer','Character Map','Teapot Studio','Wallpapers','Mouse','Settings','Notifications','Classic Sounds','Backup & Recovery','Classic Mac Apps','Flatpak Apps','Downloads','Macaque Web','Workspaces','Welcome Center','Terminal','Battery & Power','USB Drives','Software Update','Screenshot','Laptop Controls','Touchpad','Displays','Power Profiles','Bluetooth','Audio Devices','Recovery & Diagnostics','Installer Status']
 class Disk:
     def __init__(self,base):
         self.base=Path(base).resolve();self.base.mkdir(parents=True,exist_ok=True);self.root=self.base/'Macaque HD';self.trash=self.base/'Trash';self.index=self.base/'trash.json';self.migrations=[]
