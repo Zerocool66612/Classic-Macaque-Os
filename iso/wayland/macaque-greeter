@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+export XDG_SESSION_TYPE=wayland GDK_BACKEND=wayland GTK_THEME='Macaque Platinum'
+export WLR_XWAYLAND=/usr/bin/false
+unset DISPLAY WAYLAND_DISPLAY XAUTHORITY
+exec labwc -C /etc/xdg/macaque/greeter -S /usr/local/bin/macaque-greeter-client

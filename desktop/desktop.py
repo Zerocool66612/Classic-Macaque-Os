@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.29'
+VERSION='0.30'
 
 from menu_compat import Menu as QMenu
 
@@ -524,7 +524,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         if isinstance(content,SimpleText):content.find()
         else:self.launch('Macaque Search')
     def fullscreen(self):
-        if os.environ.get('MACAQUE_NATIVE_SESSION')=='1':return self.text_window('Creative Session display','Resize the outer Xephyr window to change the session size. Use Alt+Tab to switch native apps.')
+        if os.environ.get('MACAQUE_NATIVE_SESSION')=='1':return self.text_window('Creative Session display','Wayland manages display sizing. Use Alt+Tab to switch native apps; the Classic desktop stays behind them.')
         self.showNormal() if self.isFullScreen() else self.showFullScreen()
     def get_info(self,path):
         try:
@@ -533,7 +533,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def text_window(self,title,text,size=(490,340)):
         box=QTextEdit();box.setReadOnly(True);box.setPlainText(text);return self.window(title,box,size)
     def about(self):
-        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic 0.29</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
+        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic {VERSION}</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
     def control_panels(self):
         panel=QWidget();layout=QVBoxLayout(panel);grid=QGridLayout();layout.addLayout(grid)
         actions=[('Appearance','appearance',self.appearance),('Date & Time','clock',self.calendar),('Sound','computer',lambda:self.launch('Sound')),('Memory','computer',self.memory),('Desktop Disk','disk',lambda:self.text_window('Desktop Disk',f'Macaque HD is stored at:\n{self.disk.root}\n\nAvailable on host filesystem: {self.format_bytes(self.free_space())}')),('Screen Saver','computer',self.screensaver)]
@@ -594,6 +594,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def diagnostics(self):self.text_window('Diagnostics',f'Macaque Classic {VERSION}\nPython {platform.python_version()}\nData: {self.base}\n\nControl Strip: '+getattr(self,'strip_error','native C++ widget loaded'))
     def restart(self):
         if self.installer_busy():return self.text_window('Installer running','Finish or cancel installation before restarting the desktop.')
+        if os.environ.get('MACAQUE_WAYLAND_SESSION')=='1':return self.text_window('Restart Wayland Session','Save your work and close external apps, then quit the desktop to return to login. Sign in again to restart Macaque.')
         if os.environ.get('MACAQUE_NATIVE_SESSION')=='1':return self.text_window('Restart Creative Session','Save and quit your creative apps, close Macaque, then run bash run-creative.sh again.')
         if QMessageBox.question(self,'Restart Desktop?','Close and reopen Macaque Classic?',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)!=QMessageBox.Yes:return
         for window in self.area.subWindowList():
@@ -614,7 +615,7 @@ if __name__=='__main__':
     from PySide6.QtCore import QProcess
     QApplication.setAttribute(Qt.AA_ShareOpenGLContexts,True)
     QApplication.setAttribute(Qt.AA_DontUseNativeDialogs,True)
-    app=QApplication(sys.argv);app.setApplicationName('MacaqueClassic');app.setOrganizationName('MacaqueOS');app.setStyle('Fusion');app.setStyleSheet(STYLE)
+    app=QApplication(sys.argv);app.setDesktopFileName('org.macaque.Classic');app.setApplicationName('MacaqueClassic');app.setOrganizationName('MacaqueOS');app.setStyle('Fusion');app.setStyleSheet(STYLE)
     palette=app.palette();palette.setColor(QPalette.Window,QColor('#d5d4d0'));palette.setColor(QPalette.WindowText,QColor('#202020'));palette.setColor(QPalette.Base,QColor('#fffefb'));palette.setColor(QPalette.Text,QColor('#202020'));palette.setColor(QPalette.Button,QColor('#d5d4d0'));palette.setColor(QPalette.ButtonText,QColor('#202020'));app.setPalette(palette)
     desktop=Desktop()
     if '--dark' in sys.argv:desktop.set_mode('dark')
@@ -622,7 +623,12 @@ if __name__=='__main__':
     if os.environ.get('MACAQUE_NATIVE_SESSION')=='1':
         desktop.setWindowFlags(Qt.Window|Qt.FramelessWindowHint|Qt.WindowStaysOnBottomHint)
         desktop.setGeometry(app.primaryScreen().availableGeometry())
-    desktop.show()
+    if os.environ.get('MACAQUE_WAYLAND_SESSION')=='1':
+        desktop.setWindowFlags(Qt.Window|Qt.FramelessWindowHint)
+        from session_control import serve
+        desktop.session_server=serve(desktop)
+        desktop.showMaximized()
+    else:desktop.show()
     if '--screenshot' in sys.argv:
         def capture():
             desktop.launch('Applications').move(35,105);sound=desktop.launch('Sound');sound.move(805,455);sound.resize(500,300);desktop.grab().save(str(Path(__file__).parent/('preview-dark.png' if desktop.state.get('mode')=='dark' else 'preview-light.png')));desktop.quitting=True;app.quit()

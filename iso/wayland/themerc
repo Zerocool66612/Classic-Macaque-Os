@@ -1,0 +1,14 @@
+border.width: 1
+padding.height: 3
+padding.width: 3
+titlebar.height: 26
+window.active.title.bg.color: #d5d5d5
+window.active.title.text.color: #171717
+window.active.border.color: #444444
+window.inactive.title.bg.color: #bdbdbd
+window.inactive.title.text.color: #444444
+window.inactive.border.color: #777777
+menu.items.bg.color: #d5d5d5
+menu.items.text.color: #171717
+menu.items.active.bg.color: #287f70
+menu.items.active.text.color: #ffffff

@@ -16,6 +16,9 @@ def parse_flatpaks(text):
 
 def flatpak_command(app_id,volume,env):
     if not ID.fullmatch(app_id):raise ValueError('Invalid Flatpak application ID.')
+    if env.get('MACAQUE_WAYLAND_SESSION')=='1':
+        if not env.get('WAYLAND_DISPLAY') or not env.get('XDG_RUNTIME_DIR'):raise ValueError('The Wayland session is unavailable.')
+        return ['flatpak','run','--socket=wayland','--nosocket=x11','--nosocket=fallback-x11','--env=GDK_BACKEND=wayland','--env=QT_QPA_PLATFORM=wayland','--env=SDL_VIDEODRIVER=wayland','--filesystem='+str(Path(volume).resolve()),app_id]
     if env.get('MACAQUE_NATIVE_SESSION')!='1' or not re.fullmatch(r':\d+(?:\.\d+)?',env.get('DISPLAY','')):raise ValueError('Start Macaque with bash run-creative.sh first.')
     # Flatpak handles its own Xauthority forwarding for the current DISPLAY.
     # Do not override XAUTHORITY to a host path inside the sandbox.
@@ -62,7 +65,7 @@ class AppSupport:
             command=flatpak_command(app_id,self.d.disk.root,os.environ)
         except (ValueError,OSError,subprocess.TimeoutExpired) as ex:self.d.error(ex);return
         # Preserve normal Flatpak locations/configuration; only clear Qt's injected
-        # library paths and force X11. Retain the nested session's private bus.
+        # library paths and use the active session backend. Retain the nested session's private bus.
         env=child_environment(os.environ,Path(os.environ.get('XDG_CONFIG_HOME',Path.home()/'.config')));self.spawn('Flatpak '+app_id,command,env)
     def launch_classic(self,config):
         if not self.session_ready():return
@@ -85,7 +88,7 @@ class AppSupport:
 class FlatpakApps(QWidget):
     app_name='Flatpak Apps'
     def __init__(self,d):
-        super().__init__();self.d=d;self.manager=d.app_support;layout=QVBoxLayout(self);layout.addWidget(QLabel('Native Linux · Flatpak Apps'));info=QLabel('Installed Flatpaks are discovered here. Launch in App Session to keep their windows inside the outer Macaque desktop. X11-capable apps only; each launch grants read/write access to Macaque HD.');info.setWordWrap(True);layout.addWidget(info);self.search=QLineEdit();self.search.setPlaceholderText('Filter installed Flatpak apps…');layout.addWidget(self.search);self.items=QListWidget();self.items.setIconSize(QSize(28,28));layout.addWidget(self.items,1);row=QHBoxLayout();layout.addLayout(row)
+        super().__init__();self.d=d;self.manager=d.app_support;layout=QVBoxLayout(self);layout.addWidget(QLabel('Native Linux · Flatpak Apps'));info=QLabel('Installed Flatpaks are discovered here. Launch in App Session to keep their windows inside the outer Macaque desktop. The Wayland session requires Wayland-capable apps; each launch grants read/write access to Macaque HD.');info.setWordWrap(True);layout.addWidget(info);self.search=QLineEdit();self.search.setPlaceholderText('Filter installed Flatpak apps…');layout.addWidget(self.search);self.items=QListWidget();self.items.setIconSize(QSize(28,28));layout.addWidget(self.items,1);row=QHBoxLayout();layout.addLayout(row)
         self.refresh_button=QPushButton('Refresh');self.refresh_button.clicked.connect(self.refresh);row.addWidget(self.refresh_button);launch=QPushButton('Launch selected');launch.clicked.connect(self.launch);row.addWidget(launch);self.install_button=QPushButton('Install from file…');self.install_button.clicked.connect(self.install);row.addWidget(self.install_button);self.status=QLabel();self.status.setWordWrap(True);layout.addWidget(self.status);self.output=QPlainTextEdit();self.output.setReadOnly(True);self.output.setMaximumHeight(110);self.output.document().setMaximumBlockCount(300);layout.addWidget(self.output);self.search.textChanged.connect(self.filter);self.items.itemActivated.connect(lambda _:self.launch());self.query_timeout=QTimer(self);self.query_timeout.setSingleShot(True);self.query_timeout.timeout.connect(self.timeout);self.query=QProcess(self);self.query.setProcessChannelMode(QProcess.MergedChannels);self.query.finished.connect(self.listed);self.query.errorOccurred.connect(lambda *a:self.status.setText(self.query.errorString()));self.refresh()
     def refresh(self):
         if self.query.state()!=QProcess.NotRunning:return

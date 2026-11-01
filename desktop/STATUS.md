@@ -1,3 +1,5 @@
+0.30 Wayland preview: labwc native session; greetd/gtkgreet login; swaylock and swayidle; wlopm blanking; wlroots/GTK portals; Wayland-only native/Flatpak launches; compositor shortcut IPC and foot recovery; shared ISO/update staging. Custom lid actions are disabled; logind manages lid suspend. 22 desktop suites pass offscreen. AF_UNIX is denied by the authoring runtime, so live shortcut transport is explicitly skipped and a real Wayland compositor was not run. ISO generation/staging tests pass. No ISO assembly/boot, DRM/GPU output, PAM login/unlock, screen sharing, suspend/resume or privileged display-manager migration was tested here. The .deb is assembled and inspected, not installed on a target.
+
 0.29 Laptop & Updates: GUI Wi-Fi secrets over stdin to NetworkManager D-Bus; saved profile controls; battery alerts, brightness/lid/idle controls through logind and Xfce power manager; LightDM/light-locker integration; UDisks removable discovery, mount/eject, staged non-overwriting file copy; checksummed desktop release downloads and local .deb updates; APT system maintenance. Native daemon startup included. Service calls use fixtures/mocks; actual Wi-Fi authentication, lock/unlock/suspend/lid/backlight, USB filesystems and APT package installation are not verified on hardware. The .deb archive is built/extracted/inspected; its postinst compile is not executed in a real target chroot. No ISO was assembled in the authoring environment.
 
 0.28: login-style platinum top bar with matching graphite dark variant. Desktop styling only; no bootloader behavior changes.
@@ -28,10 +30,10 @@ v0.21: animation and monochrome icon checks added. Timed Qt offscreen transition
 | Flatpak discovery/install/launch | Experimental integration; real launch not verified here |
 | Basilisk II/SheepShaver | Configuration/launch arguments checked; no guest boot verified |
 | Mac OS 9.2.2 application compatibility | Not implemented |
-| Bootable OS, display server, secure lock | Not implemented |
+| Wayland OS session, login and secure lock | Implemented in ISO source; hardware/PAM integration unverified |
 
-The Python desktop and native strip are a prototype. The optional App Session
-uses Xephyr/Openbox. It has not been established as a production desktop session.
+The Python desktop and native strip are a prototype. The OS and optional nested App Session
+use labwc/Wayland. They have not been established as a production desktop session.
 External apps keep native decorations and use Alt+Tab; the Window menu counts
 internal Qt windows only. Closing the outer session window can lose unsaved work.
 
@@ -41,9 +43,8 @@ Project direction and original Control Strip: Drew Owen. AI-assisted development
 No general open-source license has been selected for this project. Publication of
 source is not a grant of a new redistribution license. Existing upstream notices
 and dependency licenses remain in effect. No Apple ROM, OS image or Mac application
-is bundled. The included native strip binary is Linux x86-64; source and rebuild
-instructions are included. No host user data is included in the preview package.
+is bundled. The native strip builds from included source against the target Qt. No host user data is included in the preview package.
 
 Before calling compatibility complete, test on the target Ryzen 7 / RX 6700 XT:
-HTTPS download → Flatpak install → nested launch, actual sound/video, keyboard
+HTTPS download → Flatpak install → Wayland launch, actual sound/video, keyboard
 focus and graphics, and a guest boot with a supplied emulator/ROM/disk combination.

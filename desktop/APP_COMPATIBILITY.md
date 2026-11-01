@@ -1,3 +1,5 @@
+> Current release: **0.30 Wayland preview**. Read the root README for current ISO, session and compatibility instructions. The older release notes below describe the previous prototype; references to Xephyr/Openbox and X11 do not describe the new OS session.
+
 # Macaque Classic 0.13 — App Compatibility (experimental)
 
 This update adds integration panels for native Linux Flatpaks and emulated classic

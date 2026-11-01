@@ -11,15 +11,16 @@ def build(output):
         for wheel in (ROOT/'vendor').glob('chess-*.whl'):
             with zipfile.ZipFile(wheel) as z:z.extractall(dest)
         session=root/'usr/local/bin/macaque-session';session.parent.mkdir(parents=True);shutil.copy2(ROOT/'iso/macaque-session',session);session.chmod(0o755)
-        entry=root/'usr/share/xsessions/macaque.desktop';entry.parent.mkdir(parents=True);entry.write_text('[Desktop Entry]\nName=Macaque Classic\nExec=/usr/local/bin/macaque-session\nType=Application\nDesktopNames=Macaque\n')
+        import runpy
+        runpy.run_path(str(ROOT/'iso/stage-wayland.py'))['stage'](root)
         control=root/'DEBIAN';control.mkdir()
         qt=[p for p in (ROOT/'iso/packages.txt').read_text().split() if p.startswith('python3-pyside6.')]
-        dependencies=['python3','python3-pyte','python3-dbus','qt6-base-dev','g++','pkg-config','qt6-qpa-plugins','qt6-image-formats-plugins','network-manager','udisks2','xfce4-power-manager','xfconf','lxpolkit','light-locker','lightdm','sudo','x11-xserver-utils','openbox','dbus-x11','ca-certificates',*qt]
+        dependencies=['python3','python3-pyte','python3-dbus','qt6-base-dev','g++','pkg-config','qt6-qpa-plugins','qt6-image-formats-plugins','network-manager','udisks2','lxpolkit','sudo','ca-certificates','labwc','greetd','gtkgreet','qt6-wayland','swayidle','swaylock','wlopm','foot','upower','dbus-user-session','xdg-desktop-portal','xdg-desktop-portal-wlr','xdg-desktop-portal-gtk','slurp','grim',*qt]
         (control/'control').write_text('Package: macaque-classic\nVersion: '+VERSION+'\nArchitecture: amd64\nMaintainer: Drew Owen\nSection: x11\nPriority: optional\nDepends: '+', '.join(dependencies)+'\nDescription: Macaque Classic desktop and laptop controls\n Desktop update for an existing Macaque installation. Does not alter GRUB,\n disk partitions, the kernel, or user files. Native Control Strip builds\n against the installed Qt libraries during configuration.\n')
         scripts={'preinst':'''#!/bin/sh
 set -eu
 if [ -e /etc/macaque-live ]; then echo 'Install on a disk before updating the desktop.' >&2; exit 1; fi
-if [ ! -f /etc/macaque-installed ] && { [ ! -f /opt/macaque-classic/desktop.py ] || [ ! -f /usr/share/xsessions/macaque.desktop ]; }; then
+if [ ! -f /etc/macaque-installed ] && { [ ! -f /opt/macaque-classic/desktop.py ] || { [ ! -f /usr/share/xsessions/macaque.desktop ] && [ ! -f /usr/share/wayland-sessions/macaque.desktop ]; }; }; then
  echo 'This desktop update requires an existing Macaque installation.' >&2; exit 1
 fi
 ''','postinst':'''#!/bin/sh
@@ -29,7 +30,15 @@ if [ "$1" = configure ]; then
  /usr/bin/python3 native/prepare.py
  g++ -std=c++17 -shared -fPIC -O2 $(pkg-config --cflags Qt6Widgets) native/embedded-strip.cpp $(pkg-config --libs Qt6Widgets) -o native/libclassic-strip-embedded.so.new
  mv native/libclassic-strip-embedded.so.new native/libclassic-strip-embedded.so
- echo 'Macaque desktop updated. Save work and log out/in to load the new session services.'
+ if [ -f /etc/greetd/config.toml ] && [ ! -f /etc/greetd/config.toml.before-macaque ]; then
+  cp -p /etc/greetd/config.toml /etc/greetd/config.toml.before-macaque
+ fi
+ install -m 644 /usr/share/macaque/greetd.toml /etc/greetd/config.toml
+ if [ -d /run/systemd/system ]; then
+  systemctl disable lightdm.service 2>/dev/null || true
+  systemctl enable --force greetd.service
+ fi
+ echo 'Macaque Wayland installed. Save your work and reboot to use the new login/session.'
 fi
 ''','postrm':'''#!/bin/sh
 set -eu

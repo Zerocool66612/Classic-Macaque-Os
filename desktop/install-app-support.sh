@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -e
-if ! command -v apt-get >/dev/null; then
- echo 'Install Flatpak, Xephyr, Openbox, xauth, x11-utils and dbus-run-session using your distribution package manager.'
- exit 1
-fi
+command -v apt-get >/dev/null || { echo "Use your distribution package manager to install flatpak labwc qt6-wayland swayidle swaylock wlopm foot dbus-daemon"; exit 1; }
 sudo apt-get update
-sudo apt-get install flatpak xserver-xephyr openbox xauth x11-utils dbus-daemon procps
-printf '\nApp Session dependencies installed. Run: bash run-app-session.sh\nClassic emulators, ROMs and Mac OS disks are supplied separately.\n'
+sudo apt-get install flatpak labwc qt6-wayland swayidle swaylock wlopm foot dbus-daemon
+printf "\nSetup complete. Preview from a Wayland host: bash run-app-session.sh\n"

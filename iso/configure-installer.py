@@ -6,8 +6,9 @@ import yaml,shutil
 def configure(root):
     root=Path(root);base=root/'etc/calamares';settings=base/'settings.conf'
     data=yaml.safe_load(settings.read_text());sequence=next(x['exec'] for x in data['sequence'] if 'exec' in x)
-    assert all(n in sequence for n in ['users','displaymanager','bootloader','unpackfs','umount']), 'Unexpected Debian Calamares sequence'
-    if 'shellprocess' not in sequence:sequence.insert(sequence.index('displaymanager'),'shellprocess')
+    assert all(n in sequence for n in ['users','bootloader','unpackfs','umount']), 'Unexpected Debian Calamares sequence'
+    if 'shellprocess' not in sequence:sequence.insert(sequence.index('displaymanager') if 'displaymanager' in sequence else sequence.index('bootloader'),'shellprocess')
+    if 'displaymanager' in sequence:sequence.remove('displaymanager')
     # Debian's helper downloads GRUB; use the cached packages in our target job.
     for online_job in ['bootloader-config','sources-media','sources-media-unmount','sources-final']:
         if online_job in sequence:sequence.remove(online_job)
@@ -18,7 +19,6 @@ def configure(root):
     options=yaml.safe_load(partition.read_text()) or {} if partition.exists() else {}
     options.update(userSwapChoices=['none','file'],initialSwapChoice='none')
     partition.write_text(yaml.safe_dump(options,sort_keys=False))
-    dm=yaml.safe_load((modules/'displaymanager.conf').read_text());dm['displaymanagers']=['lightdm'];dm['defaultDesktopEnvironment']={'executable':'/usr/local/bin/macaque-session','desktopFile':'macaque'};(modules/'displaymanager.conf').write_text(yaml.safe_dump(dm))
     users=yaml.safe_load((modules/'users.conf').read_text());users['doAutologin']=False;(modules/'users.conf').write_text(yaml.safe_dump(users))
     welcome=yaml.safe_load((modules/'welcome.conf').read_text());welcome['requirements']['requiredStorage']=25;welcome['requirements']['requiredRam']=4.0;(modules/'welcome.conf').write_text(yaml.safe_dump(welcome))
     packages=yaml.safe_load((modules/'packages.conf').read_text());packages['update_db']=False;packages['skip_if_no_internet']=False;(modules/'packages.conf').write_text(yaml.safe_dump(packages))

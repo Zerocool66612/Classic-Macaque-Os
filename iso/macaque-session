@@ -1,21 +1,15 @@
 #!/bin/sh
 set -eu
 if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then exec dbus-run-session -- "$0"; fi
-export QT_QPA_PLATFORM=xcb
-export MACAQUE_NATIVE_SESSION=1
-export XDG_CURRENT_DESKTOP=Macaque
-export XDG_SESSION_DESKTOP=macaque
+export MACAQUE_NATIVE_SESSION=1 MACAQUE_WAYLAND_SESSION=1
+export XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=macaque
+export XDG_CURRENT_DESKTOP=Macaque:wlroots
+export QT_QPA_PLATFORM=wayland GDK_BACKEND=wayland SDL_VIDEODRIVER=wayland
+export GTK_USE_PORTAL=1 QT_QPA_PLATFORMTHEME=
+# Debian's labwc package includes XWayland, but this session never starts its
+# server or supplies an X display to clients. No automatic X11 fallback.
+export WLR_XWAYLAND=/usr/bin/false
+unset DISPLAY XAUTHORITY QT_PLUGIN_PATH QT_QPA_PLATFORM_PLUGIN_PATH
+if [ "${MACAQUE_NESTED_WAYLAND:-0}" != 1 ]; then unset WAYLAND_DISPLAY; fi
 mkdir -p "$HOME/.local/state/macaque"
-openbox --config-file /etc/xdg/macaque/openbox.xml &
-wm=$!
-# User-session services: authentication, real locking, lid/idle power handling.
-services=""
-if command -v lxpolkit >/dev/null 2>&1; then lxpolkit >> "$HOME/.local/state/macaque/session-services.log" 2>&1 & services="$services $!"; fi
-if command -v light-locker >/dev/null 2>&1; then light-locker >> "$HOME/.local/state/macaque/session-services.log" 2>&1 & services="$services $!"; fi
-if command -v xfce4-power-manager >/dev/null 2>&1; then xfce4-power-manager --no-daemon >> "$HOME/.local/state/macaque/session-services.log" 2>&1 & services="$services $!"; fi
-cleanup() { for process in $services "$wm"; do kill "$process" 2>/dev/null || true; done; }
-trap cleanup EXIT HUP INT TERM
-cd /opt/macaque-classic
-if ! python3 desktop.py >> "$HOME/.local/state/macaque/session.log" 2>&1; then
- xterm -title 'Macaque startup failed — diagnostics' -e sh -c 'tail -80 "$HOME/.local/state/macaque/session.log"; echo "Press Enter to end session"; read answer'
-fi
+exec labwc -C /etc/xdg/macaque/labwc -S '/usr/bin/python3 /opt/macaque-classic/wayland_session.py' >> "$HOME/.local/state/macaque/compositor.log" 2>&1

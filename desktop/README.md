@@ -1,3 +1,5 @@
+> Current release: **0.30 Wayland preview**. Read the root README for current ISO, session and compatibility instructions. The older release notes below describe the previous prototype; references to Xephyr/Openbox and X11 do not describe the new OS session.
+
 ## Laptop & Updates (0.29)
 
 Controls now opens Wi-Fi & Network, Battery & Power, USB Drives and Software Update. Use the root build-kit README for update/install instructions and current hardware-test limitations. Ctrl+Alt+L requests the real session locker in a native Macaque login session. The Screen Saver Preview remains a visual effect.

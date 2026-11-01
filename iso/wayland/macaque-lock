@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+[ "${XDG_SESSION_TYPE:-}" = wayland ] && [ -n "${WAYLAND_DISPLAY:-}" ] || { echo 'A native Wayland session is required.' >&2; exit 1; }
+# -f only returns once the compositor lock is established. PAM checks the user
+# password; this is not a Qt overlay or the old screen-saver preview.
+exec swaylock -f -c 2d3437 -i /usr/share/backgrounds/macaque-login.png

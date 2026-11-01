@@ -19,4 +19,8 @@ with tempfile.TemporaryDirectory() as data:
   d.launch_installer_wizard();assert spawn.call_args.args[0]==['/usr/bin/sudo','-n','--','/usr/bin/calamares'];assert d.installer_busy()
   event=QCloseEvent();d.closeEvent(event);assert not event.isAccepted()
  process.poll.return_value=0;assert not d.installer_busy();d.quitting=True;d.hide()
+ process.poll.return_value=None;d.installer_process=None
+ with patch.dict(os.environ,{'MACAQUE_WAYLAND_SESSION':'1','WAYLAND_DISPLAY':'wayland-7'}),patch('installer_support.installer_available',return_value=True),patch('installer_support.QMessageBox.question',return_value=QMessageBox.Yes),patch('installer_support.subprocess.Popen',return_value=process) as spawn:
+  d.launch_installer_wizard();assert spawn.call_args.args[0]==['/usr/bin/sudo','-n','--','/usr/local/libexec/macaque-wayland-installer','wayland-7']
+ process.poll.return_value=0
 print('Installer launcher/exit-guard checks passed. No real installer process launched.')

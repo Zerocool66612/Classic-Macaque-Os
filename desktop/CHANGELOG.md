@@ -1,3 +1,7 @@
+## 0.30 Wayland preview
+
+Native labwc session, greetd/gtkgreet login, swaylock/swayidle, portals, Wayland-only launch rules and compositor shortcut integration. Lid overrides disabled pending implementation; logind owns lid policy. Offscreen/fixture checks pass; live GPU/PAM/locking/installer integration still requires machine testing.
+
 # Changelog
 
 ## 0.20 — Web, workspaces and files

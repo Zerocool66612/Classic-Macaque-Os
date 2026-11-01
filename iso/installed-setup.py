@@ -10,11 +10,12 @@ def configure(root):
         p=root/name
         if p.is_file() or p.is_symlink():p.unlink()
     marker=root/'etc/macaque-installed';marker.parent.mkdir(parents=True,exist_ok=True);marker.write_text('Macaque installed target\n')
-    main=root/'etc/lightdm/lightdm.conf'
-    if main.is_file():
-        main.write_text(''.join(line for line in main.read_text().splitlines(keepends=True) if not line.lstrip().startswith(('autologin-user=', 'autologin-user-timeout=', 'autologin-session='))))
-    dest=root/'etc/lightdm/lightdm.conf.d/60-macaque-installed.conf';dest.parent.mkdir(parents=True,exist_ok=True)
-    dest.write_text('[Seat:*]\nuser-session=macaque\n')
+    config=root/'etc/greetd/config.toml'
+    if config.exists():config.write_text(config.read_text().split('[initial_session]')[0])
+    unit=root/'etc/systemd/system/display-manager.service'
+    unit.parent.mkdir(parents=True,exist_ok=True)
+    if unit.is_symlink() or unit.exists():unit.unlink()
+    unit.symlink_to('/usr/lib/systemd/system/greetd.service')
 if __name__=='__main__':
     if sys.argv[1:]!=['--calamares-target']:raise SystemExit('Only intended for the Calamares target chroot.')
     configure('/')

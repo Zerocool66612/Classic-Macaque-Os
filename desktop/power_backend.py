@@ -29,6 +29,12 @@ def backlights(root='/sys/class/backlight'):
 
 def action(payload):
     operation=payload.get('action','status')
+    if operation!='status' and os.environ.get('MACAQUE_PREVIEW_SESSION')=='1':raise ValueError('Power changes are disabled in the nested desktop preview.')
+    if os.environ.get('MACAQUE_WAYLAND_SESSION')=='1' and operation in ('status','apply'):
+        from wayland_power import preferences,save
+        if operation=='status':return {'available':bool(shutil.which('swayidle')),'values':preferences(),'backlights':backlights(),'lid_managed':False}
+        if os.environ.get('MACAQUE_NATIVE_SESSION')!='1':raise ValueError('Use the Macaque login session.')
+        save(payload['values']);return {'message':'Idle preferences saved. Lid closing uses system suspend settings in this Wayland preview.'}
     if operation=='status':
         values={}
         for key,(name,kind,default) in PROPS.items():

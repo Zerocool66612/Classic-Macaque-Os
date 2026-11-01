@@ -5,7 +5,7 @@ from pathlib import Path
 PACKAGE='macaque-classic'
 def installed_target(root='/'):
     root=Path(root)
-    return not (root/'etc/macaque-live').exists() and ((root/'etc/macaque-installed').is_file() or ((root/'opt/macaque-classic/desktop.py').is_file() and (root/'usr/share/xsessions/macaque.desktop').is_file()))
+    return not (root/'etc/macaque-live').exists() and ((root/'etc/macaque-installed').is_file() or ((root/'opt/macaque-classic/desktop.py').is_file() and ((root/'usr/share/xsessions/macaque.desktop').is_file() or (root/'usr/share/wayland-sessions/macaque.desktop').is_file())))
 def metadata(path):
     out=subprocess.check_output(['/usr/bin/dpkg-deb','--show','--showformat=${Package}\n${Version}\n${Architecture}\n',str(path)],text=True,timeout=20).splitlines()
     if len(out)!=3 or out[0]!=PACKAGE or out[2] not in ('amd64','all') or not re.fullmatch(r'[0-9][A-Za-z0-9.+:~\-]*',out[1]):raise ValueError('Choose an amd64 Macaque Classic desktop package.')

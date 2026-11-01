@@ -1,4 +1,4 @@
-"""Allowlisted native programs, only in the explicitly nested X11 session."""
+"""Allowlisted native programs in the Macaque desktop session."""
 import os,shutil,subprocess
 from pathlib import Path
 from PySide6.QtWidgets import QMessageBox
@@ -10,6 +10,9 @@ CREATIVE_APPS={
 
 def child_environment(base,config):
     env=dict(base)
+    if base.get('MACAQUE_WAYLAND_SESSION')=='1':
+        from wayland_session import native_environment
+        env=native_environment(base);env['XDG_CONFIG_HOME']=str(config);return env
     for key in ('WAYLAND_DISPLAY','QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH','QT_QPA_FONTDIR','LD_LIBRARY_PATH','SESSION_MANAGER'):
         env.pop(key,None)
     env.update(QT_QPA_PLATFORM='xcb',GDK_BACKEND='x11',SDL_VIDEODRIVER='x11',XDG_SESSION_TYPE='x11',XDG_CURRENT_DESKTOP='Macaque',QT_QPA_PLATFORMTHEME='',GTK_USE_PORTAL='0',XDG_CONFIG_HOME=str(config))
@@ -43,7 +46,7 @@ class CreativeApps:
         from PySide6.QtCore import QTimer
         def check():
             if process.poll() is not None and process.returncode:
-                self.d.text_window(name+' exited',f'{name} exited with code {process.returncode}.\nLog: {logs/(program+".log")}\n\nGPU support is experimental in the nested display.')
+                self.d.text_window(name+' exited',f'{name} exited with code {process.returncode}.\nLog: {logs/(program+".log")}\n\nThis Wayland session requires a Wayland-capable build. See the log for backend or graphics errors.')
         QTimer.singleShot(2500,check)
     def can_close(self):
         running=[name for name,p in self.processes.items() if p.poll() is None]

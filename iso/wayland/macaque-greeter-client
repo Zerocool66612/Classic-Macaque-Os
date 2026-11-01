@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+unset DISPLAY XAUTHORITY
+export GDK_BACKEND=wayland
+exec gtkgreet -l -c /usr/local/bin/macaque-session -s /etc/greetd/macaque.css

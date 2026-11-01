@@ -1,147 +1,89 @@
-# Macaque Classic 0.29 installer build kit
+# Macaque Classic 0.30 — Wayland preview
 
-This repository contains the desktop source and ISO builder, **not a finished ISO**. Existing installations do not update automatically.
+A classic-inspired Qt desktop with an embedded Control Strip, internal apps and a Debian 13 live/install image builder. The new OS session uses **native Wayland** through labwc, with greetd/gtkgreet login. This download is a **source/build kit, not a finished ISO**. Existing installations do not change until you build/install the new image or explicitly install an update.
 
-## Get the source
+## Build the ISO on Ubuntu / Kubuntu
+
+Use an x86-64 Linux computer, an Internet connection, about 60 GB free space and preferably at least 8 GB RAM. Extract the `.tar.gz` into a new folder; do not merge it into an older kit. Alternatively clone the source:
 
 ```bash
 git clone https://github.com/Zerocool66612/Classic-Macaque-Os.git
 cd Classic-Macaque-Os
-python3 build-desktop-deb.py
 ```
 
-For a new live/install ISO, install Docker as described below and run `bash build-iso.sh`. The downloadable ChatGPT build kit includes a prebuilt desktop package in `packages/`; a Git clone requires building that package first.
-
-## Build on Ubuntu / Kubuntu
-
-You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.29` and run:
-
-```bash
-bash build-iso.sh
-```
-
-First-time builder setup:
+For the downloaded kit, open its extracted `macaque-classic-installer-kit-v0.30` folder in a terminal. If Docker is not installed:
 
 ```bash
 sudo apt update
 sudo apt install docker.io
 sudo systemctl start docker
+```
+
+Then build:
+
+```bash
 bash build-iso.sh
 ```
 
-The privileged Docker container is used for live-build mount/chroot operations. Only this kit and its output directory are mounted into it. The script does not write USB sticks, partition disks or install onto the host.
+The privileged Docker container runs Debian live-build mount/chroot operations. It mounts only this kit and its output folder, not host disks or your home directory. It does not flash USB sticks or install Macaque on the build computer.
 
-On success, `output/` contains `macaque-classic-0.29-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
+A successful build writes `output/macaque-classic-0.30-installer-DATE-TIME.iso`, its SHA-256 checksum, logs, a package manifest and a desktop `.deb`. The `iso/` folder contains builder source. It is not the boot image. Write the finished `.iso` with your USB imaging tool, then boot that USB. Test on an empty virtual disk before installing to a laptop. Calamares lets you review disk changes before applying them.
 
-## Laptop & Updates: 0.29
+Keep source unchanged while building. Retained `output/build-*` folders are diagnostic workspaces. The builder reads back the entire generated SquashFS and checks BIOS/EFI entries; this does not replace a boot test.
 
-### Update an already installed Macaque laptop (no ISO reinstall)
+## What changed for Wayland
 
-Extract this kit, then run on the installed Macaque system:
+- **Desktop session:** labwc owns the display; Qt, GTK and SDL clients use Wayland. The Classic desktop remains maximized beneath external apps. Alt+Tab switches between the desktop and external windows. Internal apps keep their classic window frames, animations, top bar and Control Strip.
+- **Login:** greetd runs a separate labwc/gtkgreet login compositor with the platinum artwork. Live media logs in as `macaque` once; installed systems require a username/password. The old LightDM session is no longer generated. The installer automatic-login option is not supported by this preview.
+- **Locking:** Ctrl+Alt+L and Battery & Power request swaylock, which authenticates with PAM. The visual Screen Saver Preview remains separate. The idle service requests locking before suspend and before blanking outputs.
+- **Power:** swayidle handles idle dimming/blanking; brightness uses logind. Lid closing uses logind's system suspend policy. Custom lid-action dropdowns are disabled in this preview. Battery readings and low-battery alerts remain available.
+- **Apps:** native launches and Flatpaks receive Wayland settings. Flatpak launches explicitly deny X11/fallback-X11 sockets. Wayland-capable builds are required; some Audacity, emulator or other older builds may not work. There is no automatic X11 fallback.
+- **Portals:** PipeWire plus the wlroots screen-cast/screenshot portal and GTK file-dialog portal are included. OBS must use its PipeWire/Wayland capture source; X11 capture sources do not apply.
+- **Terminal:** the built-in PTY terminal retains the Classic frame. Ctrl+Alt+T requests it through a user-only control socket; foot provides a recovery fallback if the desktop is unavailable.
 
-```bash
-cd ~/Downloads/macaque-classic-installer-kit-v0.29
-sudo apt install ./packages/macaque-classic_0.29_amd64.deb
-```
+Debian's labwc package depends on the `xwayland` package, so compatibility binaries/libraries can still be present. The session disables the XWayland server executable and removes X display credentials from clients. Presence of that dependency does not mean the session runs under X11. The old X11 client-environment branches remain for old prototype callers; the new OS and preview launchers select Wayland explicitly.
 
-APT asks before changes and may download dependencies. Save your work, then log out and back in so the new desktop and session services load. The package requires an existing Macaque install, refuses live media, and does not modify GRUB, partitions or user files. It compiles the Control Strip against your installed Qt. Keep the package/source from your previous release if you need to revert; this preview has no automatic rollback.
+## Updating an existing installed Macaque system
 
-### Included in this release
+**A fresh ISO test is recommended for this display-stack change.** Keep your working image and backups. The included desktop package is for an existing installed Macaque system, never your ordinary Ubuntu/Kubuntu build host or a live USB.
 
-- **Wi-Fi & Network:** classic password dialog, nearby-network list, hidden personal networks, saved profiles, reconnect/disconnect/forget. Secrets reach a user-session helper on stdin and NetworkManager over D-Bus, never shell arguments or Macaque preferences. Successful personal profiles belong to your Linux account. Open, WPA/WPA2 and WPA3 Personal are supported; enterprise/WEP/OWE configuration is not implemented in this panel.
-- **Battery & Power:** per-pack status, low-battery alerts at 20/10/5%, logind brightness, lid-close actions, idle dimming/blanking, suspend and real screen locking. Power controls change this laptop's session settings. Locking uses light-locker/LightDM; Ctrl+Alt+L requests it. The existing visual Screen Saver Preview is not a lock. No hibernation setup or battery-time estimate is claimed. Hardware testing remains necessary, especially lock/unlock and lid suspend.
-- **USB Drives:** inserted USB/SD volumes appear on the desktop. Open the panel to mount, browse, unmount, safely eject, or import/export individual files. System/root/boot/home/swap/live-media disks are excluded. UDisks handles authorization; busy media is never forced. Copies use a staged file and an atomic non-overwriting commit on Linux. Folder synchronization, encrypted volume unlocking and formatting are not included. Host/USB Finder views retain read-only editing rules; use the explicit import/export buttons for transfers.
-- **Software Update:** list Debian updates, authenticate through sudo in the built-in Terminal, refresh signed APT indexes and review an interactive apt upgrade. For Macaque itself, check GitHub Releases for amd64 desktop .deb + .sha256 assets, download/check them, or select a local package. Installation snapshots/verifies the selected package before APT confirmation. GitHub HTTPS plus a checksum is used; this is not a signed Macaque update repository. ISO-only releases are not desktop updates. No update is installed automatically.
-
-`lxpolkit`, `light-locker` and `xfce4-power-manager` start in the native login session and stop with it. USB access uses udisks2. The new ISO includes these services and python3-dbus. Prototype sessions report unavailable native power/lock features rather than pretending to lock or suspend.
-
-### Build/publish desktop updates
+On the installed Macaque target only:
 
 ```bash
-python3 build-desktop-deb.py
+sudo apt install ./packages/macaque-classic_0.30_amd64.deb
 ```
 
-This writes the package/checksum to `packages/`. The ISO builder also writes a desktop package/checksum to `output/` alongside the ISO. Publish matching .deb and .deb.sha256 assets in a GitHub Release to make that version discoverable by Software Update. Source commits alone do not become installed updates. Your release can include both the ISO and the desktop package; large ISO uploads still happen from your computer.
+APT may download dependencies. The package builds the native Control Strip against the target Qt, backs up the prior greetd configuration once, configures the new Wayland login and selects greetd for the next boot. Save your work and reboot. It does not change GRUB, partitions, kernels or user files. Display-manager migration and privileged package installation have not been tested on hardware here; there is no automatic rollback. For recovery, a text console can restore the previous LightDM service/configuration if that older installation still has it.
 
-### Validation limits
+Build a replacement package with `python3 build-desktop-deb.py`. Software Update discovers matching `.deb` plus `.deb.sha256` assets in GitHub Releases. Source pushes alone do not update installed machines. Downloads use GitHub HTTPS plus a checksum, not a signed Macaque package repository. No update installs automatically.
 
-Desktop and service-boundary tests run offscreen, with fake service responses and temporary files. Disk/boot, actual NetworkManager authentication, power/locking hardware, FAT/exFAT media and privileged APT installation need target-machine testing. Package assembly is not an installation or boot test.
+## Desktop features retained
 
-## Changes inherited from 0.28
+Wi-Fi personal-network passwords and profiles through NetworkManager; per-battery status; USB/SD discovery, mount/unmount/eject and explicit non-overwriting file import/export; signed Debian APT updates through the internal Terminal; internal file manager, text editor, notes, search, settings, backup/recovery, games, wallpapers, original sounds, animations and light/dark modes. Search defaults to the Classic data volume. External app windows remain compositor-managed rather than embedded Qt subwindows.
 
-**Login-style menu bar.** The desktop's light top bar now uses the login screen's platinum gradient (#f5f5f5 to #bdbdbd), dark lettering, bright upper edge and fine lower border. Dark mode uses the same raised treatment in graphite. Compact menu spacing, battery status, Controls and the white monkey mark remain; the mark has a teal backing for contrast. The change affects desktop styling only.
+No Apple ROM, operating-system image or application is included. Classic Mac emulator configuration is experimental and does not provide Mac OS 9.2.2 compatibility by itself. Wayland-capable emulator builds are needed in this session.
 
-## Changes inherited from 0.27
+## Preview without replacing your host desktop
 
-**Bootloader installation checks.** Calamares now invokes a checked GRUB installer that removes a stale device.map, forces fresh device probing with --recheck, refuses forced blocklist installation, regenerates grub.cfg, verifies the installed root UUID, kernel/initramfs and normal.mod, and records /var/log/macaque-bootloader.json. The selected disk/ESP still comes from Calamares; no helper silently writes other disks.
-
-**Two internal disks:** choose the intended bootloader drive in the installer and make that same drive first in the laptop firmware's boot order. An older GRUB on the other disk can still produce a missing UUID rescue prompt. Rebuilding alone cannot change firmware boot order or repair an already-installed disk. The observed failure was bypassed by pointing GRUB to the readable second disk; the exact on-disk cause remains unconfirmed.
-
-This kit is not a finished ISO. Boot files/configuration checks are not a substitute for reboot testing. Actual BIOS/UEFI installs remain unverified in the authoring environment.
-
-## Changes inherited from 0.26
-
-**Laptop Wi-Fi and battery.** Controls > Wi-Fi & Network now scans actual nearby networks, shows signal/security/current connection, turns Wi-Fi on/off and connects to visible or hidden networks. Connect opens nmcli's interactive password prompt inside the normal Macaque Terminal frame. Type your Wi-Fi password and press Enter; input may be hidden. No password is placed in a command line, shell history or Macaque preferences. NetworkManager saves successful profiles and reconnects. Existing wired connections remain managed by NetworkManager. Wi-Fi actions affect the running Linux system, including when the desktop is launched as a prototype.
-
-The quiet top bar now shows laptop battery percentage and charging state, updated every ten seconds. Click for per-battery details. No battery indicator is shown on desktops with no system battery. Unknown readings are shown honestly; peripheral batteries are excluded. No remaining-time estimate is invented.
-
-Added Atheros, Broadcom brcm80211 and MediaTek firmware alongside existing Intel/Realtek firmware, wpasupplicant and rfkill. Proprietary Broadcom wl-only adapters are not covered. Physical airplane-mode switches, unsupported drivers and enterprise authentication may require additional setup. Real laptop Wi-Fi and charging tests remain necessary.
-
-## Changes inherited from 0.25
-
-**Classic startup and login.** Original platinum gray startup panel, Macaque emblem, blue progress bar tied to Plymouth boot progress, and matching LightDM login theme. Live USB still logs in automatically; installed systems display the login screen unless you choose automatic login in the installer. Login authentication stays with LightDM/PAM. Keyboard layout, accessibility, session and shutdown controls remain available. Password and question prompts are supported by the boot theme; Esc switches to boot messages. Very early firmware/GRUB screens and unsupported graphics modes may still show text. This is a startup theme, not a new screen-lock feature.
-
-Build hook selects the Plymouth theme and regenerates installed kernel initramfs images; live and installed boot commands include quiet splash. Actual boot, sign-in and disk installation still require VM/hardware verification.
-
-## Changes inherited from 0.24
-
-**Built-in Terminal.** The Control Strip >_ button and desktop icon now open a real Linux shell inside the standard Macaque window, with traffic lights, animations and internal workspaces. Ctrl+C interrupts commands; Ctrl+Shift+C / V copies and pastes; Shift+PageUp / PageDown scrolls. This is a lightweight, monochrome VT-style terminal with ANSI cursor handling and scrollback, not a complete xterm replacement. Commands execute as your current Linux user and affect the running computer. xterm remains on the image as a fallback diagnostic tool.
-
-**Offline bootloader setup.** The builder downloads version-matched grub-pc and grub-efi-amd64 wrapper packages into the image and records checksums. Both GRUB platform binaries, shared tools, package dependencies and encryption-initramfs tools are preinstalled. Calamares installs the appropriate cached package inside the target chroot, verifies its checksum and uses its normal bootloader module to write the chosen disk/ESP. Debian's online bootloader-config and temporary online media-source jobs are removed from the workflow. Live-package removal remains enabled, with repository updates disabled. Standard installation no longer needs to resolve deb.debian.org for GRUB; building the ISO still needs Internet access. BIOS/UEFI installation and reboot remain to be tested in a VM. Secure Boot, encryption, manual partitioning and dual boot are not validated Macaque features.
-
-**Macaque installer branding.** Original Macaque monkey logo, welcome artwork, teal sidebar and three installation slides replace the Debian installer artwork. Required branding keys and referenced files are checked. Debian/Calamares licenses and underlying distro identity are preserved. The internal EFI bootloader ID remains `debian` for compatibility with Debian's signed GRUB paths; the desktop and installer product name are Macaque Classic.
-
-The Control Strip Terminal button, guided swap release, default **No swap**, optional swap file, QtTest dependency and submenu-lifetime fixes from previous builds are included.
-
-## First test
-
-1. Build the ISO, then write it with an image writer. Verify the write if available. Test a VM first with a new 40 GB virtual disk, 4–8 GB RAM and 2–4 CPUs; start with VMSVGA and 3D acceleration off.
-2. Boot the new image. Open Terminal from the Control Strip or desktop and verify it has Macaque decorations.
-3. Click **Install Macaque Classic**. In Install Preparation, identify the intended disk by model and capacity. Device letters can change between boots.
-4. If that disk has active swap, use **Release Selected Disk’s Swap**, confirm the named disk, and refresh to verify. The helper excludes the live boot disk and other disks, and does not format or remove partitions. It skips swap files/encrypted mappings and reports insufficient-memory errors.
-5. Continue to Calamares and select the same physical target again. Keep **No swap** for the initial test. Review the final summary before applying changes: installation can erase the selected disk.
-6. After successful installation, reboot and remove the USB when prompted. Verify login, Terminal, networking and a second reboot before trying another machine.
-
-Do not unplug live media while it is running. `SQUASHFS` / `loop0` input/output errors need investigation of the ISO/write/media/connection; this build does not establish that the earlier USB problem has been fixed.
-
-## Validation and limitations
-
-The authoring environment cannot assemble a bootable ISO because it lacks mount/chroot capabilities. Desktop tests, a real PTY shell, target-preparation fixtures, cached-package checksum checks and branding-file checks are performed separately. Mocked dpkg calls do not prove bootloader installation. The builder itself runs the desktop tests inside Debian before making the ISO, checks BIOS/EFI boot entries, and extracts the generated SquashFS to verify it can be read back.
-
-The live account is `macaque` with Debian Live's normal live-session administration policy. The installed account/password are chosen in Calamares. Live autologin defaults and live sudo policy are removed from the target. No Apple ROMs, classic OS images or emulator binaries are bundled. Flatpak is included; app installation requires its own Internet connection.
-
-For logs in the live session, use Terminal:
+From the extracted `desktop/` folder, `bash run.sh` starts the internal-app prototype in an ordinary host window. For a nested **Wayland** preview, use a host already logged into Wayland:
 
 ```bash
-sudo calamares -d 2>&1 | tee ~/installer-debug.log
+bash install-app-support.sh
+bash run-app-session.sh
 ```
 
-If installation is already running, finish or close that instance first. Files in the live home folder are temporary; save diagnostics externally before restarting.
+The nested preview does not change the host login manager. Physical power changes and screen locking are disabled there. Native apps are contained by the nested compositor. A host X11 session is not supported by this preview launcher. Creative-app setup remains optional: `bash install-creative-apps.sh`.
 
-Builds use current Debian repositories and a moving container tag, so they are not byte-for-byte reproducible. Preserve upstream notices and dependency licenses. No new general source license is selected by this kit.
+## Installer and boot notes
 
-## Desktop concepts
+Original Plymouth startup artwork and prompts are retained. Firmware/early GRUB messages may still appear. Calamares uses Macaque branding and launches as a native Wayland client from live media. The offline BIOS/EFI bootloader package cache, fresh GRUB device probing, root UUID checks and installer report remain in place. Choose the correct bootloader disk; another disk may still contain an older GRUB. The installer does not automatically rewrite other disks to repair their bootloaders.
 
-AI-generated visual concepts, not screenshots of the running release.
+The default installation uses no swap, with an optional swap file. Install Preparation can identify and explicitly release active swap on the chosen target. Busy/system disks are not force-unmounted. Nothing here establishes UNIX certification.
 
-![Light desktop concept](docs/concept-light.png)
+## Validation and limits
 
-![Dark desktop concept](docs/concept-dark.png)
+The 22 desktop suites pass using Qt offscreen. The build-kit tests check staged files, configuration, offline installer jobs, cached-package guards and bootloader arguments with fixtures/mocks. Wayland environment selection, Flatpak arguments, power-policy commands and shortcut request validation are covered. The local runtime denies Unix sockets, so the live shortcut transport test is explicitly skipped and a real compositor session cannot run here.
 
-## Actual menu-bar previews
+No v0.30 ISO was assembled or booted in this environment. GPU/DRM startup, greetd/PAM login, actual locking/unlocking, screen capture, lid/suspend/resume, Wi-Fi authentication, removable-media authorization and the privileged desktop migration require target-machine testing. Fractional scaling, multiple monitors and external application compatibility are not validated. See `desktop/STATUS.md`.
 
-Captured from the running Qt desktop in light and dark mode.
-
-![Platinum top bar](docs/topbar-light.png)
-
-![Graphite top bar](docs/topbar-dark.png)
+Project direction and original Control Strip: Drew Owen. AI-assisted development. No general project redistribution license has been selected; upstream dependency notices remain in effect. Design previews and older desktop images in the repository are illustrations/historical captures, not proof of this Wayland build running.

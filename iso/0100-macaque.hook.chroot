@@ -20,4 +20,4 @@ for image in /boot/initrd.img-*; do
     grep -q 'plymouth/themes/macaque/startup.png' /tmp/macaque-initramfs-files
 done
 dpkg-query -W > /usr/share/macaque-build/manifest.txt
-systemctl enable lightdm NetworkManager
+systemctl enable greetd NetworkManager

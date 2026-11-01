@@ -8,7 +8,7 @@ echo "Build workspace: $work"
 lb config --mode debian --distribution trixie --architectures amd64 \
  --binary-image iso-hybrid --archive-areas 'main contrib non-free-firmware' \
  --bootloaders 'syslinux grub-efi' --uefi-secure-boot enable \
- --debian-installer none --apt-recommends true --firmware-chroot true \
+ --debian-installer none --apt-recommends false --firmware-chroot true \
  --mirror-bootstrap https://deb.debian.org/debian/ \
  --mirror-chroot https://deb.debian.org/debian/ \
  --mirror-binary https://deb.debian.org/debian/ \
@@ -33,8 +33,8 @@ unsquashfs -processors 2 -no-progress -d "$work/readback-root" "$work/readback.s
 [[ -f "$work/readback-root/usr/share/macaque-bootloader/manifest.json" ]]
 [[ -f "$work/readback-root/etc/calamares/branding/macaque/show.qml" ]]
 [[ -f "$work/readback-root/usr/share/plymouth/themes/macaque/startup.png" ]]
-[[ -f "$work/readback-root/etc/lightdm/lightdm-gtk-greeter.conf" ]]
-name="macaque-classic-0.29-installer-$(date -u +%Y%m%d-%H%M%S).iso"
+[[ -f "$work/readback-root/etc/greetd/config.toml" ]]
+name="macaque-classic-0.30-installer-$(date -u +%Y%m%d-%H%M%S).iso"
 cp -- "$image" "/output/$name"
 (cd /output && sha256sum "$name" > "$name.sha256")
 cp chroot/usr/share/macaque-build/manifest.txt /output/package-manifest.txt

@@ -1,0 +1,8 @@
+[terminal]
+vt = 7
+switch = true
+[general]
+source_profile = false
+[default_session]
+command = "/usr/local/bin/macaque-greeter"
+user = "_greetd"

@@ -36,20 +36,24 @@ class PowerPanel(QWidget):
             field=self.fields[key]
             if isinstance(field,QComboBox):field.setCurrentIndex(max(0,field.findData(value)))
             else:field.setValue(value)
+        if data.get('lid_managed') is False:
+            for key in ('lid_ac','lid_battery'):
+                field=self.fields[key];field.setEnabled(False);field.setItemText(field.currentIndex(),'System lid policy (managed by logind)')
         self.backlight=data['backlights'][0] if data['backlights'] else None;self.brightness.setEnabled(bool(self.backlight))
         if self.backlight:self.brightness.setValue(self.backlight['percent'])
-        self.status.setText('Power preferences loaded (defaults where unset). Click Apply to change them.' if data['available'] else 'Power manager is missing. Use the new ISO or install the desktop update package.')
+        self.status.setText(('Wayland idle preferences loaded. Lid closing uses system suspend settings.' if data.get('lid_managed') is False else 'Power preferences loaded (defaults where unset). Click Apply to change them.') if data['available'] else 'Power manager is missing. Use the new ISO or install the desktop update package.')
     def apply(self):
         values={k:v.currentData() if isinstance(v,QComboBox) else v.value() for k,v in self.fields.items()};self.run({'action':'apply','values':values})
     def set_brightness(self):
         if self.backlight:self.run({'action':'brightness','device':self.backlight['name'],'percent':self.brightness.value()})
     def session_action(self,args):
+        if os.environ.get('MACAQUE_PREVIEW_SESSION')=='1':self.status.setText('Lock and suspend are disabled in the nested preview.');return
         if os.environ.get('MACAQUE_NATIVE_SESSION')!='1':self.status.setText('Use the Macaque login session for locking and suspend.');return
         if self.job:return
         self.job=Task(self,args,timeout=20000)
         def done(ok,text):self.job=None;self.status.setText('Request sent to the session service.' if ok else text)
         self.job.done.connect(done)
-    def lock(self):self.session_action(['light-locker-command','--lock'])
+    def lock(self):self.session_action(['/usr/local/bin/macaque-lock'] if os.environ.get('MACAQUE_WAYLAND_SESSION')=='1' else ['light-locker-command','--lock'])
     def suspend(self):
         if QMessageBox.question(self,'Suspend laptop','Save your work first. Suspend this laptop now?',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:self.session_action(['systemctl','suspend'])
     def can_close(self):

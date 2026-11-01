@@ -26,7 +26,8 @@ class InstallerSupport:
         if answer!=QMessageBox.Yes:return
         env=dict(os.environ)
         for key in ['QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH','LD_LIBRARY_PATH','PYTHONPATH']:env.pop(key,None)
-        try:self.installer_process=subprocess.Popen(['/usr/bin/sudo','-n','--','/usr/bin/calamares'],env=env)
+        command=['/usr/bin/sudo','-n','--','/usr/local/libexec/macaque-wayland-installer',os.environ.get('WAYLAND_DISPLAY','')] if os.environ.get('MACAQUE_WAYLAND_SESSION')=='1' else ['/usr/bin/sudo','-n','--','/usr/bin/calamares']
+        try:self.installer_process=subprocess.Popen(command,env=env)
         except OSError as ex:self.error(ex);return
         def check():
             if self.installer_process.poll() not in (None,0):self.text_window('Installer failed to start','See ~/.local/state/macaque/session.log for the error. No alternative disk commands were run.')

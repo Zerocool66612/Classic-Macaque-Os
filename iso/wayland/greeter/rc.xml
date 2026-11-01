@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<labwc_config>
+ <core><decoration>server</decoration><xwaylandPersistence>no</xwaylandPersistence></core>
+ <keyboard><default /></keyboard>
+</labwc_config>

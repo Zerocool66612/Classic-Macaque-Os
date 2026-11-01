@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/python3 /opt/macaque-classic/session_control.py "$@"

@@ -1,0 +1,5 @@
+window { background-image: url("file:///usr/share/backgrounds/macaque-login.png"); background-size: cover; background-position: center; color: #171717; font-family: "DejaVu Sans"; }
+box#body { background-image: linear-gradient(#eeeeee,#cecece); border: 2px solid #303030; border-radius: 3px; padding: 30px; box-shadow: 3px 4px 0 alpha(black,0.35); }
+entry { background: white; color: #171717; border: 2px inset #777777; border-radius: 0; padding: 8px; }
+button { background-image: linear-gradient(#fafafa,#c0c0c0); color: #171717; border: 1px solid #444444; border-radius: 3px; padding: 7px 15px; }
+label { color: #171717; }

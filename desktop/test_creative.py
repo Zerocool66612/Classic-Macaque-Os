@@ -34,7 +34,7 @@ class Checks(unittest.TestCase):
             start.assert_not_called()
     def test_wm_config_is_valid_xml(self):
         import xml.etree.ElementTree as ET
-        root=ET.fromstring(creative_session.CONFIG);self.assertTrue(root.tag.endswith('openbox_config'))
-        self.assertIn('<layer>below</layer>',creative_session.CONFIG)
+        root=ET.fromstring(creative_session.CONFIG);self.assertTrue(root.tag=='labwc_config')
+        self.assertIn('ToggleAlwaysOnBottom',creative_session.CONFIG)
 app=QApplication([])
 unittest.main()
