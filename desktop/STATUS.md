@@ -1,3 +1,5 @@
+0.29 Laptop & Updates: GUI Wi-Fi secrets over stdin to NetworkManager D-Bus; saved profile controls; battery alerts, brightness/lid/idle controls through logind and Xfce power manager; LightDM/light-locker integration; UDisks removable discovery, mount/eject, staged non-overwriting file copy; checksummed desktop release downloads and local .deb updates; APT system maintenance. Native daemon startup included. Service calls use fixtures/mocks; actual Wi-Fi authentication, lock/unlock/suspend/lid/backlight, USB filesystems and APT package installation are not verified on hardware. The .deb archive is built/extracted/inspected; its postinst compile is not executed in a real target chroot. No ISO was assembled in the authoring environment.
+
 0.28: login-style platinum top bar with matching graphite dark variant. Desktop styling only; no bootloader behavior changes.
 
 0.27: checked GRUB installation and fresh device probing; root UUID/menu/module checks and install diagnostic report. Actual bootloader writes, ISO assembly and BIOS/UEFI reboot remain untested here.

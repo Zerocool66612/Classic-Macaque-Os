@@ -79,3 +79,10 @@ firmware-brcm80211
 firmware-mediatek
 wpasupplicant
 rfkill
+
+python3-dbus
+udisks2
+xfce4-power-manager
+xfconf
+lxpolkit
+light-locker

@@ -3,7 +3,7 @@ import ast,json,math,operator,os,shutil,uuid
 from pathlib import Path
 
 CONTROL_PANELS=['Appearance','Date & Time','Memory','Desktop Disk','Sound & Devices','Screen Saver']
-APP_NAMES=['Macaque Text','Macaque Notes','Calculator','Macaque Search','Macaque Tiles','Macaque Clips','Date & Time','Appearance','Help Center','Macaque Files','Network','Sound','Display','Storage','System Monitor','GIMP','Audacity','OBS Studio','Chess','Macaque Paint','Tasks','Clockwork','Media Player','Archive Viewer','Character Map','Teapot Studio','Wallpapers','Mouse','Settings','Notifications','Classic Sounds','Backup & Recovery','Classic Mac Apps','Flatpak Apps','Downloads','Macaque Web','Workspaces','Welcome Center','Terminal']
+APP_NAMES=['Macaque Text','Macaque Notes','Calculator','Macaque Search','Macaque Tiles','Macaque Clips','Date & Time','Appearance','Help Center','Macaque Files','Network','Sound','Display','Storage','System Monitor','GIMP','Audacity','OBS Studio','Chess','Macaque Paint','Tasks','Clockwork','Media Player','Archive Viewer','Character Map','Teapot Studio','Wallpapers','Mouse','Settings','Notifications','Classic Sounds','Backup & Recovery','Classic Mac Apps','Flatpak Apps','Downloads','Macaque Web','Workspaces','Welcome Center','Terminal','Battery & Power','USB Drives','Software Update']
 class Disk:
     def __init__(self,base):
         self.base=Path(base).resolve();self.base.mkdir(parents=True,exist_ok=True);self.root=self.base/'Macaque HD';self.trash=self.base/'Trash';self.index=self.base/'trash.json';self.migrations=[]
@@ -18,7 +18,7 @@ class Disk:
             if old==str(legacy) and destination.resolve().is_relative_to(self.root.resolve()):self.migrations.append((legacy,destination))
         for p in [self.root,self.trash,self.root/'Documents',self.root/'Desktop',self.root/'Downloads',self.root/'Pictures',self.root/'Applications',self.root/'System Folder'/'Control Panels']:p.mkdir(parents=True,exist_ok=True)
         welcome=self.root/'Documents'/'Welcome to Macaque.txt'
-        if not (self.base/'.initialized').exists() and not welcome.exists():welcome.write_text('Welcome to Macaque Classic 0.24\n\nA classic desktop for your modern Linux computer.\n\nExplore the Macaque menu, open Applications, customize Appearance,\nand try your actual Classic Control Strip 2.0.6.\n\nFiles on Macaque HD are stored in your application data directory.\nThis desktop is an application, not a bootable operating system yet.\n')
+        if not (self.base/'.initialized').exists() and not welcome.exists():welcome.write_text('Welcome to Macaque Classic 0.29\n\nA classic desktop for your modern Linux computer.\n\nExplore the Macaque menu, open Applications, customize Appearance,\nand try your actual Classic Control Strip 2.0.6.\n\nFiles on Macaque HD are stored in your application data directory.\nOn an installed Macaque system, Controls provides Wi-Fi, power, USB drives and software updates.\n')
         aliases={'SimpleText':'Macaque Text','Finder':'Macaque Files','Sherlock':'Macaque Search','Stickies':'Macaque Notes','Puzzle':'Macaque Tiles','Scrapbook':'Macaque Clips'}
         for folder in [self.root/'Applications',self.root/'System Folder'/'Control Panels']:
             for old,new in aliases.items():

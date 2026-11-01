@@ -15,3 +15,7 @@ venv/
 *.ROM
 Macaque HD/
 desktop-state*.json
+
+# Generated desktop release packages
+packages/*.deb
+packages/*.sha256

@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.28'
+VERSION='0.29'
 
 from menu_compat import Menu as QMenu
 
@@ -101,7 +101,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     disk_changed=Signal()
     preferences_changed=Signal(str,object)
     def __init__(self,base=None):
-        super().__init__();self.setWindowTitle('Macaque Classic 0.28 — Macaque Desktop');self.resize(1360,880)
+        super().__init__();self.setWindowTitle('Macaque Classic 0.29 — Macaque Desktop');self.resize(1360,880)
         self.base=Path(base or os.environ.get('MACAQUE_DATA_DIR') or QStandardPaths.writableLocation(QStandardPaths.AppDataLocation));self.base.mkdir(parents=True,exist_ok=True);self.disk=Disk(self.base);self.state_path=self.base/'desktop-state.json'
         if self.disk.migrations and self.state_path.exists() and not (self.base/'desktop-state.before-0.6.json').exists():shutil.copy2(self.state_path,self.base/'desktop-state.before-0.6.json')
         try:self.state=json.loads(self.state_path.read_text())
@@ -116,6 +116,8 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         try:self.native_strip=NativeStrip(self);self.strip=self.native_strip.widget;self.sync_strip_theme()
         except Exception as ex:
             self.strip=QLabel('Control Strip could not load — Help → Diagnostics',self.area.viewport());self.strip.setStyleSheet('background:#ffebbd;color:#111;padding:6px;');self.strip.resize(410,35);self.strip.move(10,600);self.strip.show();self.strip_error=str(ex)
+        from removable_drives import RemovableMonitor
+        self.removable=RemovableMonitor(self)
         self.top_bar.help.addAction('Diagnostics',self.diagnostics);QTimer.singleShot(0,self.initial)
     def initial(self):
         self.arrange_icons();self.update_icon_visibility()
@@ -150,7 +152,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def play_sound(self,key):
         if os.environ.get('MACAQUE_SILENT')!='1':return self.sound_theme.play(key)
     def quick_settings(self,menu):
-        menu.clear();menu.addAction('Terminal…',self.launch_terminal);menu.addAction('Settings…',self.settings);menu.addAction('Web Browser…',lambda:self.launch('Macaque Web'));workspace=menu.addMenu('Workspaces');self.workspace_menu(workspace);menu.addAction('Downloads…',lambda:self.launch('Downloads'));menu.addAction('App Compatibility…',lambda:self.launch('Classic Mac Apps'));menu.addAction('Flatpak Apps…',lambda:self.launch('Flatpak Apps'));menu.addAction('Classic Sounds…',lambda:self.launch('Classic Sounds'));menu.addSeparator()
+        menu.clear();menu.addAction('Battery & Power…',lambda:self.launch('Battery & Power'));menu.addAction('USB Drives…',lambda:self.launch('USB Drives'));menu.addAction('Software Update…',lambda:self.launch('Software Update'));menu.addSeparator();menu.addAction('Terminal…',self.launch_terminal);menu.addAction('Settings…',self.settings);menu.addAction('Web Browser…',lambda:self.launch('Macaque Web'));workspace=menu.addMenu('Workspaces');self.workspace_menu(workspace);menu.addAction('Downloads…',lambda:self.launch('Downloads'));menu.addAction('App Compatibility…',lambda:self.launch('Classic Mac Apps'));menu.addAction('Flatpak Apps…',lambda:self.launch('Flatpak Apps'));menu.addAction('Classic Sounds…',lambda:self.launch('Classic Sounds'));menu.addSeparator()
         mode=menu.addAction('Dark Mode');mode.setCheckable(True);mode.setChecked(self.state.get('mode','light')=='dark');mode.triggered.connect(self.toggle_dark)
         quiet=menu.addAction('Do Not Disturb');quiet.setCheckable(True);quiet.setChecked(self.state.get('do_not_disturb',False));quiet.toggled.connect(lambda v:self.set_preference('do_not_disturb',v))
         muted=menu.addAction('Mute Desktop Sounds');muted.setCheckable(True);muted.setChecked(not self.state.get('sounds_enabled',True));muted.toggled.connect(lambda v:(self.set_preference('sounds_enabled',not v),self.sound_theme.stop() if v else None))
@@ -212,7 +214,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
                     if result.returncode:return self.text_window('Sound unavailable',result.stderr or 'The host audio service rejected the request.')
                 except (OSError,subprocess.TimeoutExpired) as ex:return self.text_window('Sound unavailable',str(ex))
                 return None
-        if program=='loginctl':return self.text_window('Screen lock','Macaque cannot lock the host computer from this internal desktop. The visual screen saver is not a security lock.')
+        if program=='loginctl':return self.launch('Battery & Power').content.lock()
         return self.text_window('Not available inside Macaque',program+' is not an included Macaque application.\n\nNo host program was launched.')
     def persist(self):
         self.state.update({'stickies':self.stickies,'scraps':self.scraps,'recent':self.recent});Disk.write_json(self.state_path,self.state)
@@ -262,7 +264,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         pm=pm.copy((pm.width()-size.width())//2,(pm.height()-size.height())//2,size.width(),size.height())
         self.area.setBackground(QBrush(pm))
     def shortcuts(self):
-        for shortcut,callback in [('Ctrl+Alt+1',lambda:self.switch_workspace(0)),('Ctrl+Alt+2',lambda:self.switch_workspace(1)),('Ctrl+Alt+3',lambda:self.switch_workspace(2)),('Ctrl+Alt+4',lambda:self.switch_workspace(3)),('Ctrl+,',self.settings),('Ctrl+Shift+D',self.show_desktop),('Ctrl+Shift+P',self.capture_desktop),('Ctrl+Shift+Left',lambda:self.snap_window('left')),('Ctrl+Shift+Right',lambda:self.snap_window('right')),('F6',self.launch_palette),('Ctrl+Shift+Space',self.launch_palette),('Ctrl+N',lambda:self.launch('Macaque Text')),('Ctrl+O',self.open_dialog),('Ctrl+S',self.save_active),('Ctrl+Shift+S',lambda:self.save_active(True)),('Ctrl+W',self.close_active),('Ctrl+Q',self.close),('Ctrl+F',self.find),('F11',self.fullscreen),('Ctrl+I',self.info_active)]:
+        for shortcut,callback in [('Ctrl+Alt+1',lambda:self.switch_workspace(0)),('Ctrl+Alt+2',lambda:self.switch_workspace(1)),('Ctrl+Alt+3',lambda:self.switch_workspace(2)),('Ctrl+Alt+4',lambda:self.switch_workspace(3)),('Ctrl+Alt+L',lambda:self.launch('Battery & Power').content.lock()),('Ctrl+,',self.settings),('Ctrl+Shift+D',self.show_desktop),('Ctrl+Shift+P',self.capture_desktop),('Ctrl+Shift+Left',lambda:self.snap_window('left')),('Ctrl+Shift+Right',lambda:self.snap_window('right')),('F6',self.launch_palette),('Ctrl+Shift+Space',self.launch_palette),('Ctrl+N',lambda:self.launch('Macaque Text')),('Ctrl+O',self.open_dialog),('Ctrl+S',self.save_active),('Ctrl+Shift+S',lambda:self.save_active(True)),('Ctrl+W',self.close_active),('Ctrl+Q',self.close),('Ctrl+F',self.find),('F11',self.fullscreen),('Ctrl+I',self.info_active)]:
             action=QAction(self);action.setShortcut(QKeySequence(shortcut));action.triggered.connect(callback);self.addAction(action)
     def clock(self):
         seconds=self.state.get('clock_seconds',False)
@@ -335,6 +337,10 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         self.desktop_extras=[]
         for path in sorted((self.disk.root/'Desktop').iterdir())[:36]:
             b=DesktopIcon(self,self.area.viewport());b.setProperty('iconKey',str(path.relative_to(self.disk.root)));b.setProperty('filePath',str(path));b.setProperty('dropTarget',str(path) if path.is_dir() else None);b.setText(path.name);b.setIcon(icon('folder' if path.is_dir() else 'note'));b.setIconSize(QSize(48,48));b.setToolButtonStyle(Qt.ToolButtonTextUnderIcon);b.setFixedSize(125,86);b.setStyleSheet('QToolButton {background:transparent;color:white;border:0;font-weight:bold;} QToolButton:hover {background:#ffffff20;border:1px dotted white;} QToolButton:checked {background:#335fa877;border:1px solid #b4d8ff;}');b.setProperty('desktopCallback',lambda p=path:self.open_item(p));b.installEventFilter(self);b.setContextMenuPolicy(Qt.CustomContextMenu);b.customContextMenuRequested.connect(lambda pos,p=path,button=b:self.desktop_item_menu(button,p,pos));self.desktop_extras.append(b);b.show()
+        if hasattr(self,'removable'):
+            for drive in self.removable.disks:
+                for volume in drive['volumes']:
+                    b=DesktopIcon(self,self.area.viewport());b.setProperty('iconKey','usb:'+volume['device']);b.setText(volume['name']);b.setIcon(icon('disk'));b.setIconSize(QSize(48,48));b.setToolButtonStyle(Qt.ToolButtonTextUnderIcon);b.setFixedSize(125,86);b.setStyleSheet('QToolButton {background:transparent;color:white;border:0;font-weight:bold;} QToolButton:hover {background:#ffffff20;border:1px dotted white;}');b.setToolTip('Removable drive · double-click for mount/eject controls');b.setProperty('desktopCallback',lambda:self.launch('USB Drives'));b.installEventFilter(self);self.desktop_extras.append(b);b.show()
         self.arrange_icons()
         self.update_icon_visibility()
         if self.strip:self.strip.raise_()
@@ -430,11 +436,19 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         if name in CREATIVE_APPS:
             if not hasattr(self,'creative_apps'):self.creative_apps=CreativeApps(self)
             return self.creative_apps.launch(name)
+        if name in ('Battery & Power','USB Drives','Software Update'):
+            from power_panel import PowerPanel
+            from removable_drives import RemovableDrives
+            from update_panel import Updates
+            cls={'Battery & Power':PowerPanel,'USB Drives':RemovableDrives,'Software Update':Updates}[name]
+            for w in self.area.subWindowList():
+                if isinstance(w.content,cls):self.activate_window(w);return w
+            return self.window(name,cls(self),(820,590))
         if name=='Terminal':return self.launch_terminal()
         if name=='Applications':return self.window('Macaque Applications',AppHub(self),(730,500))
         if name=='Macaque Files':return self.open_finder(self.disk.root)
         for title,cls in [('Sound',Sound),('Network',Network),('Storage',Storage),('System Monitor',Monitor),('Display',Display)]:
-            if name==title:return self.window(title,cls(self),(590,390))
+            if name==title:return self.window(title,cls(self),(780,500) if title=='Network' else (590,390))
         if name=='Macaque Text':return self.window('Untitled',SimpleText(self),(650,460))
         if name=='Macaque Notes':
             if key:
@@ -519,7 +533,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def text_window(self,title,text,size=(490,340)):
         box=QTextEdit();box.setReadOnly(True);box.setPlainText(text);return self.window(title,box,size)
     def about(self):
-        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic 0.28</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
+        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic 0.29</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
     def control_panels(self):
         panel=QWidget();layout=QVBoxLayout(panel);grid=QGridLayout();layout.addLayout(grid)
         actions=[('Appearance','appearance',self.appearance),('Date & Time','clock',self.calendar),('Sound','computer',lambda:self.launch('Sound')),('Memory','computer',self.memory),('Desktop Disk','disk',lambda:self.text_window('Desktop Disk',f'Macaque HD is stored at:\n{self.disk.root}\n\nAvailable on host filesystem: {self.format_bytes(self.free_space())}')),('Screen Saver','computer',self.screensaver)]

@@ -11,7 +11,7 @@ subprocess.run(['python3',str(root/'iso/test_offline_installer.py')],check=True)
 subprocess.run(['python3',str(root/'iso/test_startup.py')],check=True)
 subprocess.run(['python3',str(root/'iso/test_bootloader_checked.py')],check=True)
 packages=set((root/'iso/packages.txt').read_text().split())
-assert {'calamares','calamares-settings-debian','python3-pyside6.qttest','plymouth','plymouth-themes','lightdm-gtk-greeter','initramfs-tools'}<=packages
+assert {'calamares','calamares-settings-debian','python3-pyside6.qttest','plymouth','plymouth-themes','lightdm-gtk-greeter','initramfs-tools','python3-dbus','udisks2','xfce4-power-manager','xfconf','lxpolkit','light-locker'}<=packages
 with tempfile.TemporaryDirectory() as temp:
  dest=Path(temp)/'image';module.prepare(dest)
  assert (dest/'opt/macaque-classic/desktop.py').exists()

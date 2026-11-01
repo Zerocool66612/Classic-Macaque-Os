@@ -8,7 +8,13 @@ export XDG_SESSION_DESKTOP=macaque
 mkdir -p "$HOME/.local/state/macaque"
 openbox --config-file /etc/xdg/macaque/openbox.xml &
 wm=$!
-trap 'kill "$wm" 2>/dev/null || true' EXIT HUP INT TERM
+# User-session services: authentication, real locking, lid/idle power handling.
+services=""
+if command -v lxpolkit >/dev/null 2>&1; then lxpolkit >> "$HOME/.local/state/macaque/session-services.log" 2>&1 & services="$services $!"; fi
+if command -v light-locker >/dev/null 2>&1; then light-locker >> "$HOME/.local/state/macaque/session-services.log" 2>&1 & services="$services $!"; fi
+if command -v xfce4-power-manager >/dev/null 2>&1; then xfce4-power-manager --no-daemon >> "$HOME/.local/state/macaque/session-services.log" 2>&1 & services="$services $!"; fi
+cleanup() { for process in $services "$wm"; do kill "$process" 2>/dev/null || true; done; }
+trap cleanup EXIT HUP INT TERM
 cd /opt/macaque-classic
 if ! python3 desktop.py >> "$HOME/.local/state/macaque/session.log" 2>&1; then
  xterm -title 'Macaque startup failed — diagnostics' -e sh -c 'tail -80 "$HOME/.local/state/macaque/session.log"; echo "Press Enter to end session"; read answer'

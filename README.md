@@ -1,4 +1,4 @@
-# Macaque Classic 0.28 installer build kit
+# Macaque Classic 0.29 installer build kit
 
 This repository contains the desktop source and ISO builder, **not a finished ISO**. Existing installations do not update automatically.
 
@@ -7,14 +7,14 @@ This repository contains the desktop source and ISO builder, **not a finished IS
 ```bash
 git clone https://github.com/Zerocool66612/Classic-Macaque-Os.git
 cd Classic-Macaque-Os
-bash build-iso.sh
+python3 build-desktop-deb.py
 ```
 
-Install Docker first as described below.
+For a new live/install ISO, install Docker as described below and run `bash build-iso.sh`. The downloadable ChatGPT build kit includes a prebuilt desktop package in `packages/`; a Git clone requires building that package first.
 
 ## Build on Ubuntu / Kubuntu
 
-You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.28` and run:
+You need x86-64 Linux, an Internet connection for the build, about 60 GB free space and preferably 8 GB RAM. If Docker is already installed and running, open a terminal inside `macaque-classic-installer-kit-v0.29` and run:
 
 ```bash
 bash build-iso.sh
@@ -31,9 +31,43 @@ bash build-iso.sh
 
 The privileged Docker container is used for live-build mount/chroot operations. Only this kit and its output directory are mounted into it. The script does not write USB sticks, partition disks or install onto the host.
 
-On success, `output/` contains `macaque-classic-0.28-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
+On success, `output/` contains `macaque-classic-0.29-installer-DATE-TIME.iso`, its SHA-256 file, package manifest and build log. The finished ISO is directly in output, not in the source folder named iso. Build workspaces are retained separately for diagnosis; do not delete them or change source during a build.
 
-## Changes in 0.28
+## Laptop & Updates: 0.29
+
+### Update an already installed Macaque laptop (no ISO reinstall)
+
+Extract this kit, then run on the installed Macaque system:
+
+```bash
+cd ~/Downloads/macaque-classic-installer-kit-v0.29
+sudo apt install ./packages/macaque-classic_0.29_amd64.deb
+```
+
+APT asks before changes and may download dependencies. Save your work, then log out and back in so the new desktop and session services load. The package requires an existing Macaque install, refuses live media, and does not modify GRUB, partitions or user files. It compiles the Control Strip against your installed Qt. Keep the package/source from your previous release if you need to revert; this preview has no automatic rollback.
+
+### Included in this release
+
+- **Wi-Fi & Network:** classic password dialog, nearby-network list, hidden personal networks, saved profiles, reconnect/disconnect/forget. Secrets reach a user-session helper on stdin and NetworkManager over D-Bus, never shell arguments or Macaque preferences. Successful personal profiles belong to your Linux account. Open, WPA/WPA2 and WPA3 Personal are supported; enterprise/WEP/OWE configuration is not implemented in this panel.
+- **Battery & Power:** per-pack status, low-battery alerts at 20/10/5%, logind brightness, lid-close actions, idle dimming/blanking, suspend and real screen locking. Power controls change this laptop's session settings. Locking uses light-locker/LightDM; Ctrl+Alt+L requests it. The existing visual Screen Saver Preview is not a lock. No hibernation setup or battery-time estimate is claimed. Hardware testing remains necessary, especially lock/unlock and lid suspend.
+- **USB Drives:** inserted USB/SD volumes appear on the desktop. Open the panel to mount, browse, unmount, safely eject, or import/export individual files. System/root/boot/home/swap/live-media disks are excluded. UDisks handles authorization; busy media is never forced. Copies use a staged file and an atomic non-overwriting commit on Linux. Folder synchronization, encrypted volume unlocking and formatting are not included. Host/USB Finder views retain read-only editing rules; use the explicit import/export buttons for transfers.
+- **Software Update:** list Debian updates, authenticate through sudo in the built-in Terminal, refresh signed APT indexes and review an interactive apt upgrade. For Macaque itself, check GitHub Releases for amd64 desktop .deb + .sha256 assets, download/check them, or select a local package. Installation snapshots/verifies the selected package before APT confirmation. GitHub HTTPS plus a checksum is used; this is not a signed Macaque update repository. ISO-only releases are not desktop updates. No update is installed automatically.
+
+`lxpolkit`, `light-locker` and `xfce4-power-manager` start in the native login session and stop with it. USB access uses udisks2. The new ISO includes these services and python3-dbus. Prototype sessions report unavailable native power/lock features rather than pretending to lock or suspend.
+
+### Build/publish desktop updates
+
+```bash
+python3 build-desktop-deb.py
+```
+
+This writes the package/checksum to `packages/`. The ISO builder also writes a desktop package/checksum to `output/` alongside the ISO. Publish matching .deb and .deb.sha256 assets in a GitHub Release to make that version discoverable by Software Update. Source commits alone do not become installed updates. Your release can include both the ISO and the desktop package; large ISO uploads still happen from your computer.
+
+### Validation limits
+
+Desktop and service-boundary tests run offscreen, with fake service responses and temporary files. Disk/boot, actual NetworkManager authentication, power/locking hardware, FAT/exFAT media and privileged APT installation need target-machine testing. Package assembly is not an installation or boot test.
+
+## Changes inherited from 0.28
 
 **Login-style menu bar.** The desktop's light top bar now uses the login screen's platinum gradient (#f5f5f5 to #bdbdbd), dark lettering, bright upper edge and fine lower border. Dark mode uses the same raised treatment in graphite. Compact menu spacing, battery status, Controls and the white monkey mark remain; the mark has a teal backing for contrast. The change affects desktop styling only.
 

@@ -47,8 +47,8 @@ class Settings(QWidget):
             item=QListWidgetItem(name);item.setFlags(item.flags()|Qt.ItemIsUserCheckable);item.setCheckState(Qt.Checked if name in d.state.get('startup_apps',[]) else Qt.Unchecked);self.startup.addItem(item)
         self.startup.itemChanged.connect(self.save_startup);tabs.addTab(startup,'Startup Apps')
         shortcuts=QWidget();form=QVBoxLayout(shortcuts)
-        for title,app in [('Appearance and wallpapers','Appearance'),('Mouse and dragging','Mouse'),('Classic Mac compatibility','Classic Mac Apps'),('Flatpak applications','Flatpak Apps'),('Backup and recovery','Backup & Recovery'),('Classic desktop sounds','Classic Sounds'),('Sound output','Sound'),('Network information','Network'),('Storage information','Storage'),('System monitor','System Monitor')]:b=QPushButton(title);b.clicked.connect(lambda checked=False,n=app:d.launch(n));form.addWidget(b)
-        text=QLabel('F6  Search Classic\nCtrl+Shift+D  Show / restore desktop\nCtrl+Shift+Left / Right  Snap active window\nCtrl+Shift+P  Save desktop screenshot\nCtrl+,  Settings\n\nThese settings affect Macaque. Host accounts, firewall, updates, Wi-Fi configuration and power management remain in Linux settings.');text.setWordWrap(True);form.addWidget(text);form.addStretch();tabs.addTab(shortcuts,'Controls')
+        for title,app in [('Appearance and wallpapers','Appearance'),('Mouse and dragging','Mouse'),('Classic Mac compatibility','Classic Mac Apps'),('Flatpak applications','Flatpak Apps'),('Backup and recovery','Backup & Recovery'),('Classic desktop sounds','Classic Sounds'),('Sound output','Sound'),('Wi-Fi & Network','Network'),('Battery & Power','Battery & Power'),('USB Drives','USB Drives'),('Software Update','Software Update'),('Storage information','Storage'),('System monitor','System Monitor')]:b=QPushButton(title);b.clicked.connect(lambda checked=False,n=app:d.launch(n));form.addWidget(b)
+        text=QLabel('F6  Search Classic\nCtrl+Shift+D  Show / restore desktop\nCtrl+Shift+Left / Right  Snap active window\nCtrl+Shift+P  Save desktop screenshot\nCtrl+,  Settings\n\nThese settings affect Macaque. Wi-Fi, power, USB drives and updates are available in Controls. Accounts and firewall remain system administration tasks.');text.setWordWrap(True);form.addWidget(text);form.addStretch();tabs.addTab(shortcuts,'Controls')
     def check(self,layout,title,key,default):
         check=QCheckBox(title);check.setChecked(self.d.state.get(key,default));check.toggled.connect(lambda v,k=key:self.save(k,v));self.checks[key]=check;layout.addWidget(check)
     @Slot(str,object)
@@ -111,7 +111,7 @@ class ModernFeatures:
             except OSError as ex:self.error(ex)
         QTimer.singleShot(180,save)
     def session_menu(self,menu):
-        menu.clear();menu.addAction('Macaque desktop session').setEnabled(False);menu.addAction('Show / Restore Desktop',self.show_desktop);menu.addAction('Screen Saver Preview',self.screensaver);menu.addSeparator();menu.addAction('Restart Macaque…',self.restart);menu.addAction('Quit Macaque',self.close)
+        menu.clear();menu.addAction('Macaque desktop session').setEnabled(False);menu.addAction('Show / Restore Desktop',self.show_desktop);menu.addAction('Screen Saver Preview',self.screensaver);menu.addAction('Lock Screen',lambda:self.launch('Battery & Power').content.lock());menu.addAction('Suspend…',lambda:self.launch('Battery & Power').content.suspend());menu.addSeparator();menu.addAction('Restart Macaque…',self.restart);menu.addAction('Quit Macaque',self.close)
     def clock_menu(self,menu):
         from PySide6.QtWidgets import QCalendarWidget,QWidgetAction
         menu.clear();calendar=QCalendarWidget();calendar.setMaximumWidth(350);action=QWidgetAction(menu);action.setDefaultWidget(calendar);menu.addAction(action);menu.addAction('Date & Time',lambda:self.launch('Date & Time'));menu.addAction('Stopwatch / Countdown',lambda:self.launch('Clockwork'))

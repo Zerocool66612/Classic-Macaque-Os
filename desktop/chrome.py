@@ -30,7 +30,7 @@ class TopBar(QWidget):
         self.settings=self.control('settings','⚙','Macaque Settings · Ctrl+,',d.settings)
         self.session=self.control('session','⏻','Macaque session controls');self.session_popup=self.popup(self.session,lambda menu:d.session_menu(menu))
         self.quick=QToolButton();self.quick.setText('Controls');self.quick.setToolTip('Sound, appearance, notifications and desktop controls');self.row.addWidget(self.quick);self.quick_menu=self.popup(self.quick,lambda menu:d.quick_settings(menu))
-        self.battery=QToolButton();self.battery.setAccessibleName('Laptop battery status');self.row.addWidget(self.battery);self.battery.clicked.connect(lambda:d.text_window('Battery status',self.battery.toolTip()));self.battery_timer=QTimer(self);self.battery_timer.timeout.connect(self.refresh_battery);self.battery_timer.start(10000);self.refresh_battery()
+        self.battery=QToolButton();self.battery.setAccessibleName('Laptop battery status');self.row.addWidget(self.battery);self.battery.clicked.connect(lambda:d.launch('Battery & Power'));self.battery_timer=QTimer(self);self.battery_timer.timeout.connect(self.refresh_battery);self.battery_timer.start(10000);self.refresh_battery()
         self.clock=QToolButton();self.clock.setToolTip('Calendar and timers');self.row.addWidget(self.clock);self.calendar_menu=self.popup(self.clock,lambda menu:d.clock_menu(menu))
         for key,kind in [('network','network'),('sound','sound'),('notifications','bell'),('capture','capture'),('desktop','display'),('settings','gear'),('session','power')]:
             self.controls[key].setIcon(icon(kind,22));self.controls[key].setIconSize(QSize(17,17));self.controls[key].setText('')
@@ -72,7 +72,15 @@ class TopBar(QWidget):
         self.theme.setText('☀' if self.d.state.get('mode','light')=='dark' else '☾');self.theme.setToolTip('Switch appearance');self.update()
     def refresh_battery(self):
         from laptop_support import batteries,battery_summary
-        text,tip=battery_summary(batteries());self.battery.setText(text);self.battery.setToolTip(tip);self.battery.setVisible(bool(text));self.update_layout()
+        items=batteries();text,tip=battery_summary(items);self.battery.setText(text);self.battery.setToolTip(tip);self.battery.setVisible(bool(text));self.update_layout()
+        if not hasattr(self.d,'icons') or not self.d.state.get('low_battery_warnings',True):return
+        if any(b['status']=='Charging' for b in items):self._battery_warned=set();return
+        values=[b['percent'] for b in items if b['percent'] is not None and b['status']=='Discharging']
+        if not values:return
+        level=min(values);threshold=next((v for v in (5,10,20) if level<=v),None)
+        if level>25:self._battery_warned=set()
+        if threshold and threshold not in getattr(self,'_battery_warned',set()):
+            self._battery_warned=getattr(self,'_battery_warned',set())|{v for v in (5,10,20) if v>=threshold};self.d.notify('Low battery',f'{level}% remaining. Connect your charger and save your work.')
     def refresh_status(self):
         count=self.d.state.get('unread_notifications',0);quiet=self.d.state.get('do_not_disturb',False);self.notifications.setIcon(icon('quiet' if quiet else 'bell',22));self.notifications.setToolButtonStyle(Qt.ToolButtonTextBesideIcon);self.notifications.setText(str(count) if count else '');self.notifications.setToolTip(('Do Not Disturb · ' if quiet else '')+f'{count} unread Macaque notifications')
         self.switch.setText('▣ '+str(len(self.d.area.subWindowList())));self.update_layout()

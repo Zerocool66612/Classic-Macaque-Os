@@ -28,6 +28,10 @@ def icon(kind='folder',size=56):
             p.setBrush(QColor('#fffbe8'));p.drawRect(23,26,15,18);p.drawLine(26,31,35,31);p.drawLine(26,35,35,35)
     elif kind=='disk':
         p.setBrush(QColor('#c5c4be'));p.drawRect(6,17,44,27);p.setBrush(QColor('#eeeae0'));p.drawRect(8,12,40,25);p.drawLine(10,33,45,33);p.setPen(QColor('#333'));p.drawLine(11,40,35,40);p.setPen(QColor('#47a85a'));p.drawLine(41,40,45,40)
+    elif kind=='battery':
+        p.setBrush(QColor('#d2d4d0'));p.drawRect(7,15,39,27);p.drawRect(46,23,5,11);p.setBrush(QColor('#6eae7a'));p.drawRect(11,19,26,19);p.setPen(QColor('#ffffff'));p.drawLine(13,21,35,21)
+    elif kind=='update':
+        p.setBrush(QColor('#d4e4f5'));p.drawEllipse(7,7,42,42);p.setPen(QPen(QColor('#316d88'),5));p.drawArc(15,14,26,28,25*16,255*16);p.setBrush(QColor('#316d88'));p.setPen(Qt.NoPen);p.drawPolygon(QPolygon([QPoint(39,10),QPoint(45,24),QPoint(30,22)]))
     elif kind=='trash':
         p.setBrush(QColor('#c3c4c6'));p.drawRect(17,16,25,31);p.setBrush(QColor('#e6e5e0'));p.drawEllipse(14,9,31,8)
         for x in range(21,40,5):p.drawLine(x,20,x,43)
@@ -90,4 +94,4 @@ def icon(kind='folder',size=56):
         for y in range(23,44,6):p.drawLine(19,y,38,y)
     p.end();return QIcon(pm)
 
-def app_kind(name):return {'Terminal':'terminal','Welcome Center':'macaque','Macaque Web':'network','Workspaces':'display','Downloads':'network','Classic Mac Apps':'computer','Flatpak Apps':'apps','Backup & Recovery':'disk','Classic Sounds':'sound','Settings':'system','Notifications':'tasks','Chess':'chess','Teapot Studio':'teapot','Macaque Paint':'appearance','Tasks':'tasks','Clockwork':'clock','Media Player':'media','Character Map':'note','Archive Viewer':'documents','Wallpapers':'display','Mouse':'mouse','GIMP':'appearance','Audacity':'sound','OBS Studio':'media','Macaque Files':'folder','Network':'network','Sound':'sound','Display':'display','Storage':'disk','System Monitor':'monitor','Macaque Text':'note','Macaque Notes':'sticky','Calculator':'calculator','Macaque Search':'search','Macaque Tiles':'puzzle','Macaque Clips':'documents','Appearance':'appearance','Date & Time':'clock','Help Center':'computer'}.get(name,'apps')
+def app_kind(name):return {'Battery & Power':'battery','USB Drives':'disk','Software Update':'update','Terminal':'terminal','Welcome Center':'macaque','Macaque Web':'network','Workspaces':'display','Downloads':'network','Classic Mac Apps':'computer','Flatpak Apps':'apps','Backup & Recovery':'disk','Classic Sounds':'sound','Settings':'system','Notifications':'tasks','Chess':'chess','Teapot Studio':'teapot','Macaque Paint':'appearance','Tasks':'tasks','Clockwork':'clock','Media Player':'media','Character Map':'note','Archive Viewer':'documents','Wallpapers':'display','Mouse':'mouse','GIMP':'appearance','Audacity':'sound','OBS Studio':'media','Macaque Files':'folder','Network':'network','Sound':'sound','Display':'display','Storage':'disk','System Monitor':'monitor','Macaque Text':'note','Macaque Notes':'sticky','Calculator':'calculator','Macaque Search':'search','Macaque Tiles':'puzzle','Macaque Clips':'documents','Appearance':'appearance','Date & Time':'clock','Help Center':'computer'}.get(name,'apps')

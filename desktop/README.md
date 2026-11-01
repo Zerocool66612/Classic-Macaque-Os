@@ -1,3 +1,7 @@
+## Laptop & Updates (0.29)
+
+Controls now opens Wi-Fi & Network, Battery & Power, USB Drives and Software Update. Use the root build-kit README for update/install instructions and current hardware-test limitations. Ctrl+Alt+L requests the real session locker in a native Macaque login session. The Screen Saver Preview remains a visual effect.
+
 # v0.22.1 Desktop right-click fix
 
 Right-click empty wallpaper to open the desktop menu: New Folder, New Text Document, Paste, New Sticky, Clean Up Desktop, Refresh, Wallpapers, Appearance, Mouse and Settings. Background mouse events now route directly through the desktop event filter.
@@ -16,7 +20,7 @@ A classic-inspired Linux desktop prototype with an icon-only system menu,
 traffic-light windows, the native Classic Control Strip, original sounds and
 built-in desktop apps. Created with project direction by Drew Owen.
 
-**Current preview: 0.20.** This is a desktop application, not a bootable OS.
+**Current preview: 0.29.** The desktop can run as a Linux application or in the Debian-based Macaque Classic live/install image.
 See [STATUS.md](STATUS.md) for tested features and compatibility limits, and
 [CHANGELOG.md](CHANGELOG.md) for release history.
 
