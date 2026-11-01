@@ -1,3 +1,5 @@
+0.30.4: transparent idle system-menu button, accent hover/pressed state and a new white macaque side-profile icon. Boot stack unchanged from 0.30.3; user reached the desktop in VirtualBox after enabling 3D acceleration. Physical USB boot remains unverified.
+
 0.30.3 diagnostic boot candidate: restore recommends, MODULES=most, visible live kernel/systemd output, diskless BIOS QEMU userspace gate in builder. Runner arguments/marker detection verified with fixtures; generated ISO boot and physical boot not performed here.
 
 0.30.2: candidate repair for live USB authentication/startup failure. Explicit libpam-systemd/login dependencies; greetd common PAM policies; live-user initialization ordered before greetd; live-only tty2 recovery autologin removed from installed targets. Account writes and PAM policy tested with fixtures, not actual PAM authentication. Physical boot and exact original failure cause remain unverified.

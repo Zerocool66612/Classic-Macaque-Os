@@ -1,3 +1,7 @@
+# 0.30.4 system-menu polish
+
+The system-menu button now has a transparent idle background. Its accent appears only on hover or press. The white icon is an original right-facing macaque silhouette with a rounded crown, projecting muzzle and ear cutout. Boot/session behavior is unchanged from 0.30.3.
+
 # 0.30.3 diagnostic boot rebuild
 
 Restores APT recommends to the previous pre-Wayland build setting, retains native Wayland, selects a broad initramfs module set, and boots live media with visible kernel/systemd output instead of quiet splash. This is a diagnostic change; the exact physical boot failure remains unconfirmed.
@@ -21,7 +25,7 @@ git clone https://github.com/Zerocool66612/Classic-Macaque-Os.git
 cd Classic-Macaque-Os
 ```
 
-For the downloaded kit, open its extracted `macaque-classic-installer-kit-v0.30.3` folder in a terminal. If Docker is not installed:
+For the downloaded kit, open its extracted `macaque-classic-installer-kit-v0.30.4` folder in a terminal. If Docker is not installed:
 
 ```bash
 sudo apt update
@@ -64,7 +68,7 @@ Debian's labwc package depends on the `xwayland` package, so compatibility binar
 On the installed Macaque target only:
 
 ```bash
-sudo apt install ./packages/macaque-classic_0.30.3_amd64.deb
+sudo apt install ./packages/macaque-classic_0.30.4_amd64.deb
 ```
 
 APT may download dependencies. The package builds the native Control Strip against the target Qt, backs up the prior greetd configuration once, configures the new Wayland login and selects greetd for the next boot. Save your work and reboot. It does not change GRUB, partitions, kernels or user files. Display-manager migration and privileged package installation have not been tested on hardware here; there is no automatic rollback. For recovery, a text console can restore the previous LightDM service/configuration if that older installation still has it.
@@ -98,6 +102,6 @@ The default installation uses no swap, with an optional swap file. Install Prepa
 
 The 22 desktop suites pass using Qt offscreen. The build-kit tests check staged files, configuration, offline installer jobs, cached-package guards and bootloader arguments with fixtures/mocks. Wayland environment selection, Flatpak arguments, power-policy commands and shortcut request validation are covered. The local runtime denies Unix sockets, so the live shortcut transport test is explicitly skipped and a real compositor session cannot run here.
 
-No v0.30.3 ISO was assembled or booted in this environment. GPU/DRM startup, greetd/PAM login, actual locking/unlocking, screen capture, lid/suspend/resume, Wi-Fi authentication, removable-media authorization and the privileged desktop migration require target-machine testing. Fractional scaling, multiple monitors and external application compatibility are not validated. See `desktop/STATUS.md`.
+No v0.30.4 ISO was assembled or booted in this environment. GPU/DRM startup, greetd/PAM login, actual locking/unlocking, screen capture, lid/suspend/resume, Wi-Fi authentication, removable-media authorization and the privileged desktop migration require target-machine testing. Fractional scaling, multiple monitors and external application compatibility are not validated. See `desktop/STATUS.md`.
 
 Project direction and original Control Strip: Drew Owen. AI-assisted development. No general project redistribution license has been selected; upstream dependency notices remain in effect. Design previews and older desktop images in the repository are illustrations/historical captures, not proof of this Wayland build running.

@@ -65,8 +65,8 @@ class TopBar(QWidget):
             QWidget#topBar QToolButton:hover,QWidget#topBar QToolButton:pressed {{background:{accent};color:#fff;}}
             QWidget#topBar QToolButton:focus {{border:1px dotted {border};}}
             QWidget#topBar QToolButton::menu-indicator {{image:none;}}
-            QWidget#topBar QToolButton#monkeyMenuButton {{background:{accent};border-radius:3px;margin:2px 3px;padding:2px;}}
-            QWidget#topBar QToolButton#monkeyMenuButton:hover {{background:#195c50;}}
+            QWidget#topBar QToolButton#monkeyMenuButton {{background:transparent;border-radius:3px;margin:2px 3px;padding:2px;}}
+            QWidget#topBar QToolButton#monkeyMenuButton:hover,QWidget#topBar QToolButton#monkeyMenuButton:pressed {{background:{accent};}}
             QWidget#topBar QLabel {{color:{muted};background:transparent;font-size:10px;padding:0 3px;}}
         """)
         self.theme.setText('☀' if self.d.state.get('mode','light')=='dark' else '☾');self.theme.setToolTip('Switch appearance');self.update()
