@@ -6,7 +6,7 @@ from pathlib import Path
 def configure(root):
     root=Path(root)
     # Remove only our live autologin and Debian Live's temporary sudo policy.
-    for name in ['etc/macaque-live','etc/lightdm/lightdm.conf.d/50-macaque.conf','etc/sudoers.d/live','etc/sudoers.d/live-config']:
+    for name in ['etc/macaque-live','etc/systemd/system/greetd.service.d/50-macaque-live.conf','etc/systemd/system/getty@tty2.service.d/50-macaque-live.conf','etc/systemd/system/getty.target.wants/getty@tty2.service','etc/systemd/system/macaque-live-login.service','usr/local/libexec/macaque-live-login','etc/lightdm/lightdm.conf.d/50-macaque.conf','etc/sudoers.d/live','etc/sudoers.d/live-config']:
         p=root/name
         if p.is_file() or p.is_symlink():p.unlink()
     marker=root/'etc/macaque-installed';marker.parent.mkdir(parents=True,exist_ok=True);marker.write_text('Macaque installed target\n')

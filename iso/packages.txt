@@ -86,3 +86,8 @@ xdg-desktop-portal-wlr
 xdg-desktop-portal-gtk
 slurp
 grim
+login
+libpam-systemd
+libpam-modules
+libpam-runtime
+passwd

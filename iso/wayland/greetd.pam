@@ -1,0 +1,8 @@
+# Macaque: use Debian's maintained common PAM policies directly.
+# Avoid relying on the separate /etc/pam.d/login include.
+auth required pam_env.so
+@include common-auth
+@include common-account
+session required pam_loginuid.so
+@include common-session
+@include common-password

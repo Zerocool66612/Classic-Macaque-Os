@@ -13,6 +13,7 @@ def stage(dest,live=False):
     put('usr/share/themes/Macaque Platinum/openbox-3/themerc','wayland/themerc')
     put('usr/share/themes/Macaque Platinum/gtk-3.0/gtk.css','startup/gtk.css')
     put('usr/share/backgrounds/macaque-login.png','startup/login.png')
+    put('etc/pam.d/greetd' if live else 'usr/share/macaque/greetd.pam','wayland/greetd.pam')
     put('etc/greetd/macaque.css','wayland/macaque.css')
     # Keep the package's greetd config as a conffile, and generate our config
     # explicitly at migration time. Fresh live images can use it immediately.

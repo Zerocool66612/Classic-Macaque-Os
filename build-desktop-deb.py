@@ -15,7 +15,7 @@ def build(output):
         runpy.run_path(str(ROOT/'iso/stage-wayland.py'))['stage'](root)
         control=root/'DEBIAN';control.mkdir()
         qt=[p for p in (ROOT/'iso/packages.txt').read_text().split() if p.startswith('python3-pyside6.')]
-        dependencies=['python3','python3-pyte','python3-dbus','qt6-base-dev','g++','pkg-config','qt6-qpa-plugins','qt6-image-formats-plugins','network-manager','udisks2','lxpolkit','sudo','ca-certificates','labwc','greetd','gtkgreet','qt6-wayland','swayidle','swaylock','wlopm','foot','upower','dbus-user-session','xdg-desktop-portal','xdg-desktop-portal-wlr','xdg-desktop-portal-gtk','slurp','grim',*qt]
+        dependencies=['python3','python3-pyte','python3-dbus','qt6-base-dev','g++','pkg-config','qt6-qpa-plugins','qt6-image-formats-plugins','network-manager','udisks2','lxpolkit','sudo','ca-certificates','labwc','greetd','gtkgreet','qt6-wayland','swayidle','swaylock','wlopm','foot','upower','dbus-user-session','libpam-systemd','libpam-modules','libpam-runtime','login','passwd','xdg-desktop-portal','xdg-desktop-portal-wlr','xdg-desktop-portal-gtk','slurp','grim',*qt]
         (control/'control').write_text('Package: macaque-classic\nVersion: '+VERSION+'\nArchitecture: amd64\nMaintainer: Drew Owen\nSection: x11\nPriority: optional\nDepends: '+', '.join(dependencies)+'\nDescription: Macaque Classic desktop and laptop controls\n Desktop update for an existing Macaque installation. Does not alter GRUB,\n disk partitions, the kernel, or user files. Native Control Strip builds\n against the installed Qt libraries during configuration.\n')
         scripts={'preinst':'''#!/bin/sh
 set -eu
@@ -33,6 +33,10 @@ if [ "$1" = configure ]; then
  if [ -f /etc/greetd/config.toml ] && [ ! -f /etc/greetd/config.toml.before-macaque ]; then
   cp -p /etc/greetd/config.toml /etc/greetd/config.toml.before-macaque
  fi
+ if [ -f /etc/pam.d/greetd ] && [ ! -f /etc/pam.d/greetd.before-macaque ]; then
+  cp -p /etc/pam.d/greetd /etc/pam.d/greetd.before-macaque
+ fi
+ install -m 644 /usr/share/macaque/greetd.pam /etc/pam.d/greetd
  install -m 644 /usr/share/macaque/greetd.toml /etc/greetd/config.toml
  if [ -d /run/systemd/system ]; then
   systemctl disable lightdm.service 2>/dev/null || true
