@@ -2,13 +2,13 @@ from PySide6.QtCore import Qt,QSize,QTimer
 from PySide6.QtGui import QKeySequence
 from PySide6.QtWidgets import QWidget,QToolButton,QMenu,QHBoxLayout,QLabel,QDialog,QVBoxLayout,QLineEdit,QListWidget,QListWidgetItem,QSizePolicy
 from visuals import icon,app_kind
-from window_motion_icon import white_monkey
+from window_motion_icon import rainbow_monkey
 from menu_compat import Menu as QMenu
 
 class TopBar(QWidget):
     def __init__(self,d):
-        super().__init__();self.d=d;self.setObjectName('topBar');self.setAttribute(Qt.WA_StyledBackground,True);self.setFixedHeight(32);self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);self.row=QHBoxLayout(self);self.row.setContentsMargins(3,0,3,0);self.row.setSpacing(0);self.buttons=[]
-        self.system=self.menu('Macaque',white_monkey());self.system.aboutToShow.connect(d.system_menu);self.buttons[0].setToolTip('About This Computer and system menu');self.buttons[0].setText('');self.buttons[0].setToolButtonStyle(Qt.ToolButtonIconOnly);self.buttons[0].setFixedWidth(30);self.buttons[0].setObjectName('monkeyMenuButton');self.buttons[0].setAccessibleName('About This Computer and system menu')
+        super().__init__();self.d=d;self.setObjectName('topBar');self.setAttribute(Qt.WA_StyledBackground,True);self.setFixedHeight(22);self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);self.row=QHBoxLayout(self);self.row.setContentsMargins(3,0,3,0);self.row.setSpacing(0);self.buttons=[]
+        self.system=self.menu('Macaque',rainbow_monkey());self.system.aboutToShow.connect(d.system_menu);self.buttons[0].setToolTip('About This Computer and system menu');self.buttons[0].setText('');self.buttons[0].setToolButtonStyle(Qt.ToolButtonIconOnly);self.buttons[0].setFixedWidth(30);self.buttons[0].setObjectName('monkeyMenuButton');self.buttons[0].setAccessibleName('About This Computer and system menu')
         self.appmenu=self.menu('Macaque Files',icon('folder'));self.appmenu.aboutToShow.connect(d.application_menu);self.buttons[1].setMaximumWidth(140);self.buttons[1].setSizePolicy(QSizePolicy.Maximum,QSizePolicy.Preferred)
         for name,title,callback in [('file','File',d.file_menu),('edit','Edit',d.edit_menu),('view','View',d.view_menu),('special','Special',d.special_menu),('windows','Window',d.window_menu)]:
             menu=self.menu(title);setattr(self,name,menu);menu.aboutToShow.connect(callback)
@@ -19,7 +19,7 @@ class TopBar(QWidget):
         for name in ['Tasks','Clockwork','Chess']:
             b=QToolButton();b.setIcon(icon(app_kind(name),24));b.setIconSize(QSize(18,18));b.setToolTip('Open '+name);b.clicked.connect(lambda checked=False,n=name:d.launch(n));self.row.addWidget(b);self.pins.append(b)
         self.row.addStretch(1);self.version=QLabel('v0.24');self.row.addWidget(self.version);self.controls={}
-        self.search=self.control('search','⌕','Search apps and actions · F6',d.launch_palette);self.search.setIcon(icon('search',22));self.search.setIconSize(QSize(17,17));self.search.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.search=self.control('search','⌕','Search files and apps · F6',d.launch_palette);self.search.setIcon(icon('search',22));self.search.setIconSize(QSize(17,17));self.search.setToolButtonStyle(Qt.ToolButtonIconOnly)
         self.network=self.control('network','◎','Network information');self.network_menu=self.popup(self.network,lambda menu:d.network_menu(menu))
         self.sound=self.control('sound','♪','Sound output');self.sound.clicked.connect(lambda:d.launch('Sound'))
         self.notifications=self.control('notifications','♧','Notifications');self.notifications.clicked.connect(d.notifications)
@@ -61,11 +61,11 @@ class TopBar(QWidget):
                 border-top:1px solid {edge};border-bottom:1px solid {border};
             }}
             QWidget#topBar QToolButton {{background:transparent;color:{text};border:0;
-                border-radius:2px;padding:3px {pad}px;font-size:12px;}}
+                border-radius:2px;padding:1px {pad}px;font-size:12px;}}
             QWidget#topBar QToolButton:hover,QWidget#topBar QToolButton:pressed {{background:{accent};color:#fff;}}
             QWidget#topBar QToolButton:focus {{border:1px dotted {border};}}
             QWidget#topBar QToolButton::menu-indicator {{image:none;}}
-            QWidget#topBar QToolButton#monkeyMenuButton {{background:transparent;border-radius:3px;margin:2px 3px;padding:2px;}}
+            QWidget#topBar QToolButton#monkeyMenuButton {{background:transparent;border-radius:3px;margin:0px 3px;padding:1px;}}
             QWidget#topBar QToolButton#monkeyMenuButton:hover,QWidget#topBar QToolButton#monkeyMenuButton:pressed {{background:{accent};}}
             QWidget#topBar QLabel {{color:{muted};background:transparent;font-size:10px;padding:0 3px;}}
         """)
@@ -88,14 +88,14 @@ class TopBar(QWidget):
         if not hasattr(self,'clock'):return
         dense=self.d.state.get('compact_bar',True)
         if getattr(self,'_dense',None)!=dense:
-            self._dense=dense;self.setFixedHeight(32 if dense else 38);self.buttons[1].setMaximumWidth(140 if dense else 180);self.apply_theme()
+            self._dense=dense;self.setFixedHeight(22 if dense else 28);self.buttons[1].setMaximumWidth(140 if dense else 180);self.apply_theme()
         # One controls menu replaces the entire status icon row. Keep the old
         # objects alive for their menu routes, without drawing them on the bar.
         for b in self.pins:b.hide()
-        for b in self.controls.values():b.hide()
+        for key,b in self.controls.items():b.setVisible(key=='search')
         self.version.hide()
         hidden=[5,8] # Special actions live in Controls; apps live in Macaque.
-        available=self.width()-self.quick.sizeHint().width()-self.clock.sizeHint().width()-(self.battery.sizeHint().width() if self.battery.isVisible() else 0)-45
+        available=self.width()-self.quick.sizeHint().width()-self.clock.sizeHint().width()-(self.battery.sizeHint().width() if self.battery.isVisible() else 0)-75
         used=sum(b.sizeHint().width() for i,b in enumerate(self.buttons) if i not in hidden)
         for index in [7,6,4,3,2,1]:
             if used<=available:break

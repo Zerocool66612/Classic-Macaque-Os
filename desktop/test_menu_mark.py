@@ -14,9 +14,9 @@ assert pixels and all(c.red()==c.green()==c.blue()==255 for c in pixels)
 for mode in ('light','dark'):
  d=Mock(state={'mode':mode,'compact_bar':True});bar=TopBar(d);bar.resize(900,32);bar.show();QTest.qWait(30);button=bar.buttons[0]
  def green_count():
-  image=button.grab().toImage();return sum(1 for x in range(image.width()) for y in range(image.height()) if (lambda c:c.green()>c.red()+20 and c.green()>c.blue())(image.pixelColor(x,y)))
+  image=button.grab().toImage();return sum(1 for x in (4,5,image.width()-6,image.width()-5) for y in range(image.height()) if (lambda c:c.green()>c.red()+20 and c.green()>c.blue())(image.pixelColor(x,y)))
  button.setAttribute(Qt.WA_UnderMouse,False);app.sendEvent(button,QEvent(QEvent.Leave));button.update();QTest.qWait(30);assert green_count()==0,mode+' idle background is green'
- button.setAttribute(Qt.WA_UnderMouse,True);app.sendEvent(button,QEvent(QEvent.Enter));button.update();QTest.qWait(30);assert green_count()>20,mode+' hover highlight missing'
+ button.setAttribute(Qt.WA_UnderMouse,True);app.sendEvent(button,QEvent(QEvent.Enter));button.update();QTest.qWait(30);assert green_count()>5,mode+' hover highlight missing'
  button.setAttribute(Qt.WA_UnderMouse,False);app.sendEvent(button,QEvent(QEvent.Leave));button.update();QTest.qWait(30);assert green_count()==0,mode+' hover highlight remains after leaving'
  bar.battery_timer.stop();bar.hide();bar.deleteLater();app.processEvents()
 print('White profile icon and actual light/dark button idle -> hover -> idle rendering passed.')

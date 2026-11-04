@@ -28,8 +28,10 @@ def classic_files(root,query,limit=250,examined_limit=10000):
 class ClassicSearch(QWidget):
     app_name='Macaque Search'
     def __init__(self,d):
-        super().__init__();self.d=d;self.entries=[];layout=QVBoxLayout(self);heading=QLabel('Search Classic');heading.setStyleSheet('font-size:21px;font-weight:bold');layout.addWidget(heading);layout.addWidget(QLabel('Apps, files and folders on Macaque HD · no host-desktop search'))
-        self.input=QLineEdit();self.input.setPlaceholderText('Search the classic system…');self.input.installEventFilter(self);layout.addWidget(self.input);self.scope=QComboBox();self.scope.addItems(['Everything in Classic','Applications','Files and folders']);layout.addWidget(self.scope);self.results=QListWidget();self.results.setIconSize(QSize(24,24));layout.addWidget(self.results,1);self.status=QLabel('Type a name to search.');self.status.setWordWrap(True);layout.addWidget(self.status)
+        super().__init__();self.d=d;self.entries=[];layout=QVBoxLayout(self);heading=QLabel('Search Classic');heading.setStyleSheet('font-size:21px;font-weight:bold');layout.addWidget(heading);layout.addWidget(QLabel('Find apps, files and folders · choose a search location below.'))
+        self.input=QLineEdit();self.input.setPlaceholderText('Search the classic system…');self.input.installEventFilter(self);layout.addWidget(self.input);self.scope=QComboBox();self.scope.addItems(['Everything in Classic','Applications','Files and folders']);self.native_home=os.environ.get('MACAQUE_NATIVE_SESSION')=='1' and os.environ.get('MACAQUE_PREVIEW_SESSION')!='1';
+        if self.native_home:self.scope.addItem('This PC · home files')
+        layout.addWidget(self.scope);self.results=QListWidget();self.results.setIconSize(QSize(24,24));layout.addWidget(self.results,1);self.status=QLabel('Type a name to search.');self.status.setWordWrap(True);layout.addWidget(self.status)
         self.timer=QTimer(self);self.timer.setSingleShot(True);self.timer.timeout.connect(self.search);self.input.textChanged.connect(lambda:self.timer.start(150));self.scope.currentIndexChanged.connect(self.search);self.input.returnPressed.connect(self.activate);self.results.itemActivated.connect(lambda _:self.activate());d.disk_changed.connect(self.search);self.search()
     def eventFilter(self,watched,event):
         if watched==self.input and event.type()==QEvent.KeyPress and event.key() in (Qt.Key_Down,Qt.Key_Up):
@@ -41,15 +43,16 @@ class ClassicSearch(QWidget):
         item=QListWidgetItem(icon(kind),label+'  ·  '+detail);item.setData(Qt.UserRole,len(self.entries));self.entries.append(callback);self.results.addItem(item)
     def search(self,*args):
         self.timer.stop();query=self.input.text().casefold().strip();self.results.clear();self.entries=[];scope=self.scope.currentIndex();truncated=False
-        if scope in (0,1):
+        if scope in (0,1,3):
             for name in APP_NAMES:
                 if query in name.casefold():self.add(name,'Optional creative app' if name in CREATIVE_APPS else 'Classic application',app_kind(name),lambda n=name:self.d.launch(n))
-        if scope in (0,2) and query:
-            paths,truncated=classic_files(self.d.disk.root,query)
+        if scope in (0,2,3) and query:
+            root=Path.home() if scope==3 and self.native_home else self.d.disk.root
+            paths,truncated=classic_files(root,query)
             for path in paths:
                 if path.name.endswith('.app'):continue
-                self.add(path.name,str(path.relative_to(self.d.disk.root)),'folder' if path.is_dir() else 'note',lambda p=path:self.d.open_item(p))
-        self.status.setText(f'{self.results.count()} results · Macaque HD only'+(' · result/scan limit reached; use a more specific name' if truncated else ''))
+                self.add(path.name,str(path.relative_to(root)),'folder' if path.is_dir() else 'note',lambda p=path:self.d.open_item(p))
+        self.status.setText(f'{self.results.count()} results · '+('home files' if scope==3 else 'Macaque HD only')+(' · result/scan limit reached; use a more specific name' if truncated else ''))
         if self.results.count():self.results.setCurrentRow(0)
     def activate(self):
         if self.timer.isActive():self.search()

@@ -1,3 +1,5 @@
+0.33: 22/28 px panel, visible search, native home-file scope and rainbow front-facing macaque mark. Actual Qt desktop renders and button-to-search routing verified offscreen. No new ISO assembled or VM/hardware boot performed here.
+
 0.32: seven Laptop & Reliability panels: Touchpad, Displays with independent rollback, Power Profiles, Bluetooth, Audio Devices, Recovery & Diagnostics and Installer Status. All 28 desktop suites and build-kit checks pass using offscreen Qt and simulated hardware services. Installer logging tested with harmless child processes. ISO assembly, live hardware, physical installation and reboot remain unverified.
 
 0.31: installer password validation correction included; Screenshot app and Wayland grim/slurp capture; Laptop Controls and global media-key routing through PipeWire/logind; stable top-level ISO output with separate boot-check status. New service/capture boundaries checked using mocks, UI offscreen. Hardware/real Wayland capture not verified here.

@@ -8,7 +8,7 @@ from desktop import Desktop
 app=QApplication([]);app.setOrganizationName('MacaqueTests');app.setApplicationName('Modern010')
 with tempfile.TemporaryDirectory() as temp:
  d=Desktop(temp);d.show();QTest.qWait(40)
- assert d.top_bar.height()==32
+ assert d.top_bar.height()==22
  for width in (640,800,1000,1360,1920):
   d.resize(width,850);QTest.qWait(20);d.clock();bar=d.top_bar
   assert bar.clock.geometry().right()<bar.width(),(width,bar.clock.geometry(),bar.width())
@@ -23,8 +23,8 @@ with tempfile.TemporaryDirectory() as temp:
  checks['Show desktop file icons'].click();assert all(b.isHidden() for b in d.icons)
  checks['Show desktop file icons'].click();assert all(not b.isHidden() for b in d.icons)
  checks['Center new windows'].click();w=d.launch('Calculator');assert abs(w.x()-(d.area.viewport().width()-w.width())//2)<=1
- assert all(b.isHidden() for b in d.top_bar.controls.values());assert all(b.isHidden() for b in d.top_bar.pins);assert not d.top_bar.more.isVisible();d.quick_settings(d.top_bar.quick_menu);assert any(a.text()=='Classic Sounds…' for a in d.top_bar.quick_menu.actions())
- d.set_preference('compact_bar',False);assert d.top_bar.height()==38;d.set_preference('compact_bar',True);assert d.top_bar.height()==32
+ assert all(b.isHidden() for k,b in d.top_bar.controls.items() if k!='search') and d.top_bar.search.isVisible();assert all(b.isHidden() for b in d.top_bar.pins);assert not d.top_bar.more.isVisible();d.quick_settings(d.top_bar.quick_menu);assert any(a.text()=='Classic Sounds…' for a in d.top_bar.quick_menu.actions())
+ d.set_preference('compact_bar',False);assert d.top_bar.height()==28;d.set_preference('compact_bar',True);assert d.top_bar.height()==22
  d.set_preference('clock_seconds',True);assert d.top_bar.clock.text().count(':')==2
  d.snap_window('left');assert w.x()==0 and w.width()==d.area.viewport().width()//2
  d.snap_window('right');assert w.x()==d.area.viewport().width()//2

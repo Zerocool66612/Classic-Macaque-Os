@@ -25,6 +25,14 @@ with tempfile.TemporaryDirectory() as temp:
  assert d.top_bar.buttons[0].text()=='' and not d.top_bar.buttons[0].icon().isNull();assert d.top_bar.buttons[0].menu()==d.top_bar.system
  # The application shortcut stays inside the MDI desktop.
  search.parentWidget();d.activateWindow();d.setFocus();QTest.keyClick(d,Qt.Key_F6);QTest.qWait(20);assert isinstance(d.active(),ClassicSearch)
+ # PC home-file scope exists only in the native session, with no symlink traversal.
+ assert search.scope.count()==3
+ with patch.dict(os.environ,{'MACAQUE_NATIVE_SESSION':'1','MACAQUE_PREVIEW_SESSION':'0'}),patch('classic_search.Path.home',return_value=t):
+  native=ClassicSearch(d);native.scope.setCurrentIndex(3);native.input.setText('HOST-ONLY');native.search();assert native.results.count()==1
+  with patch.object(d,'open_item') as opener:native.activate();opener.assert_called_once_with(outside)
+  native.timer.stop();native.deleteLater()
+ with patch.dict(os.environ,{'MACAQUE_NATIVE_SESSION':'1','MACAQUE_PREVIEW_SESSION':'1'}):
+  preview=ClassicSearch(d);assert preview.scope.count()==3;preview.timer.stop();preview.deleteLater()
  # Portable round-trip, empty directories, state snapshot and symlink exclusion.
  (d.disk.root/'Documents'/'Empty').mkdir();archive=t/'backup.zip';state={'stickies':{'note':'keep me'},'tasks':[{'text':'test','done':False}]};create_backup(d.disk.root,state,archive)
  with zipfile.ZipFile(archive) as z:assert not any('external-link' in p or 'host-folder-link' in p for p in z.namelist())

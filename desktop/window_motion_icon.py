@@ -23,3 +23,25 @@ def white_monkey():
     result=QIcon()
     for mode in (QIcon.Normal,QIcon.Active,QIcon.Selected,QIcon.Disabled):result.addPixmap(image,mode)
     return result
+
+
+def rainbow_monkey():
+    """Front-facing macaque crest, six horizontal retro color bands."""
+    image=QPixmap(96,96);image.fill(Qt.transparent)
+    p=QPainter(image);p.setRenderHint(QPainter.Antialiasing)
+    head=QPainterPath();head.moveTo(46,8)
+    head.cubicTo(35,8,24,17,22,29);head.cubicTo(7,26,6,45,15,52)
+    head.cubicTo(17,54,19,54,22,53);head.cubicTo(23,72,34,84,48,88)
+    head.cubicTo(63,84,75,73,76,53);head.cubicTo(89,58,92,32,79,29)
+    head.cubicTo(76,18,65,10,56,10);head.lineTo(62,3);head.lineTo(49,8);head.closeSubpath()
+    p.setClipPath(head);p.setPen(Qt.NoPen)
+    for i,color in enumerate(['#55af49','#f5cf39','#ee942b','#db4548','#9752ad','#368bd0']):
+        p.fillRect(0,i*16,96,16,QColor(color))
+    p.setClipping(False);p.setCompositionMode(QPainter.CompositionMode_Clear)
+    face=QPainterPath();face.moveTo(29,32);face.cubicTo(35,24,42,29,48,37)
+    face.cubicTo(54,29,63,24,68,32);face.cubicTo(74,41,64,47,60,52)
+    face.cubicTo(57,56,64,62,59,68);face.cubicTo(53,75,43,75,37,68)
+    face.cubicTo(32,62,39,56,36,52);face.cubicTo(30,47,23,41,29,32);face.closeSubpath();p.fillPath(face,Qt.black)
+    p.end();result=QIcon()
+    for mode in (QIcon.Normal,QIcon.Active,QIcon.Selected,QIcon.Disabled):result.addPixmap(image,mode)
+    return result
