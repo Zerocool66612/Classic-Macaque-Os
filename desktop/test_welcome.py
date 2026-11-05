@@ -27,7 +27,7 @@ class Parent(QWidget):
  def __init__(self):super().__init__();self.sound_theme=Mock();self.play_sound=Mock()
 d=Parent();w=WelcomeAnimation(d);w.show();QTest.qWait(20);assert w.timer.isActive()
 w.set_muted(True);w.chime();d.play_sound.assert_not_called();d.sound_theme.stop.assert_called()
-w.set_muted(False);w.chime();d.play_sound.assert_called_once_with('startup')
+w.set_muted(False);w.chime();d.play_sound.assert_called_once_with('welcome')
 for t in (0.,1.,3.,6.,8.,10.,14.9):w.t=t;assert not w.grab().isNull()
 QTest.mouseClick(w.skip,Qt.LeftButton);assert not w.isVisible() and not w.timer.isActive()
 w=WelcomeAnimation(d,replay=True);w.show();QTest.keyClick(w,Qt.Key_Escape);assert not w.isVisible()

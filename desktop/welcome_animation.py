@@ -10,7 +10,7 @@ class WelcomeAnimation(QDialog):
     def __init__(self,d,replay=False):
         super().__init__(d);self.d=d;self.replay=replay;self.setWindowTitle('Welcome to Macaque Classic');self.setWindowFlags(Qt.Dialog|Qt.FramelessWindowHint);self.setModal(True);self.resize(1280,720);self.t=0.;self.muted=False;self.logo=rainbow_monkey();self.clock=QElapsedTimer()
         self.skip=QPushButton('Skip',self);self.skip.setAccessibleName('Skip welcome animation');self.skip.clicked.connect(self.accept)
-        self.mute=QPushButton('Mute',self);self.mute.setCheckable(True);self.mute.setAccessibleName('Mute welcome chime');self.mute.toggled.connect(self.set_muted)
+        self.mute=QPushButton('Mute',self);self.mute.setCheckable(True);self.mute.setAccessibleName('Mute welcome music');self.mute.toggled.connect(self.set_muted)
         for b in (self.skip,self.mute):b.setStyleSheet('QPushButton {color:white;background:#ffffff18;border:1px solid #ffffff60;border-radius:5px;padding:7px 18px;} QPushButton:hover {background:#ffffff30;}')
         self.timer=QTimer(self);self.timer.setInterval(33);self.timer.timeout.connect(self.tick);self.finished.connect(self.cleanup)
     def resizeEvent(self,e):
@@ -19,7 +19,7 @@ class WelcomeAnimation(QDialog):
         super().showEvent(e);self.clock.start();self.timer.start();QTimer.singleShot(400,self.chime)
     def chime(self):
         if self.isVisible() and not self.muted:
-            self.d.sound_theme.suspended=False;self.d.play_sound('startup')
+            self.d.sound_theme.suspended=False;self.d.play_sound('welcome')
     def set_muted(self,value):
         self.muted=value;self.mute.setText('Muted' if value else 'Mute')
         if value:self.d.sound_theme.stop()

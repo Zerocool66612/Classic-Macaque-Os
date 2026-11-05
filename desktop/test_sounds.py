@@ -24,7 +24,7 @@ with tempfile.TemporaryDirectory() as t:
  for key in SOUNDS:
   with wave.open(str(Path(__file__).parent/'sounds'/(key+'.wav')),'rb') as wav:
    assert wav.getnchannels()==1 and wav.getsampwidth()==2
-   frames=wav.readframes(wav.getnframes());data=struct.unpack('<'+'h'*(len(frames)//2),frames);assert 0.05<len(data)/wav.getframerate()<2;assert 1000<max(abs(n) for n in data)<=16000;assert abs(data[0])<30 and abs(data[-1])<30
+   frames=wav.readframes(wav.getnframes());data=struct.unpack('<'+'h'*(len(frames)//2),frames);assert (14.9<len(data)/wav.getframerate()<=15.1) if key=='welcome' else (0.05<len(data)/wav.getframerate()<2);assert 1000<max(abs(n) for n in data)<=16000;assert abs(data[0])<30 and abs(data[-1])<30
  # Actual application callbacks request the appropriate event sound.
  events=[];d.play_sound=events.append
  w=d.launch('Calculator');assert events[-1]=='open';w.close();assert events[-1]=='close'

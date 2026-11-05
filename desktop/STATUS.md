@@ -1,3 +1,5 @@
+0.35: original welcome music, integrated into the normal sound preference/event controls and the welcome Skip/Mute lifecycle. Preview audio replaced with the composition. Actual audio-device output and native installed login remain unverified here.
+
 0.34: native installed-first-login welcome animation with original chime, Skip/Mute, manual replay and Welcome Center continuation. Live/preview/installed guards, persistent claims, failed-write handling, frames and actual Qt startup continuation covered by automated tests. No ISO assembled or actual install/VM/audio playback verified here.
 
 0.33: 22/28 px panel, visible search, native home-file scope and rainbow front-facing macaque mark. Actual Qt desktop renders and button-to-search routing verified offscreen. No new ISO assembled or VM/hardware boot performed here.

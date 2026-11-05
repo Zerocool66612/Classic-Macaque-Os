@@ -3,7 +3,7 @@ import math,wave,struct,time
 from pathlib import Path
 from PySide6.QtCore import QObject,QUrl,Qt
 from PySide6.QtWidgets import *
-SOUNDS={'startup':'Startup chime','open':'Open window','close':'Close window','save':'Save document','move':'Move or copy files','trash':'Move to Trash','empty':'Empty Trash','error':'Alert','notification':'Notification'}
+SOUNDS={'welcome':'Welcome music','startup':'Startup chime','open':'Open window','close':'Close window','save':'Save document','move':'Move or copy files','trash':'Move to Trash','empty':'Empty Trash','error':'Alert','notification':'Notification'}
 # Frequency, duration, onset: gently filtered harmonics with attack/release.
 SCORES={
  'startup':[(261.63,.72,0),(329.63,.72,.09),(392,.8,.18),(523.25,.85,.28)],
@@ -16,6 +16,9 @@ SCORES={
  'error':[(370,.13,0),(311.13,.18,.16)],
  'notification':[(880,.10,0),(1174.66,.20,.10)]}
 def samples(key,rate=22050):
+    if key=='welcome':
+        from welcome_music import samples as music_samples
+        return music_samples(rate)
     score=SCORES[key];length=int((max(start+dur for freq,dur,start in score)+.03)*rate);out=[]
     for i in range(length):
         t=i/rate;value=0
