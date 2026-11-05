@@ -55,13 +55,15 @@ class TopBar(QWidget):
         # Match LightDM's Macaque Platinum panel in light mode, retaining the
         # same raised edge and gradient treatment for the graphite variant.
         top,bottom,text,edge,border,muted=('#50565c','#2b3035','#f4f4f4','#70767c','#111417','#c4c8cc') if dark else ('#f5f5f5','#bdbdbd','#171717','#ffffff','#444444','#454545')
+        if self.d.state.get('high_contrast',False):top,bottom,text,edge,border,muted=('#080808','#080808','#fff','#fff','#fff','#fff')
+        font_size=max(12,self.d.state.get('text_size',13)-1)
         self.setStyleSheet(f"""
             QWidget#topBar {{
                 background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 {top},stop:1 {bottom});
                 border-top:1px solid {edge};border-bottom:1px solid {border};
             }}
             QWidget#topBar QToolButton {{background:transparent;color:{text};border:0;
-                border-radius:2px;padding:1px {pad}px;font-size:12px;}}
+                border-radius:2px;padding:1px {pad}px;font-size:{font_size}px;}}
             QWidget#topBar QToolButton:hover,QWidget#topBar QToolButton:pressed {{background:{accent};color:#fff;}}
             QWidget#topBar QToolButton:focus {{border:1px dotted {border};}}
             QWidget#topBar QToolButton::menu-indicator {{image:none;}}
@@ -87,8 +89,8 @@ class TopBar(QWidget):
     def update_layout(self):
         if not hasattr(self,'clock'):return
         dense=self.d.state.get('compact_bar',True)
-        if getattr(self,'_dense',None)!=dense:
-            self._dense=dense;self.setFixedHeight(22 if dense else 28);self.buttons[1].setMaximumWidth(140 if dense else 180);self.apply_theme()
+        if getattr(self,'_dense',None)!=(dense,self.d.state.get('text_size',13)):
+            self._dense=(dense,self.d.state.get('text_size',13));self.setFixedHeight(max(22 if dense else 28,self.d.state.get('text_size',13)+7));self.buttons[1].setMaximumWidth(140 if dense else 180);self.apply_theme()
         # One controls menu replaces the entire status icon row. Keep the old
         # objects alive for their menu routes, without drawing them on the bar.
         for b in self.pins:b.hide()

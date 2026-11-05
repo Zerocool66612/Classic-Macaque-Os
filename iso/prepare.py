@@ -11,6 +11,7 @@ def prepare(dest):
         with zipfile.ZipFile(wheel) as z:z.extractall(dest/'opt/macaque-classic')
     def write(path,text,mode=0o644):
         f=dest/path;f.parent.mkdir(parents=True,exist_ok=True);f.write_text(text);f.chmod(mode)
+    write('etc/systemd/logind.conf.d/60-macaque-lid.conf','[Login]\nHandleLidSwitch=suspend\nHandleLidSwitchExternalPower=suspend\nHandleLidSwitchDocked=ignore\n')
     shutil.copytree(ROOT/'iso/branding',dest/'usr/share/macaque-installer-branding')
     write('usr/local/libexec/macaque-grub-install',(ROOT/'iso/grub-install-checked.py').read_text(),0o755)
     startup=ROOT/'iso/startup'

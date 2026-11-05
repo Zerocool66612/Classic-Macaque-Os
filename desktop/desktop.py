@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.35'
+VERSION='0.36'
 
 from menu_compat import Menu as QMenu
 
@@ -159,7 +159,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def play_sound(self,key):
         if os.environ.get('MACAQUE_SILENT')!='1':return self.sound_theme.play(key)
     def quick_settings(self,menu):
-        menu.clear();menu.addAction('Battery & Power…',lambda:self.launch('Battery & Power'));menu.addAction('USB Drives…',lambda:self.launch('USB Drives'));menu.addAction('Software Update…',lambda:self.launch('Software Update'));menu.addSeparator();menu.addAction('Screenshot…',lambda:self.launch('Screenshot'));menu.addAction('Laptop Controls…',lambda:self.launch('Laptop Controls'));menu.addAction('Terminal…',self.launch_terminal);menu.addAction('Settings…',self.settings);menu.addAction('Web Browser…',lambda:self.launch('Macaque Web'));workspace=menu.addMenu('Workspaces');self.workspace_menu(workspace);menu.addAction('Downloads…',lambda:self.launch('Downloads'));menu.addAction('App Compatibility…',lambda:self.launch('Classic Mac Apps'));menu.addAction('Flatpak Apps…',lambda:self.launch('Flatpak Apps'));menu.addAction('Classic Sounds…',lambda:self.launch('Classic Sounds'));menu.addSeparator()
+        menu.clear();menu.addAction('Battery & Power…',lambda:self.launch('Battery & Power'));menu.addAction('USB Drives…',lambda:self.launch('USB Drives'));menu.addAction('Software Update…',lambda:self.launch('Software Update'));menu.addSeparator();menu.addAction('Screenshot…',lambda:self.launch('Screenshot'));menu.addAction('Laptop Controls…',lambda:self.launch('Laptop Controls'));menu.addAction('Terminal…',self.launch_terminal);menu.addAction('Setup Assistant…',lambda:self.launch('Setup Assistant'));menu.addAction('Accessibility…',lambda:self.launch('Accessibility'));menu.addAction('Software Center…',lambda:self.launch('Software Center'));menu.addAction('Lock & Sleep…',lambda:self.launch('Lock & Sleep'));menu.addAction('Settings…',self.settings);menu.addAction('Web Browser…',lambda:self.launch('Macaque Web'));workspace=menu.addMenu('Workspaces');self.workspace_menu(workspace);menu.addAction('Downloads…',lambda:self.launch('Downloads'));menu.addAction('App Compatibility…',lambda:self.launch('Classic Mac Apps'));menu.addAction('Flatpak Apps…',lambda:self.launch('Flatpak Apps'));menu.addAction('Classic Sounds…',lambda:self.launch('Classic Sounds'));menu.addSeparator()
         mode=menu.addAction('Dark Mode');mode.setCheckable(True);mode.setChecked(self.state.get('mode','light')=='dark');mode.triggered.connect(self.toggle_dark)
         quiet=menu.addAction('Do Not Disturb');quiet.setCheckable(True);quiet.setChecked(self.state.get('do_not_disturb',False));quiet.toggled.connect(lambda v:self.set_preference('do_not_disturb',v))
         muted=menu.addAction('Mute Desktop Sounds');muted.setCheckable(True);muted.setChecked(not self.state.get('sounds_enabled',True));muted.toggled.connect(lambda v:(self.set_preference('sounds_enabled',not v),self.sound_theme.stop() if v else None))
@@ -352,7 +352,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         self.update_icon_visibility()
         if self.strip:self.strip.raise_()
     def desktop_context(self,pos):
-        menu=self.file_context_menu([],self.disk.root/'Desktop');menu.addSeparator();menu.addAction('New Sticky',lambda:self.launch('Macaque Notes'));menu.addAction('Clean Up Desktop',self.clean_up_icons);menu.addAction('Refresh',self.refresh_desktop);menu.addSeparator();menu.addAction('Wallpapers…',lambda:self.launch('Wallpapers'));menu.addAction('Appearance…',self.appearance);menu.addAction('Mouse…',lambda:self.launch('Mouse'));menu.addAction('Settings…',self.settings);menu.exec(self.area.viewport().mapToGlobal(pos))
+        menu=self.file_context_menu([],self.disk.root/'Desktop');menu.addSeparator();menu.addAction('New Sticky',lambda:self.launch('Macaque Notes'));menu.addAction('Clean Up Desktop',self.clean_up_icons);menu.addAction('Refresh',self.refresh_desktop);menu.addSeparator();menu.addAction('Wallpapers…',lambda:self.launch('Wallpapers'));menu.addAction('Appearance…',self.appearance);menu.addAction('Mouse…',lambda:self.launch('Mouse'));menu.addAction('Setup Assistant…',lambda:self.launch('Setup Assistant'));menu.addAction('Accessibility…',lambda:self.launch('Accessibility'));menu.addAction('Software Center…',lambda:self.launch('Software Center'));menu.addAction('Lock & Sleep…',lambda:self.launch('Lock & Sleep'));menu.addAction('Settings…',self.settings);menu.exec(self.area.viewport().mapToGlobal(pos))
     def clean_up_icons(self):self.state['icon_positions']={};self.persist();self.arrange_icons()
     def new_desktop_folder(self):
         name,ok=QInputDialog.getText(self,'New Desktop Folder','Name:',text='untitled folder')
@@ -404,6 +404,13 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         try:result=fn();self.disk_changed.emit();self.play_sound(sound);return result
         except (OSError,ValueError,KeyError) as ex:self.error(ex)
     def launch(self,name,key=None):
+        if name in ('Setup Assistant','Accessibility','Software Center','Lock & Sleep'):
+            from finish_panels import SetupAssistant,Accessibility,SoftwareCenter,LockSleep
+            cls={'Setup Assistant':SetupAssistant,'Accessibility':Accessibility,'Software Center':SoftwareCenter,'Lock & Sleep':LockSleep}[name]
+            for w in self.area.subWindowList():
+                if isinstance(w.content,cls):self.activate_window(w);return w
+            return self.window(name,cls(self),(820,640))
+
         if name in ('Touchpad','Displays','Power Profiles','Bluetooth','Audio Devices','Recovery & Diagnostics','Installer Status'):
             from reliability_panels import Touchpad,Displays,PowerProfiles,Bluetooth,AudioDevices,Diagnostics,InstallerStatus
             cls={'Touchpad':Touchpad,'Displays':Displays,'Power Profiles':PowerProfiles,'Bluetooth':Bluetooth,'Audio Devices':AudioDevices,'Recovery & Diagnostics':Diagnostics,'Installer Status':InstallerStatus}[name]
@@ -500,7 +507,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         menu=self.top_bar.system;menu.clear();menu.addAction('About This Computer',self.about);menu.addAction('Welcome Center…',lambda:self.launch('Welcome Center'));menu.addAction('Replay Welcome…',self.replay_welcome);menu.addSeparator()
         apps=menu.addMenu('Applications')
         for name in APP_NAMES:apps.addAction(icon(app_kind(name)),name,lambda checked=False,n=name:self.launch(n))
-        menu.addAction('Settings…',self.settings);menu.addAction('Backup & Recovery…',lambda:self.launch('Backup & Recovery'));menu.addAction('Notifications…',self.notifications);menu.addAction('Control Panels…',self.control_panels)
+        menu.addAction('Setup Assistant…',lambda:self.launch('Setup Assistant'));menu.addAction('Accessibility…',lambda:self.launch('Accessibility'));menu.addAction('Software Center…',lambda:self.launch('Software Center'));menu.addAction('Lock & Sleep…',lambda:self.launch('Lock & Sleep'));menu.addAction('Settings…',self.settings);menu.addAction('Backup & Recovery…',lambda:self.launch('Backup & Recovery'));menu.addAction('Notifications…',self.notifications);menu.addAction('Control Panels…',self.control_panels)
         recent=menu.addMenu('Recent Documents')
         for path in self.recent:
             action=recent.addAction(Path(path).name,lambda checked=False,p=path:self.open_document(p));action.setEnabled(Path(path).exists())

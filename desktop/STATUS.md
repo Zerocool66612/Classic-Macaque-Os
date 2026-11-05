@@ -1,3 +1,5 @@
+0.36: mandatory welcome -> Setup Assistant; Software Center; Lock & Sleep; Accessibility; personal-folder backup and validated preference recovery. All 30 desktop suites and build-kit checks passed offscreen with mocked services. Close/Escape prevention, completion flow, lock failure preventing suspend, guarded service argv, backup exclusions and safe preference import verified. Real Flatpak downloads, timezone authorization, password unlock, laptop wake/lid and ISO installation remain unverified.
+
 0.35: original welcome music, integrated into the normal sound preference/event controls and the welcome Skip/Mute lifecycle. Preview audio replaced with the composition. Actual audio-device output and native installed login remain unverified here.
 
 0.34: native installed-first-login welcome animation with original chime, Skip/Mute, manual replay and Welcome Center continuation. Live/preview/installed guards, persistent claims, failed-write handling, frames and actual Qt startup continuation covered by automated tests. No ISO assembled or actual install/VM/audio playback verified here.

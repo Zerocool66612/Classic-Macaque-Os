@@ -6,6 +6,7 @@ def load(name):
  spec=importlib.util.spec_from_file_location(name,ROOT/'iso'/f'{name}.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 with tempfile.TemporaryDirectory() as temp:
  root=Path(temp)/'image';load('prepare').prepare(root)
+ lid=(root/'etc/systemd/logind.conf.d/60-macaque-lid.conf').read_text();assert 'HandleLidSwitch=suspend' in lid and 'HandleLidSwitchDocked=ignore' in lid
  config=root/'etc/greetd/config.toml';cfg=tomllib.loads(config.read_text())
  assert cfg['default_session']['user']=='_greetd' and cfg['initial_session']['user']=='macaque'
  assert (root/'usr/local/bin/macaque-greeter').is_file()

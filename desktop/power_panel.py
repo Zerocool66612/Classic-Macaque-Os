@@ -55,7 +55,13 @@ class PowerPanel(QWidget):
         self.job.done.connect(done)
     def lock(self):self.session_action(['/usr/local/bin/macaque-lock'] if os.environ.get('MACAQUE_WAYLAND_SESSION')=='1' else ['light-locker-command','--lock'])
     def suspend(self):
-        if QMessageBox.question(self,'Suspend laptop','Save your work first. Suspend this laptop now?',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:self.session_action(['systemctl','suspend'])
+        if QMessageBox.question(self,'Suspend laptop','Save your work first. Suspend this laptop now?',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:self.run_suspend()
+    def run_suspend(self):
+        if os.environ.get('MACAQUE_NATIVE_SESSION')!='1' or os.environ.get('MACAQUE_PREVIEW_SESSION')=='1':self.status.setText('Suspend requires the native Macaque session.');return
+        if self.job:return
+        self.job=Task(self,Task.helper('desktop_services.py'),{'action':'suspend'},timeout=60000)
+        def finished(ok,text):self.job=None;self.status.setText('Lock and suspend requested.' if ok else text)
+        self.job.done.connect(finished)
     def can_close(self):
         if self.job:self.status.setText('Wait for the power request to finish.');return False
         self.timer.stop();return True

@@ -24,5 +24,5 @@ def start_welcome(d):
     from welcome_animation import WelcomeAnimation
     d.welcome_intro=WelcomeAnimation(d)
     def finished(_):
-        if not getattr(d,'quitting',False):d.initial();d.launch('Welcome Center')
+        if not getattr(d,'quitting',False):d.initial();d.launch('Setup Assistant')
     d.welcome_intro.finished.connect(finished);d.welcome_intro.showFullScreen();return True

@@ -2,36 +2,35 @@
 import math
 from PySide6.QtCore import Qt,QTimer,QElapsedTimer,QRectF
 from PySide6.QtGui import QPainter,QColor,QFont,QLinearGradient
-from PySide6.QtWidgets import QDialog,QPushButton
+from PySide6.QtWidgets import QDialog
 from window_motion_icon import rainbow_monkey
 DURATION=15.0
 
 class WelcomeAnimation(QDialog):
     def __init__(self,d,replay=False):
-        super().__init__(d);self.d=d;self.replay=replay;self.setWindowTitle('Welcome to Macaque Classic');self.setWindowFlags(Qt.Dialog|Qt.FramelessWindowHint);self.setModal(True);self.resize(1280,720);self.t=0.;self.muted=False;self.logo=rainbow_monkey();self.clock=QElapsedTimer()
-        self.skip=QPushButton('Skip',self);self.skip.setAccessibleName('Skip welcome animation');self.skip.clicked.connect(self.accept)
-        self.mute=QPushButton('Mute',self);self.mute.setCheckable(True);self.mute.setAccessibleName('Mute welcome music');self.mute.toggled.connect(self.set_muted)
-        for b in (self.skip,self.mute):b.setStyleSheet('QPushButton {color:white;background:#ffffff18;border:1px solid #ffffff60;border-radius:5px;padding:7px 18px;} QPushButton:hover {background:#ffffff30;}')
+        super().__init__(d);self.d=d;self.replay=replay;self.setWindowTitle('Welcome to Macaque Classic');self.setWindowFlags(Qt.Dialog|Qt.FramelessWindowHint);self.setModal(True);self.resize(1280,720);self.t=0.;self.completed=False;self.logo=rainbow_monkey();self.clock=QElapsedTimer()
         self.timer=QTimer(self);self.timer.setInterval(33);self.timer.timeout.connect(self.tick);self.finished.connect(self.cleanup)
-    def resizeEvent(self,e):
-        super().resizeEvent(e);self.skip.setGeometry(self.width()-112,self.height()-58,88,34);self.mute.setGeometry(24,self.height()-58,100,34)
     def showEvent(self,e):
         super().showEvent(e);self.clock.start();self.timer.start();QTimer.singleShot(400,self.chime)
     def chime(self):
-        if self.isVisible() and not self.muted:
+        if self.isVisible():
             self.d.sound_theme.suspended=False;self.d.play_sound('welcome')
-    def set_muted(self,value):
-        self.muted=value;self.mute.setText('Muted' if value else 'Mute')
-        if value:self.d.sound_theme.stop()
     def tick(self):
         self.t=self.clock.elapsed()/1000;self.update()
-        if self.t>=DURATION:self.accept()
+        if self.t>=DURATION:self.completed=True;super().accept()
     def cleanup(self,*_):self.timer.stop();self.d.sound_theme.stop()
-    def keyPressEvent(self,e):
-        if e.key()==Qt.Key_Escape:self.accept()
-        else:super().keyPressEvent(e)
+    def accept(self):
+        if self.completed:super().accept()
+    def reject(self):
+        if self.completed:super().reject()
+    def done(self,result):
+        if self.completed:super().done(result)
+    def closeEvent(self,e):
+        if self.completed or getattr(self.d,'quitting',False):e.accept()
+        else:e.ignore()
+    def keyPressEvent(self,e):e.accept()
     def paintEvent(self,e):
-        p=QPainter(self);p.setRenderHint(QPainter.Antialiasing);self.paint_frame(p,self.width(),self.height(),self.t);p.end()
+        p=QPainter(self);p.setRenderHint(QPainter.Antialiasing);self.paint_frame(p,self.width(),self.height(),11.0 if self.d.state.get('reduce_motion',False) else self.t);p.end()
     def paint_frame(self,p,w,h,t):
         gradient=QLinearGradient(0,0,w,h);gradient.setColorAt(0,QColor('#092d42'));gradient.setColorAt(1,QColor('#41979d'));p.fillRect(0,0,w,h,gradient)
         p.setPen(Qt.NoPen)
