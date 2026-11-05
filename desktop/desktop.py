@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.33'
+VERSION='0.34'
 
 from menu_compat import Menu as QMenu
 
@@ -122,6 +122,10 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         self.removable=RemovableMonitor(self)
         self.top_bar.help.addAction('Diagnostics',self.diagnostics);QTimer.singleShot(0,self.initial)
     def initial(self):
+        if not getattr(self,'_welcome_checked',False):
+            self._welcome_checked=True
+            from first_run import start_welcome
+            if start_welcome(self):return
         self.arrange_icons();self.update_icon_visibility()
         if self.state.get('startup_welcome',False):self.launch('Welcome Center')
         if self.state.get('startup_files',True):self.open_finder(self.disk.root)
@@ -130,7 +134,8 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         for name in self.state.get('startup_apps',[]):
             if name in APP_NAMES and name not in CREATIVE_APPS and name not in ('Settings','Notifications'):self.launch(name)
         if self.strip:self.strip.raise_()
-        self.sound_theme.suspended=False;self.play_sound('startup')
+        self.sound_theme.suspended=False
+        if not getattr(self,'welcome_intro',None):self.play_sound('startup')
     def colors(self):return theme_colors(self.state.get('mode','light'))
     def apply_ui_theme(self):
         c=self.colors();app=QApplication.instance();app.setStyleSheet(self.desktop_stylesheet())
@@ -487,8 +492,12 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         if name=='Help Center':
             browser=QTextBrowser();browser.setHtml(HELP);return self.window('Macaque Help',browser,(720,540))
         if name=='About This Computer':return self.about()
+    def replay_welcome(self):
+        from welcome_animation import WelcomeAnimation
+        if getattr(self,'welcome_intro',None) and self.welcome_intro.isVisible():return self.welcome_intro.raise_()
+        self.welcome_intro=WelcomeAnimation(self,replay=True);self.welcome_intro.showFullScreen();return self.welcome_intro
     def system_menu(self):
-        menu=self.top_bar.system;menu.clear();menu.addAction('About This Computer',self.about);menu.addAction('Welcome Center…',lambda:self.launch('Welcome Center'));menu.addSeparator()
+        menu=self.top_bar.system;menu.clear();menu.addAction('About This Computer',self.about);menu.addAction('Welcome Center…',lambda:self.launch('Welcome Center'));menu.addAction('Replay Welcome…',self.replay_welcome);menu.addSeparator()
         apps=menu.addMenu('Applications')
         for name in APP_NAMES:apps.addAction(icon(app_kind(name)),name,lambda checked=False,n=name:self.launch(n))
         menu.addAction('Settings…',self.settings);menu.addAction('Backup & Recovery…',lambda:self.launch('Backup & Recovery'));menu.addAction('Notifications…',self.notifications);menu.addAction('Control Panels…',self.control_panels)

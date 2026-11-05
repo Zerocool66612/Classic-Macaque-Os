@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """Executed by Calamares inside the installed target, before DM configuration."""
-import sys
+import sys,uuid
 from pathlib import Path
 
 def configure(root):
@@ -10,6 +10,8 @@ def configure(root):
         p=root/name
         if p.is_file() or p.is_symlink():p.unlink()
     marker=root/'etc/macaque-installed';marker.parent.mkdir(parents=True,exist_ok=True);marker.write_text('Macaque installed target\n')
+    welcome=root/'etc/macaque-welcome-install-id'
+    if not welcome.exists():welcome.write_text(str(uuid.uuid4())+'\n')
     config=root/'etc/greetd/config.toml'
     if config.exists():config.write_text(config.read_text().split('[initial_session]')[0])
     unit=root/'etc/systemd/system/display-manager.service'

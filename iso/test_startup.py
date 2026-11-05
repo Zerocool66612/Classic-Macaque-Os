@@ -16,6 +16,8 @@ with tempfile.TemporaryDirectory() as temp:
  for asset in re.findall(r'Image\("([^"]+)"\)',script):assert (theme/asset).is_file()
  for fn in ['SetBootProgressFunction','SetDisplayPasswordFunction','SetDisplayQuestionFunction']:assert fn in script
  load('installed-setup').configure(root)
+ token=(root/'etc/macaque-welcome-install-id').read_text();assert re.fullmatch(r'[0-9a-f-]{36}\n',token)
+ load('installed-setup').configure(root);assert (root/'etc/macaque-welcome-install-id').read_text()==token
  assert 'initial_session' not in tomllib.loads(config.read_text())
  assert (root/'etc/systemd/system/display-manager.service').readlink()==Path('/usr/lib/systemd/system/greetd.service')
  assert (root/'etc/macaque-installed').is_file() and not (root/'etc/macaque-live').exists()

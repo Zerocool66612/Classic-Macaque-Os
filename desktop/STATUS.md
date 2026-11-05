@@ -1,3 +1,5 @@
+0.34: native installed-first-login welcome animation with original chime, Skip/Mute, manual replay and Welcome Center continuation. Live/preview/installed guards, persistent claims, failed-write handling, frames and actual Qt startup continuation covered by automated tests. No ISO assembled or actual install/VM/audio playback verified here.
+
 0.33: 22/28 px panel, visible search, native home-file scope and rainbow front-facing macaque mark. Actual Qt desktop renders and button-to-search routing verified offscreen. No new ISO assembled or VM/hardware boot performed here.
 
 0.32: seven Laptop & Reliability panels: Touchpad, Displays with independent rollback, Power Profiles, Bluetooth, Audio Devices, Recovery & Diagnostics and Installer Status. All 28 desktop suites and build-kit checks pass using offscreen Qt and simulated hardware services. Installer logging tested with harmless child processes. ISO assembly, live hardware, physical installation and reboot remain unverified.
