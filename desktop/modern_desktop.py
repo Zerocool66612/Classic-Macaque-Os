@@ -117,7 +117,7 @@ class ModernFeatures:
             except OSError as ex:self.error(ex)
         QTimer.singleShot(180,save)
     def session_menu(self,menu):
-        menu.clear();menu.addAction('Macaque desktop session').setEnabled(False);menu.addAction('Show / Restore Desktop',self.show_desktop);menu.addAction('Screen Saver Preview',self.screensaver);menu.addAction('Lock Screen',lambda:self.launch('Battery & Power').content.lock());menu.addAction('Suspend…',lambda:self.launch('Battery & Power').content.suspend());menu.addSeparator();menu.addAction('Restart Macaque…',self.restart);menu.addAction('Quit Macaque',self.close)
+        menu.clear();menu.addAction('Macaque desktop session').setEnabled(False);menu.addAction('Show / Restore Desktop',self.show_desktop);menu.addAction('Screen Saver Preview',self.screensaver);menu.addAction('Lock Screen',lambda:self.launch('Battery & Power').content.lock());menu.addAction('Suspend…',lambda:self.launch('Battery & Power').content.suspend());menu.addSeparator();self.add_power_actions(menu)
     def clock_menu(self,menu):
         from PySide6.QtWidgets import QCalendarWidget,QWidgetAction
         menu.clear();calendar=QCalendarWidget();calendar.setMaximumWidth(350);action=QWidgetAction(menu);action.setDefaultWidget(calendar);menu.addAction(action);menu.addAction('Date & Time',lambda:self.launch('Date & Time'));menu.addAction('Stopwatch / Countdown',lambda:self.launch('Clockwork'))

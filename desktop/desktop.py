@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.38'
+VERSION='0.38.1'
 
 from menu_compat import Menu as QMenu
 
@@ -522,7 +522,13 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         if not self.recent:recent.addAction('No recent documents').setEnabled(False)
         sticky=menu.addMenu('Macaque Notes');sticky.addAction('New Sticky',lambda:self.launch('Macaque Notes'))
         for key,text in self.stickies.items():sticky.addAction(text[:30].replace('\n',' ') or 'Untitled sticky',lambda checked=False,k=key:self.launch('Macaque Notes',key=k))
-        menu.addSeparator();menu.addAction('Quit Desktop',self.close)
+        menu.addSeparator();self.add_power_actions(menu)
+        if os.environ.get('MACAQUE_NATIVE_SESSION')!='1' or os.environ.get('MACAQUE_PREVIEW_SESSION')=='1':menu.addSeparator();menu.addAction('Quit Desktop Preview',self.close)
+    def add_power_actions(self,menu):
+        for label,action in [('Shut Down…','poweroff'),('Restart…','reboot'),('Log Out…','logout')]:menu.addAction(label,lambda checked=False,a=action:self.session_action(a))
+    def session_action(self,action):
+        from session_actions import request
+        return request(self,action)
     def application_menu(self):
         menu=self.top_bar.appmenu;menu.clear();current=self.active();name=getattr(current,'app_name','Macaque Files');menu.addAction('About '+name,lambda:self.text_window('About '+name,f'{name}\nPart of Macaque Classic {VERSION}\n\nSee Help for keyboard shortcuts and usage.'))
         menu.addAction('Hide Window',lambda:self.area.activeSubWindow().showMinimized() if self.area.activeSubWindow() else None);menu.addAction('Close Window',self.close_active)

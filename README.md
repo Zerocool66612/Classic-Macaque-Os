@@ -1,4 +1,4 @@
-# Macaque Classic 0.38 — Desktop Drawer Tabs
+# Macaque Classic 0.38.1 — Session Menu
 
 New square monkey/penguin branding in About This Computer, Welcome Center, first-run animated welcome, installer artwork, boot splash and login screen. The round version appears in About This Computer and is included in desktop/assets/branding/round.png.
 
@@ -11,6 +11,12 @@ Build a fresh ISO with ./build-iso.sh using the existing build prerequisites. No
 Build: extract this kit into a new folder, open that folder in a terminal and run `bash build-iso.sh`. The ISO and checksum are always placed directly in `output/` after assembly/readback. The BIOS QEMU test then runs and saves its result alongside the ISO. A failed or inconclusive boot test no longer hides the assembled image in a root-owned build directory. Failure still means manual boot testing is required before installing.
 
 ## Included in this update
+
+- The top-left monkey menu now includes Shut Down…, Restart… and Log Out…. These confirm first, check open built-in documents and running operations, then request native system power-off/reboot or exit the current labwc session back to login.
+- These are computer/session actions, not a restart of the Python desktop. System policy and inhibitors apply; failures are displayed. Prototype/nested sessions refuse the power actions and retain Quit Desktop Preview.
+- Command dispatch, cancellation, unsaved-work guards, preview isolation and failure feedback were checked with simulated commands. Actual shutdown/restart/logout still need native VM testing.
+
+### Retained desktop drawer tabs
 
 - Classic bottom-edge drawer tabs for built-in windows. Right-click a striped title bar and choose Tab to Desktop, use Window → Tab Active Window to Desktop, or drag the title bar down to the bottom edge.
 - Click a tab to open/collapse its drawer. Only one drawer opens per workspace at a time. Right-click a tab to detach it as a normal window or close it; dragging an opened drawer's title bar away also detaches it.
