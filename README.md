@@ -1,8 +1,24 @@
-# Macaque Classic 0.36 — Setup & Everyday Essentials
+# Macaque Classic 0.38 — Desktop Drawer Tabs
+
+New square monkey/penguin branding in About This Computer, Welcome Center, first-run animated welcome, installer artwork, boot splash and login screen. The round version appears in About This Computer and is included in desktop/assets/branding/round.png.
+
+Install packages/macaque-classic_0.38_amd64.deb on an existing installed Macaque Classic system using the existing update procedure. Log out and back in to refresh desktop branding. This update includes login artwork; boot splash branding is included for newly built ISOs. Existing installations retain their current boot splash.
+
+Build a fresh ISO with ./build-iso.sh using the existing build prerequisites. No ISO was built or boot-tested for this artwork update. The standalone welcome-preview.mp4 is retained from the previous release; the actual first-run desktop animation uses the new shared icon.
+
+# Macaque Classic 0.38 — Setup & Everyday Essentials
 
 Build: extract this kit into a new folder, open that folder in a terminal and run `bash build-iso.sh`. The ISO and checksum are always placed directly in `output/` after assembly/readback. The BIOS QEMU test then runs and saves its result alongside the ISO. A failed or inconclusive boot test no longer hides the assembled image in a root-owned build directory. Failure still means manual boot testing is required before installing.
 
 ## Included in this update
+
+- Classic bottom-edge drawer tabs for built-in windows. Right-click a striped title bar and choose Tab to Desktop, use Window → Tab Active Window to Desktop, or drag the title bar down to the bottom edge.
+- Click a tab to open/collapse its drawer. Only one drawer opens per workspace at a time. Right-click a tab to detach it as a normal window or close it; dragging an opened drawer's title bar away also detaches it.
+- The actual live window is retained, including unsaved edits. Detach restores its saved normal geometry. Closing still respects the application's save/cancel prompt. Tabs are session-local; they do not automatically reopen apps after logout.
+- Tabs follow their workspace and stay reachable on desktop resize. A scrolling/reorderable tab row handles overflow and avoids the visible Control Strip. External Flatpak/emulator windows are not managed by this feature.
+- Keeps v0.37.1 branding, including the restored rainbow system-menu icon. Updated ISO output naming now identifies v0.38.
+
+### Retained desktop features
 
 - Non-skippable 15-second welcome: no Skip/Mute buttons; Escape, Return, accept/reject and close requests do not dismiss it before completion. First-login-only policy retained; normal OS shutdown remains under system control.
 - Setup Assistant follows the intro: appearance/sound, native Wi-Fi link, validated system time-zone selection through timedatectl/polkit, and essential app links. Finish records completion; reopen from the monkey menu.
@@ -31,7 +47,7 @@ Build: extract this kit into a new folder, open that folder in a terminal and ru
 - Compact top panel: 22 logical pixels (previous released default: 32), spacious mode: 28. Text remains 12 px; icon sizes are retained.
 - Always-visible search button beside Controls opens the internal apps/files search. Native Macaque sessions also offer an explicit This PC home-files scope. Hidden files and symlinks are excluded; scans stop at 10,000 entries or 250 matching files. Preview sessions keep search inside the managed Classic volume.
 - New front-facing macaque crest with six horizontal retro rainbow colors, inspired by the small host-panel logo reference. This is a redraw, not the exact original asset.
-- Full source kit: no separate panel patch required. This version identifies itself as 0.36 and produces distinctly named 0.36 media.
+- Full source kit: no separate panel patch required. This version identifies itself as 0.38 and produces distinctly named 0.38 media.
 
 ### Retained laptop and reliability features
 
@@ -57,7 +73,7 @@ Keyboard routing, PipeWire/logind boundaries, screenshot saving/cancel/failure c
 
 ## Build on Ubuntu / Kubuntu
 
-Use an x86-64 Linux computer with Internet, Docker, about 60 GB free space and preferably 8 GB RAM. Open the extracted `macaque-classic-installer-kit-v0.36` folder in Terminal, or clone the repository. First-time Docker setup:
+Use an x86-64 Linux computer with Internet, Docker, about 60 GB free space and preferably 8 GB RAM. Open the extracted `macaque-classic-installer-kit-v0.38` folder in Terminal, or clone the repository. First-time Docker setup:
 
 ```bash
 sudo apt update
@@ -71,14 +87,14 @@ Then run:
 bash build-iso.sh
 ```
 
-The builder uses a privileged Debian live-build container. It mounts this kit and its output folder; it does not flash USB or install to the host. Finished media is `output/macaque-classic-0.36-installer-DATE-TIME.iso` with `.sha256` and `.boot-check.json`. Boot-test logs are `output/boot-check.log` and `output/boot-check.qemu.log`. The generated ISO is copied before the QEMU test. An inconclusive test is reported explicitly; it is not a successful boot certification. The earlier empty serial-log failure can occur while the manually booted VM reaches the desktop. Manual VirtualBox testing requires VMSVGA with 3D acceleration enabled for the accelerated compositor.
+The builder uses a privileged Debian live-build container. It mounts this kit and its output folder; it does not flash USB or install to the host. Finished media is `output/macaque-classic-0.38-installer-DATE-TIME.iso` with `.sha256` and `.boot-check.json`. Boot-test logs are `output/boot-check.log` and `output/boot-check.qemu.log`. The generated ISO is copied before the QEMU test. An inconclusive test is reported explicitly; it is not a successful boot certification. The earlier empty serial-log failure can occur while the manually booted VM reaches the desktop. Manual VirtualBox testing requires VMSVGA with 3D acceleration enabled for the accelerated compositor.
 
 ## Installed desktop update
 
-The included `packages/macaque-classic_0.36_amd64.deb` is only for an existing installed Macaque target, not the live USB or your normal Ubuntu/Kubuntu build host. It rebuilds the Control Strip for target Qt and may download dependencies:
+The included `packages/macaque-classic_0.38_amd64.deb` is only for an existing installed Macaque target, not the live USB or your normal Ubuntu/Kubuntu build host. It rebuilds the Control Strip for target Qt and may download dependencies:
 
 ```bash
-sudo apt install ./packages/macaque-classic_0.36_amd64.deb
+sudo apt install ./packages/macaque-classic_0.38_amd64.deb
 ```
 
 Save work and reboot afterward. Installer-policy and boot-image changes require a new ISO; a desktop update cannot change an already-built ISO. Package configuration is not tested in a real target chroot here. Keep your older working image and backups.
@@ -93,7 +109,7 @@ The offline installer and checked GRUB wrapper retain selected-disk handling and
 
 ## Testing and publication
 
-26 desktop suites pass offscreen, including native Control Strip loading, real internal screenshot PNG/clipboard checks, media key routing and mocked PipeWire/logind/grim/slurp boundaries. Build-kit fixtures check password rules and installed recovery cleanup. The authoring runtime denies AF_UNIX, so the real shortcut socket test is explicitly skipped. No 0.36 ISO assembly, live display capture, PAM authentication or physical laptop key/backlight/audio test ran here.
+26 desktop suites pass offscreen, including native Control Strip loading, real internal screenshot PNG/clipboard checks, media key routing and mocked PipeWire/logind/grim/slurp boundaries. Build-kit fixtures check password rules and installed recovery cleanup. The authoring runtime denies AF_UNIX, so the real shortcut socket test is explicitly skipped. No 0.38 ISO assembly, live display capture, PAM authentication or physical laptop key/backlight/audio test ran here.
 
 [GitHub releases](https://github.com/Zerocool66612/Classic-Macaque-Os/releases) contain published ISO assets; source archives are build kits. Source pushes do not upload an ISO or update installed machines. Software Update discovers matching desktop `.deb` and `.deb.sha256` release assets. No signed custom Macaque update feed is claimed.
 
@@ -114,3 +130,5 @@ The system menu uses the new white macaque profile, with green only on hover/pre
 ---
 
 Project direction and original Control Strip: Drew Owen. AI-assisted development. No general project redistribution license has been selected; dependency notices remain in effect. No Apple ROM, OS image or application is bundled. Classic Mac emulator configuration does not implement Mac OS 9.2.2 application compatibility. No UNIX certification is claimed.
+
+0.38 restores the original rainbow monkey system menu icon; other branding keeps the new artwork.

@@ -32,16 +32,19 @@ class WorkspaceFeatures:
         if index not in range(4):return
         self.workspace=index;self.state['workspace']=index
         for window in self.area.subWindowList():window.setVisible(window.property('workspace')==index)
+        if hasattr(self,'desktop_tabs'):self.desktop_tabs.layout()
         self.persist();self.top_bar.refresh_status()
     def activate_window(self,window):
         from shiboken6 import isValid
         if not isValid(window):return
         index=window.property('workspace')
         if index is not None and index!=self.workspace:self.switch_workspace(index)
+        if window.property('desktop_tabbed'):self.desktop_tabs.open(window);return
         window.showNormal();window.raise_();self.area.setActiveSubWindow(window)
     def move_to_workspace(self,window,index):
         if index not in range(4):return
         window.setProperty('workspace',index);window.setVisible(index==self.workspace);self.top_bar.refresh_status()
+        if hasattr(self,'desktop_tabs'):self.desktop_tabs.layout()
     def workspace_menu(self,menu):
         menu.clear()
         for i,name in enumerate(self.workspace_names()):

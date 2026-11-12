@@ -3,12 +3,12 @@ import math
 from PySide6.QtCore import Qt,QTimer,QElapsedTimer,QRectF
 from PySide6.QtGui import QPainter,QColor,QFont,QLinearGradient
 from PySide6.QtWidgets import QDialog
-from window_motion_icon import rainbow_monkey
+from visuals import icon
 DURATION=15.0
 
 class WelcomeAnimation(QDialog):
     def __init__(self,d,replay=False):
-        super().__init__(d);self.d=d;self.replay=replay;self.setWindowTitle('Welcome to Macaque Classic');self.setWindowFlags(Qt.Dialog|Qt.FramelessWindowHint);self.setModal(True);self.resize(1280,720);self.t=0.;self.completed=False;self.logo=rainbow_monkey();self.clock=QElapsedTimer()
+        super().__init__(d);self.d=d;self.replay=replay;self.setWindowTitle('Welcome to Macaque Classic');self.setWindowFlags(Qt.Dialog|Qt.FramelessWindowHint);self.setModal(True);self.resize(1280,720);self.t=0.;self.completed=False;self.logo=icon('macaque');self.clock=QElapsedTimer()
         self.timer=QTimer(self);self.timer.setInterval(33);self.timer.timeout.connect(self.tick);self.finished.connect(self.cleanup)
     def showEvent(self,e):
         super().showEvent(e);self.clock.start();self.timer.start();QTimer.singleShot(400,self.chime)

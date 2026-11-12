@@ -1,3 +1,5 @@
+0.38: built-in desktop drawer tabs with edge dragging, click open/collapse, detach, workspace integration, rename updates and close cancellation. New offscreen interaction tests cover preserved edits, geometry, drag-to-edge/drag-off, resize, workspace movement and shutdown cleanup. All project checks pass; real Wayland/VM drawer interaction remains unverified.
+
 0.36: mandatory welcome -> Setup Assistant; Software Center; Lock & Sleep; Accessibility; personal-folder backup and validated preference recovery. All 30 desktop suites and build-kit checks passed offscreen with mocked services. Close/Escape prevention, completion flow, lock failure preventing suspend, guarded service argv, backup exclusions and safe preference import verified. Real Flatpak downloads, timezone authorization, password unlock, laptop wake/lid and ISO installation remain unverified.
 
 0.35: original welcome music, integrated into the normal sound preference/event controls and the welcome Skip/Mute lifecycle. Preview audio replaced with the composition. Actual audio-device output and native installed login remain unverified here.

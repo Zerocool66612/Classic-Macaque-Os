@@ -92,15 +92,20 @@ class ModernFeatures:
         groups=getattr(self,'desktop_window_groups',{});hidden=groups.get(self.workspace,[])
         if hidden:
             for window in hidden:
-                if isValid(window) and window.property('workspace')==self.workspace:window.showNormal()
+                if isValid(window) and window.property('workspace')==self.workspace:
+                    if window.property('desktop_tabbed'):self.desktop_tabs.open(window)
+                    else:window.showNormal()
             groups[self.workspace]=[]
         else:
-            groups[self.workspace]=[w for w in self.area.subWindowList() if w.property('workspace')==self.workspace and not w.isMinimized()]
-            for window in groups[self.workspace]:window.showMinimized()
+            groups[self.workspace]=[w for w in self.area.subWindowList() if w.property('workspace')==self.workspace and not w.isMinimized() and w.isVisible()]
+            for window in groups[self.workspace]:
+                if window.property('desktop_tabbed'):self.desktop_tabs.collapse(window)
+                else:window.showMinimized()
         self.desktop_window_groups=groups
     def snap_window(self,side):
         w=self.area.activeSubWindow()
         if not w:return
+        if w.property('desktop_tabbed'):self.desktop_tabs.detach(w,keep_geometry=True)
         if w.shaded:w.shade()
         w.showNormal();rect=self.area.viewport().rect();half=rect.width()//2;w.setGeometry(0 if side=='left' else half,0,half,rect.height())
     def capture_desktop(self):

@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.36'
+VERSION='0.38'
 
 from menu_compat import Menu as QMenu
 
@@ -35,7 +35,7 @@ class TitleBar(QWidget):
             b=QPushButton();b.setToolTip(name);b.setAccessibleName(name);b.setFixedSize(14,14);b.setStyleSheet(f'QPushButton {{background:{color}; border:1px solid #666; border-radius:7px; padding:0;}}');b.clicked.connect(callback);layout.addWidget(b)
         layout.addStretch();self.label=QLabel(title);self.label.setTextFormat(Qt.PlainText);self.label.setObjectName('titleCaption');layout.addWidget(self.label);layout.addStretch()
     def contextMenuEvent(self,event):
-        menu=QMenu(self);menu.addAction('Minimize',self.w.showMinimized);menu.addAction('Restore' if self.w.isMaximized() else 'Zoom',self.w.zoom);menu.addAction('Unshade' if self.w.shaded else 'Shade',self.w.shade)
+        menu=QMenu(self);menu.addAction('Minimize',self.w.showMinimized);menu.addAction('Restore' if self.w.isMaximized() else 'Zoom',self.w.zoom);menu.addAction('Unshade' if self.w.shaded else 'Shade',self.w.shade);menu.addAction('Detach Desktop Tab' if self.w.property('desktop_tabbed') else 'Tab to Desktop',lambda:self.w.d.desktop_tabs.detach(self.w) if self.w.property('desktop_tabbed') else self.w.d.desktop_tabs.attach(self.w))
         spaces=menu.addMenu('Move to Workspace')
         for i,name in enumerate(self.w.d.workspace_names()):spaces.addAction(name,lambda checked=False,n=i:self.w.d.move_to_workspace(self.w,n))
         menu.addSeparator();menu.addAction('Close',self.w.close);menu.exec(event.globalPos())
@@ -44,11 +44,14 @@ class TitleBar(QWidget):
         if self.w.d.area.activeSubWindow()==self.w:
             for y in range(5,27,3):p.drawLine(77,y,self.width()-7,y)
     def mousePressEvent(self,e):
-        if e.button()==Qt.LeftButton:self.drag=e.globalPosition().toPoint()-self.w.pos()
+        if e.button()==Qt.LeftButton:self.press_geometry=self.w.geometry();self.tab_dragged=False;self.drag=e.globalPosition().toPoint()-self.w.pos()
     def mouseMoveEvent(self,e):
         if self.drag is not None and e.buttons()&Qt.LeftButton and not self.w.isMaximized():
-            pos=e.globalPosition().toPoint()-self.drag;pos.setY(max(0,pos.y()));pos.setX(max(20-self.w.width(),min(self.w.d.area.viewport().width()-30,pos.x())));self.w.move(pos)
-    def mouseReleaseEvent(self,e):self.drag=None
+            if self.w.property('desktop_tabbed'):self.w.d.desktop_tabs.detach(self.w,keep_geometry=True)
+            self.tab_dragged=True;pos=e.globalPosition().toPoint()-self.drag;pos.setY(max(0,pos.y()));pos.setX(max(20-self.w.width(),min(self.w.d.area.viewport().width()-30,pos.x())));self.w.move(pos)
+    def mouseReleaseEvent(self,e):
+        if self.drag is not None and getattr(self,'tab_dragged',False) and self.w.d.area.viewport().mapFromGlobal(e.globalPosition().toPoint()).y()>=self.w.d.area.viewport().height()-28:self.w.d.desktop_tabs.attach(self.w,self.press_geometry)
+        self.drag=None
     def mouseDoubleClickEvent(self,e):self.w.zoom() if self.w.d.state.get('title_double')=='Zoom' else self.w.shade()
 
 class Window(QMdiSubWindow):
@@ -64,9 +67,11 @@ class Window(QMdiSubWindow):
         if isValid(self):animate(self,True)
     def rename(self,title):self.setWindowTitle(title);self.bar.label.setText(title)
     def zoom(self):
+        if self.property('desktop_tabbed'):self.d.desktop_tabs.detach(self,keep_geometry=True)
         if self.shaded:self.shade()
         self.showNormal() if self.isMaximized() else self.showMaximized()
     def shade(self):
+        if self.property('desktop_tabbed'):self.d.desktop_tabs.detach(self,keep_geometry=True)
         if self.isMaximized():self.showNormal()
         if self.shaded:
             self.setMaximumHeight(16777215);self.setMinimumHeight(200);self.content.show();self.grip.show();self.resize(self.saved_size);self.shaded=False
@@ -74,6 +79,7 @@ class Window(QMdiSubWindow):
             self.saved_size=self.size();self.content.hide();self.grip.hide();self.setMinimumHeight(34);self.setMaximumHeight(34);self.resize(self.width(),34);self.shaded=True
     def closeEvent(self,e):
         if hasattr(self.content,'can_close') and not self.content.can_close():e.ignore();return
+        if hasattr(self.d,'desktop_tabs') and self in self.d.desktop_tabs.records:self.d.desktop_tabs.remove_deleted(self)
         animate(self,False)
         self.d.play_sound('close');super().closeEvent(e)
 
@@ -120,6 +126,8 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         self.hardware_keys=HardwareKeys(self)
         from removable_drives import RemovableMonitor
         self.removable=RemovableMonitor(self)
+        from desktop_tabs import DesktopTabs
+        self.desktop_tabs=DesktopTabs(self)
         self.top_bar.help.addAction('Diagnostics',self.diagnostics);QTimer.singleShot(0,self.initial)
     def initial(self):
         if not getattr(self,'_welcome_checked',False):
@@ -542,7 +550,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def special_menu(self):
         m=self.top_bar.special;m.clear();m.addAction('Empty Trash…',self.empty_trash);m.addAction('Manage Macaque Notes…',self.manage_stickies);m.addSeparator();m.addAction('Screen Saver Preview',self.screensaver);m.addAction('Restart Desktop…',self.restart);m.addAction('Quit Desktop',self.close)
     def window_menu(self,target=None):
-        m=target or self.top_bar.windows;m.clear();m.addAction('Cascade Windows',self.area.cascadeSubWindows);m.addAction('Tile Windows',self.area.tileSubWindows);spaces=m.addMenu('Workspaces');self.workspace_menu(spaces);m.addAction('Snap Active Left',lambda:self.snap_window('left'));m.addAction('Snap Active Right',lambda:self.snap_window('right'));m.addAction('Show / Restore Desktop',self.show_desktop);m.addSeparator()
+        m=target or self.top_bar.windows;m.clear();m.addAction('Cascade Windows',self.area.cascadeSubWindows);m.addAction('Tile Windows',self.area.tileSubWindows);spaces=m.addMenu('Workspaces');self.workspace_menu(spaces);m.addAction('Snap Active Left',lambda:self.snap_window('left'));m.addAction('Snap Active Right',lambda:self.snap_window('right'));m.addAction('Show / Restore Desktop',self.show_desktop);m.addAction('Tab Active Window to Desktop',lambda:self.desktop_tabs.attach(self.area.activeSubWindow()) if self.area.activeSubWindow() else None);m.addSeparator()
         for window in self.area.subWindowList():
             action=m.addAction(self.workspace_names()[window.property('workspace') or 0]+' / '+window.windowTitle(),lambda checked=False,w=window:self.activate_window(w));action.setCheckable(True);action.setChecked(window==self.area.activeSubWindow());action.setData(window)
     def save_active(self,save_as=False):
@@ -568,7 +576,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def text_window(self,title,text,size=(490,340)):
         box=QTextEdit();box.setReadOnly(True);box.setPlainText(text);return self.window(title,box,size)
     def about(self):
-        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic {VERSION}</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
+        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque-round',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic {VERSION}</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
     def control_panels(self):
         panel=QWidget();layout=QVBoxLayout(panel);grid=QGridLayout();layout.addLayout(grid)
         actions=[('Appearance','appearance',self.appearance),('Date & Time','clock',self.calendar),('Sound','computer',lambda:self.launch('Sound')),('Memory','computer',self.memory),('Desktop Disk','disk',lambda:self.text_window('Desktop Disk',f'Macaque HD is stored at:\n{self.disk.root}\n\nAvailable on host filesystem: {self.format_bytes(self.free_space())}')),('Screen Saver','computer',self.screensaver)]
@@ -644,7 +652,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
                 if hasattr(window.content,'can_close') and not window.content.can_close():event.ignore();return
         if not self.app_support.can_close():event.ignore();return
         if hasattr(self,'creative_apps') and not self.creative_apps.can_close():event.ignore();return
-        self.persist();event.accept()
+        self.desktop_tabs.shutdown();self.persist();event.accept()
 
 if __name__=='__main__':
     from PySide6.QtCore import QProcess

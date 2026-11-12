@@ -16,6 +16,9 @@ QScrollBar { background:#c9c8c3; } QCalendarWidget QWidget { color:#171717; } QS
 '''
 
 def icon(kind='folder',size=56):
+    if kind in ('macaque','macaque-round'):
+        from pathlib import Path
+        return QIcon(str(Path(__file__).parent/'assets/branding'/('round.png' if kind=='macaque-round' else 'square.png')))
     pm=QPixmap(size,size);pm.fill(Qt.transparent);p=QPainter(pm);p.scale(size/56,size/56);p.setPen(QPen(QColor('#30354a'),1))
     if kind in ('folder','apps','system','documents'):
         p.setBrush(QColor('#aebfef'));p.drawRect(5,13,23,10);p.setBrush(QColor('#8ba6df'));p.drawRect(4,21,48,27);p.setPen(QColor('#e2eaff'));p.drawLine(6,23,50,23)
