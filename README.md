@@ -1,3 +1,13 @@
+## Macaque startup menu theme
+
+The custom GRUB theme uses teal waves, a striped title bar, Macaque branding and a blue selection bar. Installed systems show the boot menu for seven seconds. GRUB keeps its generated kernels, recovery entries, console and edit commands. The live ISO stages the same GRUB theme for UEFI, plus a matching Syslinux background for legacy BIOS.
+
+![Macaque GRUB layout preview — not a firmware screenshot](docs/grub-theme-preview.png)
+
+For an **existing installed Macaque system**, run `sudo bash iso/install-grub-theme.sh` from this source folder. It backs up the current theme/configuration, runs `update-grub`, and restores the previous files if generation fails. It does not run `grub-install` or change partitions. Desktop update packages do not apply this theme automatically.
+
+Theme staging and asset checks pass; actual firmware rendering has not been tested. The published 0.38.2 ISO predates this theme and needs rebuilding to include it.
+
 ## 0.38.2 — Classic window and folder navigation
 
 - Roll up windows using the title-bar shade button, title-bar double-click (Mouse preference), title context menu, or Window menu. Unrolling preserves content and the original size constraints.

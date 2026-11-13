@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 [[ $(id -u) == 0 ]] || { echo 'Run with build-iso.sh, or as root in Debian 13.' >&2; exit 1; }
+python3 /kit/iso/test_grub_theme.py
 python3 /kit/build-desktop-deb.py --output /output
 work=$(mktemp -d /output/build-XXXXXX)
 cd "$work"
@@ -17,6 +18,7 @@ lb config --mode debian --distribution trixie --architectures amd64 \
 mkdir -p config/package-lists config/hooks/live
 cp /kit/iso/packages.txt config/package-lists/macaque.list.chroot
 python3 /kit/iso/prepare.py "$work/config/includes.chroot"
+python3 /kit/iso/stage-grub.py live "$work/config"
 cp /kit/iso/0100-macaque.hook.chroot config/hooks/live/
 chmod +x config/hooks/live/0100-macaque.hook.chroot
 lb build 2>&1 | tee /output/build-latest.log
@@ -34,6 +36,8 @@ unsquashfs -processors 2 -no-progress -d "$work/readback-root" "$work/readback.s
 [[ -f "$work/readback-root/etc/calamares/branding/macaque/show.qml" ]]
 [[ -f "$work/readback-root/usr/share/plymouth/themes/macaque/startup.png" ]]
 [[ -f "$work/readback-root/etc/greetd/config.toml" ]]
+[[ -f "$work/readback-root/boot/grub/themes/macaque/theme.txt" ]]
+[[ -f "$work/readback-root/etc/default/grub.d/60-macaque-theme.cfg" ]]
 name="macaque-classic-0.38.2-installer-$(date -u +%Y%m%d-%H%M%S).iso"
 cp -- "$image" "/output/$name"
 (cd /output && sha256sum "$name" > "$name.sha256")
