@@ -37,11 +37,12 @@ jobs:
           images=(output/macaque-classic-*.iso)
           [[ ${#images[@]} -eq 1 ]] || { echo "Expected exactly one final ISO"; exit 1; }
           image="${images[0]}"
-          tag="v0.38.1-preview-build-${GITHUB_RUN_NUMBER}"
+          tag="v0.38.2-preview-build-${GITHUB_RUN_NUMBER}"
+          boot_status=$(python3 -c 'import json,sys; print("passed" if json.load(open(sys.argv[1])).get("bios_live_userspace_reached") else "did not confirm startup; manual VM validation required")' "$image.boot-check.json")
           cat > release-notes.md <<'NOTES'
-          Experimental Macaque Classic v0.38.1 installer preview.
+          Experimental Macaque Classic v0.38.2 installer preview.
 
-          Includes the latest desktop source, drawer tabs, and system power menu.
+          Adds visible window shading controls and spring-loaded folders with an adjustable hover delay.
           Download the ISO and its SHA256 checksum from Assets.
           Build diagnostics and the automated boot-check result are included.
 
@@ -49,4 +50,5 @@ jobs:
           laptop controls, and installation are not certified by this automated build.
           Read the attached boot-check result before testing.
           NOTES
-          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic 0.38.1 Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt
+          printf '\nAutomated BIOS boot check: %s.\n' "$boot_status" >> release-notes.md
+          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic 0.38.2 Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt
