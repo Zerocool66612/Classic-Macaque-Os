@@ -1,0 +1,52 @@
+name: Build installer ISO
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-iso.yml'
+permissions:
+  contents: write
+concurrency:
+  group: installer-iso
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Debian live ISO
+        run: bash build-iso.sh
+      - name: Preserve build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-build-diagnostics
+          path: |
+            output/*.log
+            output/*.json
+            output/*.txt
+          if-no-files-found: ignore
+      - name: Publish preview ISO
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          images=(output/macaque-classic-*.iso)
+          [[ ${#images[@]} -eq 1 ]] || { echo "Expected exactly one final ISO"; exit 1; }
+          image="${images[0]}"
+          tag="v0.38.1-preview-build-${GITHUB_RUN_NUMBER}"
+          cat > release-notes.md <<'NOTES'
+          Experimental Macaque Classic v0.38.1 installer preview.
+
+          Includes the latest desktop source, drawer tabs, and system power menu.
+          Download the ISO and its SHA256 checksum from Assets.
+          Build diagnostics and the automated boot-check result are included.
+
+          Start in a virtual machine. Physical USB boot, UEFI execution, graphics,
+          laptop controls, and installation are not certified by this automated build.
+          Read the attached boot-check result before testing.
+          NOTES
+          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic 0.38.1 Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt
