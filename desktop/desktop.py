@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.38.1'
+VERSION='0.38.2'
 
 from menu_compat import Menu as QMenu
 
@@ -34,6 +34,7 @@ class TitleBar(QWidget):
         for color,name,callback in [('#ed6c5d','Close',window.close),('#efc24c','Minimize',window.showMinimized),('#6bbd62','Zoom',window.zoom)]:
             b=QPushButton();b.setToolTip(name);b.setAccessibleName(name);b.setFixedSize(14,14);b.setStyleSheet(f'QPushButton {{background:{color}; border:1px solid #666; border-radius:7px; padding:0;}}');b.clicked.connect(callback);layout.addWidget(b)
         layout.addStretch();self.label=QLabel(title);self.label.setTextFormat(Qt.PlainText);self.label.setObjectName('titleCaption');layout.addWidget(self.label);layout.addStretch()
+        self.shade_button=QPushButton('▱');self.shade_button.setFixedSize(22,18);self.shade_button.setAccessibleName('Roll up window');self.shade_button.setToolTip('Roll up / unroll window');self.shade_button.clicked.connect(window.shade);layout.addWidget(self.shade_button)
     def contextMenuEvent(self,event):
         menu=QMenu(self);menu.addAction('Minimize',self.w.showMinimized);menu.addAction('Restore' if self.w.isMaximized() else 'Zoom',self.w.zoom);menu.addAction('Unshade' if self.w.shaded else 'Shade',self.w.shade);menu.addAction('Detach Desktop Tab' if self.w.property('desktop_tabbed') else 'Tab to Desktop',lambda:self.w.d.desktop_tabs.detach(self.w) if self.w.property('desktop_tabbed') else self.w.d.desktop_tabs.attach(self.w))
         spaces=menu.addMenu('Move to Workspace')
@@ -74,9 +75,9 @@ class Window(QMdiSubWindow):
         if self.property('desktop_tabbed'):self.d.desktop_tabs.detach(self,keep_geometry=True)
         if self.isMaximized():self.showNormal()
         if self.shaded:
-            self.setMaximumHeight(16777215);self.setMinimumHeight(200);self.content.show();self.grip.show();self.resize(self.saved_size);self.shaded=False
+            self.setMaximumSize(self.saved_constraints[1]);self.setMinimumSize(self.saved_constraints[0]);self.content.show();self.grip.show();self.resize(self.saved_size);self.shaded=False;self.bar.shade_button.setAccessibleName('Roll up window')
         else:
-            self.saved_size=self.size();self.content.hide();self.grip.hide();self.setMinimumHeight(34);self.setMaximumHeight(34);self.resize(self.width(),34);self.shaded=True
+            self.saved_size=self.size();self.saved_constraints=(self.minimumSize(),self.maximumSize());self.content.hide();self.grip.hide();self.setMinimumHeight(34);self.setMaximumHeight(34);self.resize(self.width(),34);self.shaded=True;self.bar.shade_button.setAccessibleName('Unroll window')
     def closeEvent(self,e):
         if hasattr(self.content,'can_close') and not self.content.can_close():e.ignore();return
         if hasattr(self.d,'desktop_tabs') and self in self.d.desktop_tabs.records:self.d.desktop_tabs.remove_deleted(self)
@@ -556,7 +557,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def special_menu(self):
         m=self.top_bar.special;m.clear();m.addAction('Empty Trash…',self.empty_trash);m.addAction('Manage Macaque Notes…',self.manage_stickies);m.addSeparator();m.addAction('Screen Saver Preview',self.screensaver);m.addAction('Restart Desktop…',self.restart);m.addAction('Quit Desktop',self.close)
     def window_menu(self,target=None):
-        m=target or self.top_bar.windows;m.clear();m.addAction('Cascade Windows',self.area.cascadeSubWindows);m.addAction('Tile Windows',self.area.tileSubWindows);spaces=m.addMenu('Workspaces');self.workspace_menu(spaces);m.addAction('Snap Active Left',lambda:self.snap_window('left'));m.addAction('Snap Active Right',lambda:self.snap_window('right'));m.addAction('Show / Restore Desktop',self.show_desktop);m.addAction('Tab Active Window to Desktop',lambda:self.desktop_tabs.attach(self.area.activeSubWindow()) if self.area.activeSubWindow() else None);m.addSeparator()
+        m=target or self.top_bar.windows;m.clear();active=self.area.activeSubWindow();shade=m.addAction('Unroll Active Window' if active and active.shaded else 'Roll Up Active Window',lambda: self.area.activeSubWindow().shade() if self.area.activeSubWindow() else None);shade.setEnabled(active is not None);m.addAction('Cascade Windows',self.area.cascadeSubWindows);m.addAction('Tile Windows',self.area.tileSubWindows);spaces=m.addMenu('Workspaces');self.workspace_menu(spaces);m.addAction('Snap Active Left',lambda:self.snap_window('left'));m.addAction('Snap Active Right',lambda:self.snap_window('right'));m.addAction('Show / Restore Desktop',self.show_desktop);m.addAction('Tab Active Window to Desktop',lambda:self.desktop_tabs.attach(self.area.activeSubWindow()) if self.area.activeSubWindow() else None);m.addSeparator()
         for window in self.area.subWindowList():
             action=m.addAction(self.workspace_names()[window.property('workspace') or 0]+' / '+window.windowTitle(),lambda checked=False,w=window:self.activate_window(w));action.setCheckable(True);action.setChecked(window==self.area.activeSubWindow());action.setData(window)
     def save_active(self,save_as=False):

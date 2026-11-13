@@ -1,3 +1,11 @@
+## 0.38.2 — Classic window and folder navigation
+
+- Roll up windows using the title-bar shade button, title-bar double-click (Mouse preference), title context menu, or Window menu. Unrolling preserves content and the original size constraints.
+- Spring-loaded folders in Macaque Files icon and list views: hover a dragged file over a folder to temporarily browse inside it. Nested folders work; drop or cancel returns to the starting folder. Ctrl-drop still copies. Apps, source folders/descendants, and read-only host locations do not spring open.
+- Mouse preferences include an enable switch and hover delay (300–2000 ms; default 700 ms).
+- These controls apply to built-in Classic windows and Files; external Linux application windows use compositor controls.
+- Source update; the published 0.38.1 ISO does not include this change yet.
+
 # Macaque Classic 0.38.1 — Session Menu
 
 New square monkey/penguin branding in About This Computer, Welcome Center, first-run animated welcome, installer artwork, boot splash and login screen. The round version appears in About This Computer and is included in desktop/assets/branding/round.png.

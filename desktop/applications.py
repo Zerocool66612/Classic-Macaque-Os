@@ -5,14 +5,14 @@ from PySide6.QtGui import QFont,QTextDocument,QTextCursor,QShortcut,QKeySequence
 from PySide6.QtWidgets import *
 from model import calculate,APP_NAMES,CONTROL_PANELS
 from visuals import icon,app_kind
-from mouse_tools import FileIcons,FileList
+from mouse_tools import FileIcons,FileList,SpringFolders
 
 from menu_compat import Menu as QMenu
 
 class Finder(QWidget):
     app_name='Macaque Files'
     def __init__(self,desktop,path):
-        super().__init__();self.d=desktop;self.path=Path(path);self.history=[];self.future=[];self.mode='icons';self.window=None;self.sort_mode='Name';self.show_hidden=False
+        super().__init__();self.d=desktop;self.path=Path(path);self.history=[];self.future=[];self.mode='icons';self.window=None;self.sort_mode='Name';self.show_hidden=False;self.spring=SpringFolders(self)
         layout=QVBoxLayout(self);layout.setContentsMargins(8,6,8,4);layout.setSpacing(6)
         tools=QHBoxLayout();self.back=QPushButton('◀');self.back.setToolTip('Back');self.back.clicked.connect(self.go_back);tools.addWidget(self.back)
         up=QPushButton('↑');up.setToolTip('Enclosing folder');up.clicked.connect(self.go_up);tools.addWidget(up)
@@ -96,6 +96,7 @@ class Finder(QWidget):
     def change_sort(self,mode):self.sort_mode=mode;self.refresh()
     def hidden_changed(self,value):self.show_hidden=value;self.refresh()
     def can_close(self):
+        self.spring.finish()
         self.refresh_timer.stop()
         if self.watcher.directories():self.watcher.removePaths(self.watcher.directories())
         return True
