@@ -31,12 +31,13 @@ class WorkspaceFeatures:
     def switch_workspace(self,index):
         if index not in range(4):return
         self.workspace=index;self.state['workspace']=index
-        for window in self.area.subWindowList():window.setVisible(window.property('workspace')==index)
+        for window in self.area.subWindowList():window.setVisible(window.property('workspace')==index and not window.property('classic_hidden'))
         if hasattr(self,'desktop_tabs'):self.desktop_tabs.layout()
         self.persist();self.top_bar.refresh_status()
     def activate_window(self,window):
         from shiboken6 import isValid
         if not isValid(window):return
+        window.setProperty('classic_hidden',False)
         index=window.property('workspace')
         if index is not None and index!=self.workspace:self.switch_workspace(index)
         if window.property('desktop_tabbed'):self.desktop_tabs.open(window);return

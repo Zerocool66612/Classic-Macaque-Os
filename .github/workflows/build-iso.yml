@@ -37,12 +37,15 @@ jobs:
           images=(output/macaque-classic-*.iso)
           [[ ${#images[@]} -eq 1 ]] || { echo "Expected exactly one final ISO"; exit 1; }
           image="${images[0]}"
-          tag="v0.38.2-preview-build-${GITHUB_RUN_NUMBER}"
+          version=$(dpkg-deb -f output/macaque-classic_*.deb Version)
+          tag="v${version}-preview-build-${GITHUB_RUN_NUMBER}"
           boot_status=$(python3 -c 'import json,sys; print("passed" if json.load(open(sys.argv[1])).get("bios_live_userspace_reached") else "did not confirm startup; manual VM validation required")' "$image.boot-check.json")
           cat > release-notes.md <<'NOTES'
-          Experimental Macaque Classic v0.38.2 installer preview.
+          Experimental Macaque Classic installer preview.
 
-          Adds visible window shading controls and spring-loaded folders with an adjustable hover delay.
+          Adds spatial folder windows, aliases, labels, stationery, expanded Get Info,
+          classic application hiding and improved removable-drive desktop controls.
+          Also includes window shading, spring-loaded folders and the custom boot theme.
           Download the ISO and its SHA256 checksum from Assets.
           Build diagnostics and the automated boot-check result are included.
 
@@ -51,4 +54,4 @@ jobs:
           Read the attached boot-check result before testing.
           NOTES
           printf '\nAutomated BIOS boot check: %s.\n' "$boot_status" >> release-notes.md
-          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic 0.38.2 Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt
+          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic ${version} Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt

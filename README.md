@@ -1,3 +1,41 @@
+## 0.39 — Classic Finder desktop update
+
+Spatial folders are enabled by default: opening a folder reuses its existing window,
+and closing/reopening restores its position, size, icon/list view, sort order,
+hidden-file setting and icon positions. Turn **View → Spatial Folders** off for
+single-window navigation with Back/Forward history. Drag icons within a folder to
+position them on a 25-pixel grid; **Clean Up Folder Icons** resets their arrangement.
+
+Right-click a managed file to **Make Alias**, **Show Original**, or choose a **Label**.
+Aliases have an arrow marker, follow renamed originals within the managed volume
+(up to a bounded 10,000-entry scan), and offer to locate missing originals. They
+are Macaque `.mcalias` data files, not native Linux or original Mac aliases.
+
+**Get Info** opens separate panels with dates, size, location, permissions, labels,
+custom icons and a **Stationery pad** checkbox. Opening stationery creates an
+independent copy. Labels can be sorted in Files or searched with `label:Project`
+(or `label:Project notes`). Metadata is local to Macaque and follows filesystem
+identity across renames/moves; it is not a portable cross-filesystem tag format.
+
+The small applications icon at the right of the top bar offers **Hide Application**,
+**Hide Others**, **Show All**, and window switching for built-in Macaque windows.
+External Wayland applications continue to use the compositor's controls.
+Mounted removable volumes open directly from their desktop icons. Their context
+menu offers safe eject through the existing UDisks backend, with identity checks
+and no forced unmount. Unmounted volumes open USB Drives controls first. Drive
+removal produces a notification. USB browsing remains read only; use the existing
+Import/Export controls for transfers. Trash now changes its icon when full; Put
+Back and confirmed permanent emptying remain available.
+
+![Macaque 0.39 actual offscreen desktop render](docs/classic-finder-preview.png)
+
+This is a **desktop source/package update**. The published 0.38.2 ISO does not
+contain it. No new ISO is claimed or automatically published by this source commit.
+Run `bash build-iso.sh` to build a new candidate, or use the existing ISO workflow
+manually. Its release name now follows the package version automatically.
+Desktop packages are only for an existing installed Macaque system, not a live USB
+or a stock Ubuntu/Fedora desktop. Back up your data and save work before updating.
+
 ## Macaque startup menu theme
 
 The custom GRUB theme uses teal waves, a striped title bar, Macaque branding and a blue selection bar. Installed systems show the boot menu for seven seconds. GRUB keeps its generated kernels, recovery entries, console and edit commands. The live ISO stages the same GRUB theme for UEFI, plus a matching Syslinux background for legacy BIOS.

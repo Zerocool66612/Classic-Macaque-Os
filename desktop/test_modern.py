@@ -23,7 +23,7 @@ with tempfile.TemporaryDirectory() as temp:
  checks['Show desktop file icons'].click();assert all(b.isHidden() for b in d.icons)
  checks['Show desktop file icons'].click();assert all(not b.isHidden() for b in d.icons)
  checks['Center new windows'].click();w=d.launch('Calculator');assert abs(w.x()-(d.area.viewport().width()-w.width())//2)<=1
- assert all(b.isHidden() for k,b in d.top_bar.controls.items() if k!='search') and d.top_bar.search.isVisible();assert all(b.isHidden() for b in d.top_bar.pins);assert not d.top_bar.more.isVisible();d.quick_settings(d.top_bar.quick_menu);assert any(a.text()=='Classic Sounds…' for a in d.top_bar.quick_menu.actions())
+ assert all(b.isHidden() for k,b in d.top_bar.controls.items() if k not in ('search','switch')) and d.top_bar.search.isVisible() and d.top_bar.switch.isVisible();assert all(b.isHidden() for b in d.top_bar.pins);assert not d.top_bar.more.isVisible();d.quick_settings(d.top_bar.quick_menu);assert any(a.text()=='Classic Sounds…' for a in d.top_bar.quick_menu.actions())
  d.set_preference('compact_bar',False);assert d.top_bar.height()==28;d.set_preference('compact_bar',True);assert d.top_bar.height()==22
  d.set_preference('clock_seconds',True);assert d.top_bar.clock.text().count(':')==2
  d.snap_window('left');assert w.x()==0 and w.width()==d.area.viewport().width()//2

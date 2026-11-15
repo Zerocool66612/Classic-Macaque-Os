@@ -1,5 +1,5 @@
 """Original classic-inspired UI earcons. No sampled Apple audio."""
-import math,wave,struct,time
+import math,wave,struct,time,os
 from pathlib import Path
 from PySide6.QtCore import QObject,QUrl,Qt
 from PySide6.QtWidgets import *
@@ -37,6 +37,8 @@ def generate(directory):
 class SoundTheme(QObject):
     def __init__(self,d,effect_factory=None):
         super().__init__(d);self.d=d;self.effects={};self.last=0;self.suspended=True;self.available=False;self.reason=''
+        if effect_factory is None and os.environ.get('MACAQUE_SILENT')=='1':
+            self.reason='Audio device probing disabled for silent checks.';return
         try:
             if effect_factory is None:
                 from PySide6.QtMultimedia import QSoundEffect,QMediaDevices

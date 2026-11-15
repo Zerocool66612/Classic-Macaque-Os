@@ -33,7 +33,7 @@ with tempfile.TemporaryDirectory() as tmp:
     on_desktop=d.disk.new_folder(root/'Desktop','My Folder');d.disk_changed.emit();assert len(d.desktop_extras)==1
     before=len(d.area.subWindowList());QTest.mouseDClick(d.desktop_extras[0],Qt.LeftButton);assert len(d.area.subWindowList())==before+1
     finder=d.active();assert isinstance(finder,Finder) and finder.path==on_desktop
-    finder.go_up();assert finder.path==root/'Desktop';finder.toggle_view();assert finder.mode=='list'
+    finder.go_up();finder=d.active();assert finder.path==root/'Desktop';finder.toggle_view();assert finder.mode=='list'
     # Editor Save As, modified-state cancellation, and persistence.
     win=d.launch('Macaque Text');note=win.content;note.editor.setPlainText('Patient Zero notes\nClassic desktop project')
     saved=root/'Documents'/'Project.txt'

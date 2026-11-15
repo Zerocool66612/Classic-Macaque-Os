@@ -9,7 +9,7 @@ from browser_app import browser_url,Browser
 from applications import Finder
 app=QApplication([])
 with tempfile.TemporaryDirectory() as tmp:
- d=Desktop(tmp);d.show();app.processEvents()
+ d=Desktop(tmp);d.state['spatial_folders']=False;d.show();app.processEvents()
  for w in d.area.subWindowList():w.close()
  a=d.launch('Calculator');b=d.launch('Tasks');assert a.property('workspace')==0
  d.switch_workspace(1);assert not a.isVisible() and not b.isVisible();c=d.launch('Clockwork');assert c.isVisible() and c.property('workspace')==1

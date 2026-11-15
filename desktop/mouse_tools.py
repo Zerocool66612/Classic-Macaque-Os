@@ -68,8 +68,19 @@ class FileIcons(SpringView,QListWidget):
     def dropEvent(self,e):
         self.owner.spring.hover_timer.stop();QTimer.singleShot(0,self.owner.spring.finish)
         paths=paths_from(e.mimeData());item=self.itemAt(e.position().toPoint());target=Path(item.data(Qt.UserRole)) if item else self.owner.path
-        if not target.is_dir() or target.name.endswith('.app'):target=self.owner.path
-        if paths and self.owner.managed:self.owner.d.transfer_paths(paths,target,bool(e.modifiers()&Qt.ControlModifier));e.acceptProposedAction()
+        if target in paths or not target.is_dir() or target.name.endswith('.app'):target=self.owner.path
+        if paths and target==self.owner.path and all(p.parent==target for p in paths) and not e.modifiers()&Qt.ControlModifier:
+            selected=[self.item(i) for i in range(self.count()) if Path(self.item(i).data(Qt.UserRole)) in paths]
+            if selected:
+                origin=self.visualItemRect(selected[0]).topLeft();delta=e.position().toPoint()-origin
+                for selected_item in selected:
+                    point=self.visualItemRect(selected_item).topLeft()+delta
+                    point.setX(max(0,round(point.x()/25)*25));point.setY(max(0,round(point.y()/25)*25))
+                    self.setPositionForIndex(point,self.indexFromItem(selected_item))
+                from classic_files import remember
+                remember(self.owner)
+            e.acceptProposedAction()
+        elif paths and self.owner.managed:self.owner.d.transfer_paths(paths,target,bool(e.modifiers()&Qt.ControlModifier));e.acceptProposedAction()
         else:e.ignore()
 class FileList(SpringView,QTreeWidget):
     def __init__(self,owner):super().__init__();self.owner=owner;self.setDragEnabled(True);self.setAcceptDrops(True);self.setSelectionMode(QAbstractItemView.ExtendedSelection)

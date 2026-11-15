@@ -12,7 +12,7 @@ import json
 app=QApplication([])
 with tempfile.TemporaryDirectory() as t:
  with patch('desktop.SoundTheme',return_value=MagicMock()):d=Desktop(Path(t))
- d.state['reduce_motion']=True;d.show();QTest.qWait(50)
+ d.state['spatial_folders']=False;d.state['reduce_motion']=True;d.show();QTest.qWait(50)
  w=d.launch('Macaque Text');w.content.editor.setPlainText('Unsaved text stays');size=w.size();minimum=w.minimumSize();maximum=w.maximumSize()
  QTest.mouseClick(w.bar.shade_button,Qt.LeftButton);assert w.shaded and w.height()==34 and not w.content.isVisible()
  QTest.mouseClick(w.bar.shade_button,Qt.LeftButton);assert not w.shaded and w.size()==size and w.minimumSize()==minimum and w.maximumSize()==maximum and w.content.editor.toPlainText()=='Unsaved text stays'

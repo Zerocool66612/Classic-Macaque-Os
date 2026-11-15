@@ -21,28 +21,35 @@ class Finder(QWidget):
         refresh=QPushButton('Refresh');refresh.clicked.connect(self.refresh);tools.addWidget(refresh)
         self.new_button=QPushButton('New Folder');self.new_button.clicked.connect(self.new_folder);tools.addWidget(self.new_button)
         self.switch=QPushButton('List View');self.switch.clicked.connect(self.toggle_view);tools.addWidget(self.switch);layout.addLayout(tools)
-        self.splitter=QSplitter();layout.addWidget(self.splitter,1);self.sidebar=QListWidget();self.sidebar.setMaximumWidth(170);self.sidebar.itemActivated.connect(lambda item:self.open(Path(item.data(Qt.UserRole))));self.splitter.addWidget(self.sidebar);self.stack=QStackedWidget();self.icons=FileIcons(self);self.icons.setViewMode(QListWidget.IconMode);self.icons.setIconSize(QSize(48,48));self.icons.setGridSize(QSize(125,90));self.icons.setResizeMode(QListWidget.Adjust);self.icons.setMovement(QListWidget.Static);self.icons.setDragEnabled(True);self.icons.setWordWrap(True)
+        self.splitter=QSplitter();layout.addWidget(self.splitter,1);self.sidebar=QListWidget();self.sidebar.setMaximumWidth(170);self.sidebar.itemActivated.connect(lambda item:self.open(Path(item.data(Qt.UserRole))));self.splitter.addWidget(self.sidebar);self.stack=QStackedWidget();self.icons=FileIcons(self);self.icons.setViewMode(QListWidget.IconMode);self.icons.setIconSize(QSize(48,48));self.icons.setGridSize(QSize(125,90));self.icons.setResizeMode(QListWidget.Adjust);self.icons.setMovement(QListWidget.Free);self.icons.setSelectionRectVisible(True);self.icons.setDragEnabled(True);self.icons.setWordWrap(True)
         self.list=FileList(self);self.list.setHeaderLabels(['Name','Kind','Size','Modified']);self.list.setRootIsDecorated(False);self.list.setAlternatingRowColors(True)
         self.stack.addWidget(self.icons);self.stack.addWidget(self.list);self.splitter.addWidget(self.stack);self.splitter.setStretchFactor(1,1)
         navigation=QHBoxLayout();self.address=QLineEdit();self.address.setPlaceholderText('Go to a folder…');self.address.returnPressed.connect(self.go_address);navigation.addWidget(self.address,1);pin=QPushButton('Pin folder');pin.clicked.connect(self.pin_folder);navigation.addWidget(pin);layout.insertLayout(1,navigation)
-        options=QHBoxLayout();self.filter=QLineEdit();self.filter.setPlaceholderText('Filter this folder…');self.filter.textChanged.connect(self.refresh);options.addWidget(self.filter,1);self.sort=QComboBox();self.sort.addItems(['Name','Modified','Size','Type']);self.sort.currentTextChanged.connect(self.change_sort);options.addWidget(self.sort);self.hidden=QCheckBox('Hidden files');self.hidden.toggled.connect(self.hidden_changed);options.addWidget(self.hidden);layout.insertLayout(2,options)
+        options=QHBoxLayout();self.filter=QLineEdit();self.filter.setPlaceholderText('Filter this folder…');self.filter.textChanged.connect(self.refresh);options.addWidget(self.filter,1);self.sort=QComboBox();self.sort.addItems(['Name','Modified','Size','Type','Label']);self.sort.currentTextChanged.connect(self.change_sort);options.addWidget(self.sort);self.hidden=QCheckBox('Hidden files');self.hidden.toggled.connect(self.hidden_changed);options.addWidget(self.hidden);layout.insertLayout(2,options)
         self.status=QLabel();layout.addWidget(self.status);self.watcher=QFileSystemWatcher(self);self.refresh_timer=QTimer(self);self.refresh_timer.setSingleShot(True);self.refresh_timer.timeout.connect(self.refresh);self.watcher.directoryChanged.connect(lambda *a:self.refresh_timer.start(150));self.key_refresh=QShortcut(QKeySequence('F5'),self);self.key_refresh.setContext(Qt.WidgetWithChildrenShortcut);self.key_refresh.activated.connect(self.refresh);self.key_location=QShortcut(QKeySequence('Ctrl+L'),self);self.key_location.setContext(Qt.WidgetWithChildrenShortcut);self.key_location.activated.connect(lambda:(self.address.setFocus(),self.address.selectAll()))
         self.icons.itemDoubleClicked.connect(lambda i:self.open(Path(i.data(Qt.UserRole))) if not self.d.state.get('single_click',False) else None)
         self.icons.itemClicked.connect(lambda i:self.open(Path(i.data(Qt.UserRole))) if self.d.state.get('single_click',False) and not QApplication.keyboardModifiers()&(Qt.ControlModifier|Qt.ShiftModifier) else None)
         self.list.itemClicked.connect(lambda i,c:self.open(Path(i.data(0,Qt.UserRole))) if self.d.state.get('single_click',False) and not QApplication.keyboardModifiers()&(Qt.ControlModifier|Qt.ShiftModifier) else None)
         self.list.itemDoubleClicked.connect(lambda i,c:self.open(Path(i.data(0,Qt.UserRole))) if not self.d.state.get('single_click',False) else None)
         for widget in (self.icons,self.list):widget.setContextMenuPolicy(Qt.CustomContextMenu);widget.customContextMenuRequested.connect(lambda pos,w=widget:self.context(w,pos))
+        for widget in (self.icons,self.list):
+            for sequence,callback in [('Ctrl+A',widget.selectAll),('Delete',self.trash_selected),('Ctrl+I',self.info),('F2',self.rename_selected)]:
+                shortcut=QShortcut(QKeySequence(sequence),widget);shortcut.setContext(Qt.WidgetWithChildrenShortcut);shortcut.activated.connect(callback)
         self.d.disk_changed.connect(self.refresh);self.refresh()
-    def attach(self,window):self.window=window;self.refresh()
+    def attach(self,window):
+        self.window=window
+        from classic_files import restore
+        restore(self);self.refresh()
     def refresh(self,*args):
-        selected=self.selected() if hasattr(self,'icons') else None
+        selected=set(self.selected_paths()) if hasattr(self,'icons') else set()
         if not self.path.exists():self.path=self.d.disk.root
         self.managed=self.path.resolve().is_relative_to(self.d.disk.root.resolve());self.new_button.setEnabled(self.managed);self.icons.clear();self.list.clear();entries=[]
         try:
             entries=list(self.path.iterdir())
             def key(path):
                 try:
-                    st=path.stat();value=-st.st_mtime if self.sort_mode=='Modified' else -st.st_size if self.sort_mode=='Size' else path.suffix.casefold() if self.sort_mode=='Type' else path.name.casefold()
+                    from classic_files import metadata
+                    st=path.stat();value=metadata(self.d,path).get('label','None') if self.sort_mode=='Label' else -st.st_mtime if self.sort_mode=='Modified' else -st.st_size if self.sort_mode=='Size' else path.suffix.casefold() if self.sort_mode=='Type' else path.name.casefold()
                 except OSError:value=0 if self.sort_mode in ('Modified','Size') else ''
                 return (not path.is_dir(),value,path.name.casefold())
             entries.sort(key=key)
@@ -56,7 +63,10 @@ class Finder(QWidget):
                 st=p.stat();size='—' if p.is_dir() else self.d.format_bytes(st.st_size);date=self.d.file_date(st.st_mtime)
             except OSError:size,date='—','—'
             row=QTreeWidgetItem([name,'Application' if isapp else 'Folder' if p.is_dir() else 'Document',size,date]);row.setIcon(0,icon(kind));row.setData(0,Qt.UserRole,str(p));self.list.addTopLevelItem(row)
-            if selected==p:self.icons.setCurrentItem(item);self.list.setCurrentItem(row)
+            if p in selected:
+                if self.icons.currentItem() is None:self.icons.setCurrentItem(item)
+                if self.list.currentItem() is None:self.list.setCurrentItem(row)
+                item.setSelected(True);row.setSelected(True)
         watched=self.watcher.directories()
         if watched!=[str(self.path)]:
             if watched:self.watcher.removePaths(watched)
@@ -64,11 +74,17 @@ class Finder(QWidget):
         self.address.setText(str(self.path));self.refresh_sidebar()
         self.list.resizeColumnToContents(0);self.list.resizeColumnToContents(1);self.location.setText('Macaque HD' if self.path==self.d.disk.root else self.path.name);self.location.setToolTip(str(self.path));self.back.setEnabled(bool(self.history));self.status.setText(f'{self.icons.count()} items · '+('Macaque HD' if self.managed else 'Host folder · read only'))
         if self.window:self.window.rename(self.location.text())
+        from classic_files import decorate
+        decorate(self)
+    def selected_paths(self):
+        return [Path(i.data(Qt.UserRole)) for i in self.icons.selectedItems()] if self.mode=='icons' else [Path(i.data(0,Qt.UserRole)) for i in self.list.selectedItems()]
     def selected(self):
         item=self.icons.currentItem() if self.mode=='icons' else self.list.currentItem()
         return Path(item.data(Qt.UserRole) if self.mode=='icons' else item.data(0,Qt.UserRole)) if item else None
     def open(self,path):
         if path.name.endswith('.app') and path.stem in APP_NAMES+CONTROL_PANELS:self.d.launch(path.stem)
+        elif path.is_dir() and self.d.state.get('spatial_folders',True):
+            self.d.open_finder(path)
         elif path.is_dir():
             self.history.append(self.path);self.future=[];self.path=path;self.refresh();self.d.play_sound('open')
         else:self.d.open_document(path)
@@ -97,6 +113,8 @@ class Finder(QWidget):
     def hidden_changed(self,value):self.show_hidden=value;self.refresh()
     def can_close(self):
         self.spring.finish()
+        from classic_files import remember
+        remember(self)
         self.refresh_timer.stop()
         if self.watcher.directories():self.watcher.removePaths(self.watcher.directories())
         return True
@@ -113,13 +131,12 @@ class Finder(QWidget):
             name,ok=QInputDialog.getText(self,'Rename','New name:',text=p.name)
             if ok:self.d.operation(lambda:self.d.disk.rename(p,name))
     def duplicate_selected(self):
-        p=self.selected()
-        if p:self.d.operation(lambda:self.d.disk.duplicate(p))
+        for p in self.selected_paths():self.d.operation(lambda p=p:self.d.disk.duplicate(p))
     def trash_selected(self):
-        p=self.selected()
-        if p:self.d.operation(lambda:self.d.disk.trash_item(p),'trash')
+        paths=self.selected_paths()
+        if paths:self.d.trash_paths(paths)
     def info(self):
-        p=self.selected() or self.path;self.d.get_info(p)
+        for p in self.selected_paths() or [self.path]:self.d.get_info(p)
     def context_menu(self,widget,pos):
         item=widget.itemAt(pos)
         if item:
@@ -129,8 +146,11 @@ class Finder(QWidget):
         menu=self.d.file_context_menu(paths,self.path,self.open)
         if not item:
             menu.addSeparator();menu.addAction('Refresh',self.refresh);menu.addAction('Select All',widget.selectAll);menu.addAction('Change View',self.toggle_view)
+            from classic_files import clean_up
+            menu.addAction('Clean Up Icons',lambda:clean_up(self))
+            spatial=menu.addAction('Spatial Folders');spatial.setCheckable(True);spatial.setChecked(self.d.state.get('spatial_folders',True));spatial.toggled.connect(lambda value:self.d.set_preference('spatial_folders',value))
             sort=menu.addMenu('Sort By')
-            for name in ['Name','Modified','Size','Type']:sort.addAction(name,lambda checked=False,n=name:self.sort.setCurrentText(n))
+            for name in ['Name','Modified','Size','Type','Label']:sort.addAction(name,lambda checked=False,n=name:self.sort.setCurrentText(n))
             hidden=menu.addAction('Show Hidden Files');hidden.setCheckable(True);hidden.setChecked(self.show_hidden);hidden.toggled.connect(self.hidden.setChecked)
             pin=menu.addAction('Pin / Unpin Folder',self.pin_folder);pin.setEnabled(self.managed)
         return menu

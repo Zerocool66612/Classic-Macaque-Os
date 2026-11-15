@@ -1,3 +1,14 @@
+## 0.39 — Classic Finder behavior
+
+- Spatial folder windows, per-folder view/geometry/layout memory, grid positioning.
+- Managed aliases with Show Original, rename tracking and missing-target repair.
+- Get Info panels with custom icons, labels and stationery pads; label sorting/search.
+- Multi-selection retention, scoped file shortcuts, and multi-item file actions.
+- Running-app menu with application hiding and workspace-aware Show All.
+- Direct mounted-drive opening, deferred/revalidated safe eject, removal notices.
+- Full/empty Trash icon, keeping the existing reversible Trash backend.
+- Silent checks avoid audio device probing; explicit fake audio checks remain active.
+
 ## 0.30 Wayland preview
 
 Native labwc session, greetd/gtkgreet login, swaylock/swayidle, portals, Wayland-only launch rules and compositor shortcut integration. Lid overrides disabled pending implementation; logind owns lid policy. Offscreen/fixture checks pass; live GPU/PAM/locking/installer integration still requires machine testing.

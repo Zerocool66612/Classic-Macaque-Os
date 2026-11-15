@@ -24,7 +24,7 @@ class TopBar(QWidget):
         self.sound=self.control('sound','♪','Sound output');self.sound.clicked.connect(lambda:d.launch('Sound'))
         self.notifications=self.control('notifications','♧','Notifications');self.notifications.clicked.connect(d.notifications)
         self.theme=self.control('theme','☾','Light / dark mode',d.toggle_dark)
-        self.switch=self.control('switch','▣ 0','Running Macaque windows');self.switch_menu=self.popup(self.switch,lambda menu:d.window_menu(menu))
+        self.switch=self.control('switch','▣ 0','Running Macaque windows');self.switch_menu=self.popup(self.switch,lambda menu:self.running_apps(menu))
         self.capture=self.control('capture','▧','Save Macaque screenshot · Ctrl+Shift+P',d.capture_desktop)
         self.desktop=self.control('desktop','▱','Show / restore desktop · Ctrl+Shift+D',d.show_desktop)
         self.settings=self.control('settings','⚙','Macaque Settings · Ctrl+,',d.settings)
@@ -34,6 +34,7 @@ class TopBar(QWidget):
         self.clock=QToolButton();self.clock.setToolTip('Calendar and timers');self.row.addWidget(self.clock);self.calendar_menu=self.popup(self.clock,lambda menu:d.clock_menu(menu))
         for key,kind in [('network','network'),('sound','sound'),('notifications','bell'),('capture','capture'),('desktop','display'),('settings','gear'),('session','power')]:
             self.controls[key].setIcon(icon(kind,22));self.controls[key].setIconSize(QSize(17,17));self.controls[key].setText('')
+        self.row.removeWidget(self.switch);self.row.addWidget(self.switch);self.switch.setIcon(icon('apps',22));self.switch.setIconSize(QSize(17,17));self.switch.setToolButtonStyle(Qt.ToolButtonIconOnly);self.switch.setAccessibleName('Running Applications menu')
         self.apply_theme();QTimer.singleShot(0,self.update_layout)
     def control(self,key,text,tip,callback=None):
         b=QToolButton();b.setText(text);b.setToolTip(tip);b.setAccessibleName(tip);b.setMinimumWidth(25);self.row.addWidget(b);self.controls[key]=b
@@ -45,6 +46,9 @@ class TopBar(QWidget):
         b=QToolButton();b.setText(title)
         if image:b.setIcon(image);b.setIconSize(QSize(17,17));b.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         b.setPopupMode(QToolButton.InstantPopup);menu=QMenu(title,self);b.setMenu(menu);b.setAccessibleName(title+' menu');self.row.addWidget(b);self.buttons.append(b);return menu
+    def running_apps(self,menu):
+        from classic_files import running_menu
+        running_menu(self.d,menu)
     def applications_menu(self):
         from model import APP_NAMES
         self.apps.clear();self.apps.addAction('All Applications…',lambda:self.d.launch('Applications'));self.apps.addSeparator()
@@ -94,10 +98,10 @@ class TopBar(QWidget):
         # One controls menu replaces the entire status icon row. Keep the old
         # objects alive for their menu routes, without drawing them on the bar.
         for b in self.pins:b.hide()
-        for key,b in self.controls.items():b.setVisible(key=='search')
+        for key,b in self.controls.items():b.setVisible(key in ('search','switch'))
         self.version.hide()
         hidden=[5,8] # Special actions live in Controls; apps live in Macaque.
-        available=self.width()-self.quick.sizeHint().width()-self.clock.sizeHint().width()-(self.battery.sizeHint().width() if self.battery.isVisible() else 0)-75
+        available=self.width()-self.quick.sizeHint().width()-self.clock.sizeHint().width()-(self.battery.sizeHint().width() if self.battery.isVisible() else 0)-self.switch.sizeHint().width()-75
         used=sum(b.sizeHint().width() for i,b in enumerate(self.buttons) if i not in hidden)
         for index in [7,6,4,3,2,1]:
             if used<=available:break

@@ -15,6 +15,10 @@ class RemovableMonitor(QObject):
             try:disks=json.loads(text)['disks']
             except (ValueError,KeyError):return
             if disks!=self.disks:
+                previous={v['device']:v['name'] for disk in self.disks for v in disk['volumes']}
+                current={v['device'] for disk in disks for v in disk['volumes']}
+                for device,name in previous.items():
+                    if device not in current:self.d.notify('Drive removed',name+' is no longer connected.',sound=False)
                 self.disks=disks;self.d.refresh_desktop()
                 for w in self.d.area.subWindowList():
                     if isinstance(w.content,RemovableDrives):w.content.populate(disks)
@@ -33,11 +37,13 @@ class RemovableDrives(QWidget):
         self.status.setText('Working…');self.job=Task(self,Task.helper('removable_backend.py'),payload,3600000 if payload.get('action') in ('import','export') else 180000)
         def done(ok,text):
             self.job=None
-            if not ok:self.status.setText(text);return
+            if not ok:self.pending_eject=None;self.status.setText(text);return
             try:data=json.loads(text)
             except ValueError:self.status.setText('Could not read drive information.');return
             self.populate(data['disks']);self.status.setText(data.get('message','Select a volume.'));self.d.removable.refresh()
             if payload['action']=='import':self.d.disk_changed.emit()
+            pending=getattr(self,'pending_eject',None);self.pending_eject=None
+            if pending:self.eject_volume(pending)
         self.job.done.connect(done)
     def refresh(self):self.run({'action':'list'})
     def populate(self,disks):
@@ -57,6 +63,13 @@ class RemovableDrives(QWidget):
         volume=self.selected()
         if volume and volume['mounts']:self.d.open_finder(volume['mounts'][0])
         elif volume:self.status.setText('Mount this volume first, then click Open.')
+    def eject_volume(self,volume):
+        if self.job:self.pending_eject=volume;self.status.setText('Refreshing before safe eject…');return
+        for i in range(self.tree.topLevelItemCount()):
+            item=self.tree.topLevelItem(i);current=item.data(0,Qt.UserRole)
+            if all(current.get(k)==volume.get(k) for k in ('device','identity','uuid')):
+                self.tree.setCurrentItem(item);self.eject();return
+        self.status.setText('This volume changed or was removed. Refresh the drive list.')
     def eject(self):
         volume=self.selected()
         if volume and QMessageBox.question(self,'Safely Eject','Unmount all volumes on this USB drive and power it off?',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:self.run({**volume,'action':'eject'})

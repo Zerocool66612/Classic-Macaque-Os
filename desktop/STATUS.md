@@ -1,3 +1,11 @@
+0.39: classic Finder features have offscreen behavior checks for spatial reuse and
+restored geometry/views, alias boundary guards and rename tracking, stationery
+original preservation, labels and label search, Get Info, selection retention,
+icon positioning, scoped Delete, workspace hiding, and queued/identity-checked eject.
+Full desktop checks pass locally with Qt's PulseAudio backend selected because
+this runner lacks PipeWire configuration. No physical USB ejection, new ISO boot,
+Wayland pointer interaction or installation was performed for this update.
+
 0.38.1: top-left Shut Down / Restart / Log Out actions with confirmation, document/operation guards, native-only command dispatch and failure feedback. Tested using mocked processes; no real system power or session termination performed here.
 
 0.38: built-in desktop drawer tabs with edge dragging, click open/collapse, detach, workspace integration, rename updates and close cancellation. New offscreen interaction tests cover preserved edits, geometry, drag-to-edge/drag-off, resize, workspace movement and shutdown cleanup. All project checks pass; real Wayland/VM drawer interaction remains unverified.

@@ -24,7 +24,7 @@ from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.38.2'
+VERSION='0.39'
 
 from menu_compat import Menu as QMenu
 
@@ -348,18 +348,33 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         if hasattr(self,'area'):QTimer.singleShot(0,self.arrange_icons);QTimer.singleShot(0,self.update_wallpaper)
         if self.saver:self.saver.setGeometry(self.area.viewport().rect())
     def refresh_desktop(self):
-        count=len(self.disk.trash_items());self.icons[-1].setText(f'Trash ({count})' if count else 'Trash')
+        count=len(self.disk.trash_items());self.icons[-1].setText(f'Trash ({count})' if count else 'Trash');self.icons[-1].setIcon(icon('trash-full' if count else 'trash'))
         for button in self.desktop_extras:button.removeEventFilter(self);button.hide();button.deleteLater()
         self.desktop_extras=[]
         for path in sorted((self.disk.root/'Desktop').iterdir())[:36]:
             b=DesktopIcon(self,self.area.viewport());b.setProperty('iconKey',str(path.relative_to(self.disk.root)));b.setProperty('filePath',str(path));b.setProperty('dropTarget',str(path) if path.is_dir() else None);b.setText(path.name);b.setIcon(icon('folder' if path.is_dir() else 'note'));b.setIconSize(QSize(48,48));b.setToolButtonStyle(Qt.ToolButtonTextUnderIcon);b.setFixedSize(125,86);b.setStyleSheet('QToolButton {background:transparent;color:white;border:0;font-weight:bold;} QToolButton:hover {background:#ffffff20;border:1px dotted white;} QToolButton:checked {background:#335fa877;border:1px solid #b4d8ff;}');b.setProperty('desktopCallback',lambda p=path:self.open_item(p));b.installEventFilter(self);b.setContextMenuPolicy(Qt.CustomContextMenu);b.customContextMenuRequested.connect(lambda pos,p=path,button=b:self.desktop_item_menu(button,p,pos));self.desktop_extras.append(b);b.show()
+        from classic_files import metadata,is_alias,LABELS
+        for button in self.desktop_extras:
+            path=Path(button.property('filePath'));data=metadata(self,path)
+            if is_alias(path):button.setText('↗ '+path.stem)
+            if data.get('icon'):
+                from PySide6.QtGui import QIcon
+                button.setIcon(QIcon(data['icon']))
+            color=LABELS.get(data.get('label'))
+            if color:button.setStyleSheet(button.styleSheet()+' QToolButton {color:'+color+';}')
         if hasattr(self,'removable'):
             for drive in self.removable.disks:
                 for volume in drive['volumes']:
-                    b=DesktopIcon(self,self.area.viewport());b.setProperty('iconKey','usb:'+volume['device']);b.setText(volume['name']);b.setIcon(icon('disk'));b.setIconSize(QSize(48,48));b.setToolButtonStyle(Qt.ToolButtonTextUnderIcon);b.setFixedSize(125,86);b.setStyleSheet('QToolButton {background:transparent;color:white;border:0;font-weight:bold;} QToolButton:hover {background:#ffffff20;border:1px dotted white;}');b.setToolTip('Removable drive · double-click for mount/eject controls');b.setProperty('desktopCallback',lambda:self.launch('USB Drives'));b.installEventFilter(self);self.desktop_extras.append(b);b.show()
+                    b=DesktopIcon(self,self.area.viewport());b.setProperty('iconKey','usb:'+volume['device']);b.setText(volume['name']);b.setIcon(icon('disk'));b.setIconSize(QSize(48,48));b.setToolButtonStyle(Qt.ToolButtonTextUnderIcon);b.setFixedSize(125,86);b.setStyleSheet('QToolButton {background:transparent;color:white;border:0;font-weight:bold;} QToolButton:hover {background:#ffffff20;border:1px dotted white;}');b.setToolTip('Removable drive · double-click for mount/eject controls');b.setProperty('desktopCallback',lambda v=volume:self.open_finder(v['mounts'][0]) if v['mounts'] else self.launch('USB Drives'));b.setContextMenuPolicy(Qt.CustomContextMenu);b.customContextMenuRequested.connect(lambda pos,v=volume,button=b:self.volume_menu(v,button,pos));b.installEventFilter(self);self.desktop_extras.append(b);b.show()
         self.arrange_icons()
         self.update_icon_visibility()
         if self.strip:self.strip.raise_()
+    def volume_menu(self,volume,button,pos):
+        menu=QMenu(self)
+        menu.addAction('Open',lambda:self.open_finder(volume['mounts'][0]) if volume['mounts'] else self.launch('USB Drives'))
+        def eject():
+            panel=self.launch('USB Drives').content;panel.eject_volume(volume)
+        menu.addAction('Safely Eject…',eject);menu.addAction('Drive Controls…',lambda:self.launch('USB Drives'));menu.exec(button.mapToGlobal(pos))
     def desktop_context(self,pos):
         menu=self.file_context_menu([],self.disk.root/'Desktop');menu.addSeparator();menu.addAction('New Sticky',lambda:self.launch('Macaque Notes'));menu.addAction('Clean Up Desktop',self.clean_up_icons);menu.addAction('Refresh',self.refresh_desktop);menu.addSeparator();menu.addAction('Wallpapers…',lambda:self.launch('Wallpapers'));menu.addAction('Appearance…',self.appearance);menu.addAction('Mouse…',lambda:self.launch('Mouse'));menu.addAction('Setup Assistant…',lambda:self.launch('Setup Assistant'));menu.addAction('Accessibility…',lambda:self.launch('Accessibility'));menu.addAction('Software Center…',lambda:self.launch('Software Center'));menu.addAction('Lock & Sleep…',lambda:self.launch('Lock & Sleep'));menu.addAction('Settings…',self.settings);menu.exec(self.area.viewport().mapToGlobal(pos))
     def clean_up_icons(self):self.state['icon_positions']={};self.persist();self.arrange_icons()
@@ -384,15 +399,33 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         self.top_bar.refresh_status();self.play_sound('open')
         if self.strip:self.strip.raise_()
         return window
-    def open_finder(self,path):return self.window('Macaque Files',Finder(self,path),(940,540))
+    def open_finder(self,path):
+        path=Path(path)
+        for w in self.area.subWindowList():
+            if isinstance(w.content,Finder) and w.content.path.resolve()==path.resolve():
+                self.activate_window(w);return w
+        view=Finder(self,path);w=self.window('Macaque Files',view,(940,540))
+        from classic_files import restore
+        restore(view);return w
     def open_item(self,path):
         path=Path(path)
+        from classic_files import is_alias,resolve_alias
+        if is_alias(path):
+            try:
+                target=resolve_alias(self,path)
+                return self.open_item(target) if target else None
+            except (OSError,ValueError,KeyError) as ex:return self.error(ex)
         if path.name.endswith('.app') and path.stem in APP_NAMES+CONTROL_PANELS:return self.launch(path.stem)
         if path.is_dir():return self.open_finder(path)
         return self.open_document(path)
     def open_document(self,path):
         try:
             path=Path(path)
+            from classic_files import is_alias,metadata
+            if is_alias(path):return self.open_item(path)
+            if metadata(self,path).get('stationery'):
+                path=self.disk.duplicate(path)
+                self.disk_changed.emit()
             if path.suffix.lower() in ('.flatpakref','.flatpak'):
                 return self.launch('Flatpak Apps')
             if path.suffix.lower()=='.zip':
@@ -544,7 +577,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def edit_menu(self):
         m=self.top_bar.edit;m.clear();current=self.active();editor=getattr(current,'editor',None)
         if isinstance(current,Finder):
-            copy=m.addAction('Copy Item',lambda:self.copy_items([current.selected()]));copy.setEnabled(current.selected() is not None)
+            copy=m.addAction('Copy Items',lambda:self.copy_items(current.selected_paths()));copy.setEnabled(bool(current.selected_paths()));m.addAction('Select All Items',lambda:(current.icons if current.mode=='icons' else current.list).selectAll())
             paste=m.addAction('Paste Item',lambda:self.paste_items(current.path));paste.setEnabled(self.can_paste(current.path))
             m.addSeparator()
         for label,method in [('Undo','undo'),('Redo','redo'),('Cut','cut'),('Copy','copy'),('Paste','paste'),('Select All','selectAll')]:
@@ -552,8 +585,11 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         m.addSeparator();m.addAction('Find…',self.find)
     def view_menu(self):
         m=self.top_bar.view;m.clear();current=self.active()
-        if isinstance(current,Finder):m.addAction('Switch Icon / List View',current.toggle_view);m.addAction('Enclosing Folder',current.go_up)
-        m.addAction('Dark Mode' if self.state.get('mode','light')!='dark' else 'Light Mode',self.toggle_dark);m.addAction('Search & Launch…',self.launch_palette);m.addAction('Clean Up Desktop',self.arrange_icons);m.addAction('Appearance…',self.appearance);m.addSeparator();m.addAction('Show Control Strip',lambda:self.native_strip.show() if self.native_strip else self.diagnostics());m.addAction('Full Screen',self.fullscreen)
+        if isinstance(current,Finder):
+            from classic_files import clean_up
+            m.addAction('Switch Icon / List View',current.toggle_view);m.addAction('Enclosing Folder',current.go_up);m.addAction('Clean Up Folder Icons',lambda:clean_up(current))
+            spatial=m.addAction('Spatial Folders');spatial.setCheckable(True);spatial.setChecked(self.state.get('spatial_folders',True));spatial.toggled.connect(lambda value:self.set_preference('spatial_folders',value))
+        m.addAction('Dark Mode' if self.state.get('mode','light')!='dark' else 'Light Mode',self.toggle_dark);m.addAction('Search & Launch…',self.launch_palette);m.addAction('Clean Up Desktop',self.clean_up_icons);m.addAction('Appearance…',self.appearance);m.addSeparator();m.addAction('Show Control Strip',lambda:self.native_strip.show() if self.native_strip else self.diagnostics());m.addAction('Full Screen',self.fullscreen)
     def special_menu(self):
         m=self.top_bar.special;m.clear();m.addAction('Empty Trash…',self.empty_trash);m.addAction('Manage Macaque Notes…',self.manage_stickies);m.addSeparator();m.addAction('Screen Saver Preview',self.screensaver);m.addAction('Restart Desktop…',self.restart);m.addAction('Quit Desktop',self.close)
     def window_menu(self,target=None):
@@ -577,9 +613,9 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         if os.environ.get('MACAQUE_NATIVE_SESSION')=='1':return self.text_window('Creative Session display','Wayland manages display sizing. Use Alt+Tab to switch native apps; the Classic desktop stays behind them.')
         self.showNormal() if self.isFullScreen() else self.showFullScreen()
     def get_info(self,path):
-        try:
-            st=path.stat();self.text_window('Get Info — '+path.name,f'{path.name}\n\nKind: {"Folder" if path.is_dir() else "Document"}\nSize: {self.format_bytes(st.st_size)}\nModified: {self.file_date(st.st_mtime)}\n\nLocation:\n{path}')
-        except OSError as ex:self.error(ex)
+        from classic_files import info_panel
+        try:return self.window('Get Info — '+Path(path).name,info_panel(self,path),(480,480))
+        except (OSError,ValueError) as ex:self.error(ex)
     def text_window(self,title,text,size=(490,340)):
         box=QTextEdit();box.setReadOnly(True);box.setPlainText(text);return self.window(title,box,size)
     def about(self):

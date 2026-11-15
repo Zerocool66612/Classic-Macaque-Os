@@ -35,9 +35,11 @@ def icon(kind='folder',size=56):
         p.setBrush(QColor('#d2d4d0'));p.drawRect(7,15,39,27);p.drawRect(46,23,5,11);p.setBrush(QColor('#6eae7a'));p.drawRect(11,19,26,19);p.setPen(QColor('#ffffff'));p.drawLine(13,21,35,21)
     elif kind=='update':
         p.setBrush(QColor('#d4e4f5'));p.drawEllipse(7,7,42,42);p.setPen(QPen(QColor('#316d88'),5));p.drawArc(15,14,26,28,25*16,255*16);p.setBrush(QColor('#316d88'));p.setPen(Qt.NoPen);p.drawPolygon(QPolygon([QPoint(39,10),QPoint(45,24),QPoint(30,22)]))
-    elif kind=='trash':
+    elif kind in ('trash','trash-full'):
         p.setBrush(QColor('#c3c4c6'));p.drawRect(17,16,25,31);p.setBrush(QColor('#e6e5e0'));p.drawEllipse(14,9,31,8)
         for x in range(21,40,5):p.drawLine(x,20,x,43)
+        if kind=='trash-full':
+            p.setBrush(QColor('#fff7d6'));p.drawPolygon(QPolygon([QPoint(17,15),QPoint(20,3),QPoint(32,7),QPoint(39,2),QPoint(43,16)]));p.drawLine(23,7,22,13);p.drawLine(35,8,37,14)
     elif kind=='sticky':
         p.setBrush(QColor('#f8e883'));p.drawRect(8,8,40,38);p.drawLine(14,18,41,18);p.drawLine(14,25,38,25);p.drawLine(14,32,33,32)
     elif kind=='calculator':

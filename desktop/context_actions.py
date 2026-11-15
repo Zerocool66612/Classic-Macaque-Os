@@ -52,11 +52,26 @@ class ContextActions:
             action('Rename…',lambda:self.rename_item(paths[0]),mutable and len(paths)==1)
             action('Duplicate',lambda:[self.operation(lambda p=p:self.disk.duplicate(p)) for p in paths],mutable)
             action('Move to Trash',lambda:self.trash_paths(paths),mutable);menu.addSeparator()
+            from classic_files import make_alias,is_alias,resolve_alias,LABELS,set_metadata
+            action('Make Alias',lambda:[self.operation(lambda p=p:make_alias(self,p)) for p in paths],all(p.resolve().is_relative_to(self.disk.root.resolve()) for p in paths))
+            if len(paths)==1 and is_alias(paths[0]):
+                action('Show Original',lambda:self.operation(lambda:self.show_alias_original(paths[0])))
+            labels=menu.addMenu('Label');labels.setEnabled(mutable)
+            for label in LABELS:
+                labels.addAction(label,lambda checked=False,label=label:[self.operation(lambda p=p:set_metadata(self,p,label=label)) for p in paths])
             action('Properties / Get Info',lambda:[self.get_info(p) for p in paths])
         else:
             action('New Folder…',lambda:self.new_folder_at(folder),writable);action('New Text Document…',lambda:self.new_text_file(folder),writable)
             action('Paste',lambda:self.paste_items(folder),self.can_paste(folder));menu.addSeparator();action('Properties / Get Info',lambda:self.get_info(folder))
         return menu
+    def show_alias_original(self,path):
+        from classic_files import resolve_alias
+        target=resolve_alias(self,path)
+        if target:
+            window=self.open_finder(target.parent);finder=window.content
+            for i in range(finder.icons.count()):
+                item=finder.icons.item(i)
+                if item.data(Qt.UserRole)==str(target):finder.icons.setCurrentItem(item);finder.list.setCurrentItem(finder.list.topLevelItem(i));break
     def new_folder_at(self,folder):
         name,ok=QInputDialog.getText(self,'New Folder','Name:',text='untitled folder')
         if ok:self.operation(lambda:self.disk.new_folder(folder,name))
