@@ -29,10 +29,9 @@ Back and confirmed permanent emptying remain available.
 
 ![Macaque 0.39 actual offscreen desktop render](docs/classic-finder-preview.png)
 
-This is a **desktop source/package update**. The published 0.38.2 ISO does not
-contain it. No new ISO is claimed or automatically published by this source commit.
-Run `bash build-iso.sh` to build a new candidate, or use the existing ISO workflow
-manually. Its release name now follows the package version automatically.
+The **[0.39 installer ISO and SHA256 checksum](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.39-preview-build-3)** are now published. The ISO build and included desktop checks completed successfully. The checksum matches GitHub's recorded ISO digest. The automated BIOS userspace check did **not** confirm startup; Wayland, UEFI, physical USB boot and installation still need manual testing. Start in a VM. The attached boot-check report records those limits.
+
+Run `bash build-iso.sh` or the ISO workflow to produce another candidate. Release names follow the package version automatically.
 Desktop packages are only for an existing installed Macaque system, not a live USB
 or a stock Ubuntu/Fedora desktop. Back up your data and save work before updating.
 
@@ -44,7 +43,7 @@ The custom GRUB theme uses teal waves, a striped title bar, Macaque branding and
 
 For an **existing installed Macaque system**, run `sudo bash iso/install-grub-theme.sh` from this source folder. It backs up the current theme/configuration, runs `update-grub`, and restores the previous files if generation fails. It does not run `grub-install` or change partitions. Desktop update packages do not apply this theme automatically.
 
-Theme staging and asset checks pass; actual firmware rendering has not been tested. The published 0.38.2 ISO predates this theme and needs rebuilding to include it.
+Theme staging and asset checks pass; actual firmware rendering has not been tested. The 0.39 preview ISO includes this theme. Firmware rendering and actual boot still need manual validation.
 
 ## 0.38.2 — Classic window and folder navigation
 
