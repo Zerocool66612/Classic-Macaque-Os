@@ -1,4 +1,4 @@
-name: Build installer ISO
+name: Build Macaque Classic installer ISO
 on:
   workflow_dispatch:
   push:
