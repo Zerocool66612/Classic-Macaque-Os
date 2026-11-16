@@ -1,0 +1,27 @@
+name: Inspect installed boot diagnostics
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/inspect-installed-boot.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Read failed installed boot logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/Zerocool66612/Classic-Macaque-Os/actions/artifacts/14282113738/zip > /tmp/boot-diagnostics.zip
+          python3 - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('/tmp/boot-diagnostics.zip') as archive:
+              for name in archive.namelist():
+                  if name.endswith(('installed-fresh.log','installed-fresh.qemu.log','installed-boot-check.json')):
+                      print('LOG:',name)
+                      print('\n'.join(archive.read(name).decode(errors='replace').splitlines()[-100:]))
+          PY
