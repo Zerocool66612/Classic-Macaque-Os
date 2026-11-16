@@ -4,6 +4,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt,QTimer,QPoint,QUrl
 from PySide6.QtGui import QColor,QPainter,QPen,QImage,QFont
 from PySide6.QtWidgets import *
+from activity_timer import ActivityTimer
 
 class Tasks(QWidget):
     app_name='Tasks'
@@ -23,19 +24,22 @@ class Clockwork(QWidget):
     def __init__(self,d):
         super().__init__();self.d=d;self.started=None;self.elapsed=0;self.deadline=None;layout=QVBoxLayout(self);self.clock=QLabel('00:00.0');self.clock.setAlignment(Qt.AlignCenter);self.clock.setStyleSheet('font-family:DejaVu Sans Mono;font-size:42px;');layout.addWidget(self.clock);row=QHBoxLayout();layout.addLayout(row)
         for text,fn in [('Start / Pause',self.toggle),('Reset',self.reset),('Lap',self.lap)]:b=QPushButton(text);b.clicked.connect(fn);row.addWidget(b)
-        self.laps=QListWidget();layout.addWidget(self.laps);row=QHBoxLayout();layout.addLayout(row);self.minutes=QSpinBox();self.minutes.setRange(1,1440);self.minutes.setSuffix(' minutes');row.addWidget(self.minutes);b=QPushButton('Start countdown');b.clicked.connect(self.countdown);row.addWidget(b);self.status=QLabel('Stopwatch and countdown run while this window stays open.');layout.addWidget(self.status);self.timer=QTimer(self);self.timer.timeout.connect(self.tick);self.timer.start(100)
+        self.laps=QListWidget();layout.addWidget(self.laps);row=QHBoxLayout();layout.addLayout(row);self.minutes=QSpinBox();self.minutes.setRange(1,1440);self.minutes.setSuffix(' minutes');row.addWidget(self.minutes);b=QPushButton('Start countdown');b.clicked.connect(self.countdown);row.addWidget(b);self.status=QLabel('Stopwatch and countdown run while this window stays open.');layout.addWidget(self.status);self.timer=ActivityTimer(self,100,self.tick,lambda:self.started is not None or self.deadline is not None);self.countdown_timer=QTimer(self);self.countdown_timer.setSingleShot(True);self.countdown_timer.setTimerType(Qt.PreciseTimer);self.countdown_timer.timeout.connect(self.tick)
     def value(self):return self.elapsed+(time.monotonic()-self.started if self.started is not None else 0)
     def toggle(self):
         if self.started is None:self.started=time.monotonic()
         else:self.elapsed=self.value();self.started=None
-    def reset(self):self.started=None;self.elapsed=0;self.laps.clear();self.tick()
+        self.timer.recheck();self.tick()
+    def reset(self):self.started=None;self.elapsed=0;self.laps.clear();self.tick();self.timer.recheck()
     def lap(self):self.laps.addItem(self.clock.text())
-    def countdown(self):self.deadline=time.monotonic()+self.minutes.value()*60
+    def countdown(self):
+        self.deadline=time.monotonic()+self.minutes.value()*60;self.countdown_timer.start(self.minutes.value()*60000);self.timer.recheck();self.tick()
     def tick(self):
         value=self.value();self.clock.setText(f'{int(value//60):02}:{value%60:04.1f}')
         if self.deadline is not None:
             remaining=max(0,int(self.deadline-time.monotonic()));self.status.setText(f'Countdown: {remaining//60:02}:{remaining%60:02}')
-            if not remaining:self.deadline=None;self.status.setText('Time is up!');self.d.play_sound('notification')
+            if time.monotonic()>=self.deadline:
+                self.deadline=None;self.countdown_timer.stop();self.status.setText('Time is up!');self.d.play_sound('notification');self.timer.recheck()
 
 class Canvas(QWidget):
     def __init__(self):

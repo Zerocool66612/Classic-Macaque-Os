@@ -26,6 +26,11 @@ class Settings(QWidget):
         general=QWidget();form=QVBoxLayout(general)
         self.check(form,'Start with Macaque HD open','startup_files',True);self.check(form,'Show Welcome Center at startup','startup_welcome',False);self.check(form,'Show About at startup','startup_about',False);self.check(form,'Reopen sticky notes at startup','startup_notes',True);self.check(form,'Center new windows','center_windows',False);self.check(form,'Show desktop file icons','desktop_icons',True);self.check(form,'Do Not Disturb','do_not_disturb',False)
         form.addWidget(QLabel('Interface density'));density=QComboBox();density.addItems(['Compact','Comfortable']);density.setCurrentText(d.state.get('ui_density','Compact'));density.currentTextChanged.connect(lambda v:self.save('ui_density',v));form.addWidget(density);form.addWidget(QLabel('Interface text size'));size=QSpinBox();size.setRange(11,24);size.setSuffix(' px');size.setValue(d.state.get('text_size',13));size.valueChanged.connect(lambda v:self.save('text_size',v));form.addWidget(size);form.addStretch();tabs.addTab(general,'General')
+        fonts=QWidget();form=QVBoxLayout(fonts);form.addWidget(QLabel('Interface font'))
+        font=QComboBox();font.setAccessibleName('Interface font');font.addItems(['Classic','Standard']);font.setCurrentText(d.state.get('interface_font','Classic'));font.currentTextChanged.connect(lambda v:self.save('interface_font',v));form.addWidget(font)
+        note=QLabel('Classic uses Chicago Kare for menus, window titles and desktop labels. Document and terminal fonts stay readable.');note.setWordWrap(True);form.addWidget(note)
+        license=QPushButton('Font license…');license.clicked.connect(lambda:d.text_window('Chicago Kare — MIT License',__import__('interface_fonts').license_text()));form.addWidget(license)
+        form.addStretch();tabs.addTab(fonts,'Fonts')
         motion=QWidget();form=QVBoxLayout(motion)
         form.addWidget(QLabel('Window animations'))
         from window_motion import EFFECTS
@@ -56,7 +61,7 @@ class Settings(QWidget):
         if key in self.checks:self.checks[key].setChecked(value)
     def save(self,key,value):
         self.d.set_preference(key,value)
-        if key in ('ui_density','text_size'):self.d.apply_ui_theme()
+        if key in ('ui_density','text_size','interface_font'):self.d.apply_ui_theme()
         if key=='desktop_icons':self.d.update_icon_visibility()
     def bar_item(self,key,value):self.d.state.setdefault('bar_items',{})[key]=value;self.d.persist();self.d.top_bar.update_layout()
     def save_startup(self,*args):self.d.state['startup_apps']=[self.startup.item(i).text() for i in range(self.startup.count()) if self.startup.item(i).checkState()==Qt.Checked];self.d.persist()
@@ -65,6 +70,8 @@ class ModernFeatures:
     def desktop_stylesheet(self):
         from theme import stylesheet
         css=stylesheet(self.state.get('mode','light'),self.state.get('accent','#287f70')).replace('font-size:13px',f"font-size:{self.state.get('text_size',13)}px")
+        from interface_fonts import chrome_stylesheet
+        css+=chrome_stylesheet(self.state)
         if self.state.get('ui_density','Compact')=='Compact':css=css.replace('padding:5px 10px','padding:3px 7px').replace('padding:6px 26px 6px 13px','padding:4px 22px 4px 10px').replace('padding:7px 12px','padding:4px 8px')
         if self.state.get('high_contrast',False):css += '\nQWidget {background-color:#080808;color:#ffffff;} QLineEdit,QTextEdit,QPlainTextEdit,QListWidget,QTreeWidget,QComboBox,QSpinBox {background:#000;color:#fff;selection-background-color:#ffe14a;selection-color:#000;} QPushButton,QToolButton {border:1px solid #eee;} QWidget:focus {border:2px solid #ffe14a;} QLabel {background:transparent;}'
         return css

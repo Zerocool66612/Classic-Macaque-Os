@@ -1,3 +1,9 @@
+0.40: optional timers, deferred imports and classic/standard fonts verified with
+behavior tests, including minimize/shade/workspace transitions and exactly-once
+hidden countdown alarms. Font attribution/system staging checked. Existing desktop
+and build-kit checks run offscreen; this is not a CPU/RAM/battery benchmark.
+No new ISO or physical-machine testing is claimed.
+
 0.39: classic Finder features have offscreen behavior checks for spatial reuse and
 restored geometry/views, alias boundary guards and rename tracking, stationery
 original preservation, labels and label search, Get Info, selection retention,

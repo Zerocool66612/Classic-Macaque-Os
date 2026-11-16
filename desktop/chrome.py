@@ -60,13 +60,15 @@ class TopBar(QWidget):
         # same raised edge and gradient treatment for the graphite variant.
         top,bottom,text,edge,border,muted=('#50565c','#2b3035','#f4f4f4','#70767c','#111417','#c4c8cc') if dark else ('#f5f5f5','#bdbdbd','#171717','#ffffff','#444444','#454545')
         if self.d.state.get('high_contrast',False):top,bottom,text,edge,border,muted=('#080808','#080808','#fff','#fff','#fff','#fff')
-        font_size=max(12,self.d.state.get('text_size',13)-1)
+        from interface_fonts import family
+        font_family=family(self.d.state)
+        font_size=max(12,self.d.state.get('text_size',13)+(3 if font_family!='DejaVu Sans' else -1))
         self.setStyleSheet(f"""
             QWidget#topBar {{
                 background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 {top},stop:1 {bottom});
                 border-top:1px solid {edge};border-bottom:1px solid {border};
             }}
-            QWidget#topBar QToolButton {{background:transparent;color:{text};border:0;
+            QWidget#topBar QToolButton {{background:transparent;color:{text};border:0;font-family:"{font_family}","DejaVu Sans";
                 border-radius:2px;padding:1px {pad}px;font-size:{font_size}px;}}
             QWidget#topBar QToolButton:hover,QWidget#topBar QToolButton:pressed {{background:{accent};color:#fff;}}
             QWidget#topBar QToolButton:focus {{border:1px dotted {border};}}

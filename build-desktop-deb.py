@@ -13,6 +13,7 @@ def build(output):
         session=root/'usr/local/bin/macaque-session';session.parent.mkdir(parents=True);shutil.copy2(ROOT/'iso/macaque-session',session);session.chmod(0o755)
         import runpy
         runpy.run_path(str(ROOT/'iso/stage-wayland.py'))['stage'](root)
+        runpy.run_path(str(ROOT/'iso/stage-fonts.py'))['stage'](root)
         control=root/'DEBIAN';control.mkdir()
         qt=[p for p in (ROOT/'iso/packages.txt').read_text().split() if p.startswith('python3-pyside6.')]
         dependencies=['flatpak','systemd','python3','python3-pyte','python3-dbus','qt6-base-dev','g++','pkg-config','qt6-qpa-plugins','qt6-image-formats-plugins','network-manager','udisks2','lxpolkit','sudo','ca-certificates','labwc','greetd','gtkgreet','qt6-wayland','swayidle','swaylock','wlopm','foot','upower','dbus-user-session','libpam-systemd','libpam-modules','libpam-runtime','login','passwd','xdg-desktop-portal','xdg-desktop-portal-wlr','xdg-desktop-portal-gtk','slurp','grim','wireplumber','bluez','blueman','power-profiles-daemon','wlr-randr',*qt]
@@ -26,6 +27,7 @@ fi
 ''','postinst':'''#!/bin/sh
 set -eu
 if [ "$1" = configure ]; then
+ if command -v fc-cache >/dev/null 2>&1; then fc-cache -f /usr/share/fonts/truetype/macaque; fi
  cd /opt/macaque-classic
  /usr/bin/python3 native/prepare.py
  g++ -std=c++17 -shared -fPIC -O2 $(pkg-config --cflags Qt6Widgets) native/embedded-strip.cpp $(pkg-config --libs Qt6Widgets) -o native/libclassic-strip-embedded.so.new

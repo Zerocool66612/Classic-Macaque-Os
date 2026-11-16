@@ -98,7 +98,7 @@ class FileList(SpringView,QTreeWidget):
         else:e.ignore()
 class DesktopIcon(QToolButton):
     def __init__(self,d,parent):
-        super().__init__(parent);self.d=d;self.press=None;self.moved=False;self.setCheckable(True);self.setAcceptDrops(True)
+        super().__init__(parent);self.setObjectName('desktopFileIcon');self.d=d;self.press=None;self.moved=False;self.setCheckable(True);self.setAcceptDrops(True)
     def mousePressEvent(self,e):
         if e.button()==Qt.LeftButton:self.press=e.position().toPoint();self.moved=False
         super().mousePressEvent(e)

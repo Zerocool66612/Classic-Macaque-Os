@@ -5,6 +5,7 @@ import math,time
 from PySide6.QtCore import Qt,QTimer,QPointF
 from PySide6.QtGui import QColor,QPainter,QPolygonF,QPen
 from PySide6.QtWidgets import *
+from activity_timer import ActivityTimer
 
 def mesh():
     faces=[];n=24
@@ -25,11 +26,13 @@ def mesh():
 
 class TeapotView(QWidget):
     def __init__(self):
-        super().__init__();self.faces=mesh();self.angle=.5;self.tilt=-.25;self.zoom=1.;self.running=True;self.wire=False;self.color=QColor('#b9b6dc');self.last=None;self.setMinimumSize(320,250);self.timer=QTimer(self);self.timer.timeout.connect(self.tick);self.timer.start(33)
+        super().__init__();self.faces=mesh();self.angle=.5;self.tilt=-.25;self.zoom=1.;self.running=True;self.wire=False;self.color=QColor('#b9b6dc');self.last=None;self.setMinimumSize(320,250);self.timer=ActivityTimer(self,33,self.tick,lambda:self.running)
+    def set_running(self,value):
+        self.running=value;self.timer.recheck()
     def tick(self):
         if self.running and self.isVisible():self.angle+=.022;self.update()
     def mousePressEvent(self,e):
-        if e.button()==Qt.LeftButton:self.last=e.position();self.running=False
+        if e.button()==Qt.LeftButton:self.last=e.position();self.set_running(False)
     def mouseMoveEvent(self,e):
         if self.last is not None:
             delta=e.position()-self.last;self.angle+=delta.x()*.012;self.tilt=max(-1.2,min(1.2,self.tilt+delta.y()*.012));self.last=e.position();self.update()
@@ -50,7 +53,7 @@ class Teapot(QWidget):
     app_name='Teapot Studio'
     def __init__(self,d):
         super().__init__();self.d=d;layout=QVBoxLayout(self);self.view=TeapotView();layout.addWidget(self.view,1);row=QHBoxLayout();layout.addLayout(row)
-        b=QPushButton('Play / Pause');b.clicked.connect(lambda:setattr(self.view,'running',not self.view.running));row.addWidget(b);wire=QCheckBox('Wireframe');wire.toggled.connect(lambda v:(setattr(self.view,'wire',v),self.view.update()));row.addWidget(wire)
+        b=QPushButton('Play / Pause');b.clicked.connect(lambda:self.view.set_running(not self.view.running));row.addWidget(b);wire=QCheckBox('Wireframe');wire.toggled.connect(lambda v:(setattr(self.view,'wire',v),self.view.update()));row.addWidget(wire)
         colors=QComboBox();colors.addItems(['Platinum','Copper','Jade','Cobalt']);colors.currentIndexChanged.connect(lambda i:(setattr(self.view,'color',QColor(['#b9b6dc','#e1a072','#73c3ad','#709ad9'][i])),self.view.update()));row.addWidget(colors);b=QPushButton('Save frame…');b.clicked.connect(self.save);row.addWidget(b)
     def save(self):
         path,_=QFileDialog.getSaveFileName(self,'Save Teapot Render',str(self.d.disk.root/'Documents'/'Teapot.png'),'PNG (*.png)')

@@ -1,6 +1,7 @@
 """Four Macaque-internal workspaces. Native session windows remain external."""
 from PySide6.QtCore import Qt,QTimer
 from PySide6.QtWidgets import *
+from activity_timer import ActivityTimer
 
 class WorkspaceOverview(QWidget):
     app_name='Workspaces'
@@ -8,7 +9,7 @@ class WorkspaceOverview(QWidget):
         super().__init__();self.d=d;layout=QVBoxLayout(self);layout.addWidget(QLabel('Workspaces · organize built-in Macaque windows'));self.columns=QHBoxLayout();layout.addLayout(self.columns,1);self.lists=[];self.chosen=None
         for i in range(4):
             panel=QWidget();box=QVBoxLayout(panel);self.columns.addWidget(panel);button=QPushButton();button.clicked.connect(lambda checked=False,index=i:d.switch_workspace(index));box.addWidget(button);items=QListWidget();items.itemActivated.connect(lambda item:d.activate_window(item.data(Qt.UserRole)));items.itemClicked.connect(lambda item:setattr(self,'chosen',item.data(Qt.UserRole)));box.addWidget(items);row=QHBoxLayout();box.addLayout(row);rename=QPushButton('Rename');rename.clicked.connect(lambda checked=False,index=i:self.rename(index));row.addWidget(rename);move=QPushButton('Move selected here');move.clicked.connect(lambda checked=False,index=i:self.move_selected(index));row.addWidget(move);self.lists.append((button,items))
-        layout.addWidget(QLabel('Ctrl+Alt+1…4 switches workspaces while Macaque has focus. External Flatpak/emulator windows are not managed here.'));self.timer=QTimer(self);self.timer.timeout.connect(self.refresh);self.timer.start(800);self.refresh()
+        layout.addWidget(QLabel('Ctrl+Alt+1…4 switches workspaces while Macaque has focus. External Flatpak/emulator windows are not managed here.'));self.timer=ActivityTimer(self,800,self.refresh);self.refresh()
     def refresh(self):
         names=self.d.workspace_names()
         for i,(button,items) in enumerate(self.lists):

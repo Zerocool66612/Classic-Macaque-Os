@@ -11,20 +11,16 @@ from applications import Finder,SimpleText,Sticky,Calculator,Sherlock,Puzzle,Tra
 from native_strip import NativeStrip
 from sound_theme import SoundTheme,SoundPreferences
 from classic_search import ClassicSearch
-from backup import Backups
 from app_support import AppSupport,FlatpakApps,ClassicMacApps
 from downloads import Downloads
-from browser_app import Browser
 from workspaces import WorkspaceFeatures,WorkspaceOverview
 from welcome import Welcome
 from creative_apps import CreativeApps,CREATIVE_APPS
 from extras import Tasks,Clockwork,Paint,ArchiveViewer,Characters,MediaPlayer
-from chess_app import Chess
-from teapot import Teapot
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.39'
+VERSION='0.40'
 
 from menu_compat import Menu as QMenu
 
@@ -446,6 +442,13 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         try:result=fn();self.disk_changed.emit();self.play_sound(sound);return result
         except (OSError,ValueError,KeyError) as ex:self.error(ex)
     def launch(self,name,key=None):
+        if name in ('Chess','Teapot Studio'):
+            if name=='Chess':from chess_app import Chess as cls
+            else:from teapot import Teapot as cls
+            if name=='Chess':
+                for w in self.area.subWindowList():
+                    if isinstance(w.content,cls):self.activate_window(w);return w
+            return self.window(name,cls(self),(610,660) if name=='Chess' else (690,540))
         if name in ('Setup Assistant','Accessibility','Software Center','Lock & Sleep'):
             from finish_panels import SetupAssistant,Accessibility,SoftwareCenter,LockSleep
             cls={'Setup Assistant':SetupAssistant,'Accessibility':Accessibility,'Software Center':SoftwareCenter,'Lock & Sleep':LockSleep}[name]
@@ -471,7 +474,10 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
             panel=Screenshots(self,target) if name=='Screenshot' else LaptopControls(self)
             return self.window(name,panel,(690,510))
         if name in ('Macaque Web','Workspaces','Welcome Center'):
-            cls,size={'Macaque Web':(Browser,(1050,690)),'Workspaces':(WorkspaceOverview,(1060,440)),'Welcome Center':(Welcome,(690,560))}[name]
+            if name=='Macaque Web':
+                from browser_app import Browser
+                cls,size=Browser,(1050,690)
+            else:cls,size={'Workspaces':(WorkspaceOverview,(1060,440)),'Welcome Center':(Welcome,(690,560))}[name]
             for w in self.area.subWindowList():
                 if isinstance(w.content,cls):self.activate_window(w);return w
             return self.window(name,cls(self),size)
@@ -486,7 +492,10 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
                 if isinstance(w.content,cls):self.activate_window(w);return w
             return self.window(name,cls(self),size)
         if name in ('Macaque Search','Backup & Recovery'):
-            cls,size=(ClassicSearch,(660,510)) if name=='Macaque Search' else (Backups,(600,400))
+            if name=='Backup & Recovery':
+                from backup import Backups
+                cls,size=Backups,(600,400)
+            else:cls,size=ClassicSearch,(660,510)
             for w in self.area.subWindowList():
                 if isinstance(w.content,cls):
                     self.activate_window(w)
@@ -498,11 +507,11 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         if name=='Classic Sounds':return self.window('Classic Sounds',SoundPreferences(self),(560,570))
         if name=='Settings':return self.settings()
         if name=='Notifications':return self.notifications()
-        extra={'Chess':(Chess,(610,660)),'Macaque Paint':(Paint,(850,610)),'Tasks':(Tasks,(460,480)),'Clockwork':(Clockwork,(480,440)),'Media Player':(MediaPlayer,(700,500)),'Archive Viewer':(ArchiveViewer,(650,440)),'Character Map':(Characters,(600,400)),'Teapot Studio':(Teapot,(690,540)),'Wallpapers':(Wallpapers,(740,540)),'Mouse':(MousePreferences,(550,540))}
+        extra={'Macaque Paint':(Paint,(850,610)),'Tasks':(Tasks,(460,480)),'Clockwork':(Clockwork,(480,440)),'Media Player':(MediaPlayer,(700,500)),'Archive Viewer':(ArchiveViewer,(650,440)),'Character Map':(Characters,(600,400)),'Wallpapers':(Wallpapers,(740,540)),'Mouse':(MousePreferences,(550,540))}
         if name in extra:
             cls,size=extra[name]
-            # One saved Tasks/Chess instance avoids competing autosaves.
-            if name in ('Tasks','Chess'):
+            # One saved Tasks instance avoids competing autosaves.
+            if name=='Tasks':
                 for w in self.area.subWindowList():
                     if isinstance(w.content,cls):self.activate_window(w);return w
             return self.window(name,cls(self),size)

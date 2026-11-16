@@ -1,3 +1,30 @@
+## 0.40 — Optional-app efficiency and classic fonts
+
+- Teapot Studio stops its repaint timer when paused, shaded, minimized or on
+  another workspace. Workspace Overview stops refreshing while hidden.
+- Clockwork has no repeating refresh while paused or hidden. Stopwatch elapsed
+  time is calculated when needed, and a single deadline timer preserves hidden
+  countdown alerts.
+- Chess, Teapot Studio, Macaque Web and Backup & Recovery load their Python modules
+  when those apps are requested. Wi-Fi, USB detection, lock and power behavior
+  retain their existing service cadence.
+- **Settings → Fonts** switches between Classic and Standard interface typography.
+  Classic uses the bundled **Chicago Kare** font for top-bar menus, menu popups,
+  window titles and desktop labels, with DejaVu Sans fallback. Document/editor
+  and terminal fonts remain unchanged. A Font License button shows the notice.
+- Chicago Kare is distributed unmodified under its publisher's **MIT license**,
+  with copyright, license, pinned upstream source and attribution included.
+  Both the installer staging and desktop package install it into the system
+  font directory. No Apple-supplied font binaries are bundled.
+
+![Actual 0.40 offscreen font/settings preview](docs/classic-font-preview.png)
+
+This is a **source and desktop-package update**. The published 0.39 ISO does not
+include these changes. No 0.40 ISO has been built or uploaded by this update.
+Behavior tests verify stopped timers, preserved time/alarms, deferred imports,
+font selection/fallback and packaged font/license staging. There are **no measured
+CPU, RAM or battery savings**, and no GNOME/KDE performance comparison is claimed.
+
 ## 0.39 — Classic Finder desktop update
 
 Spatial folders are enabled by default: opening a folder reuses its existing window,

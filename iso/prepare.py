@@ -16,6 +16,7 @@ def prepare(dest):
     write('usr/local/libexec/macaque-grub-install',(ROOT/'iso/grub-install-checked.py').read_text(),0o755)
     import runpy
     runpy.run_path(str(ROOT/'iso/stage-grub.py'))['installed'](dest)
+    runpy.run_path(str(ROOT/'iso/stage-fonts.py'))['stage'](dest)
     startup=ROOT/'iso/startup'
     shutil.copytree(startup/'plymouth',dest/'usr/share/plymouth/themes/macaque')
     write('usr/share/plymouth/themes/macaque/macaque.plymouth',(startup/'macaque.plymouth').read_text())

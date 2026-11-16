@@ -43,7 +43,8 @@ jobs:
           cat > release-notes.md <<'NOTES'
           Experimental Macaque Classic installer preview.
 
-          Adds spatial folder windows, aliases, labels, stationery, expanded Get Info,
+          Adds optional-app timer/import improvements and the MIT-licensed Chicago Kare font.
+          Also includes spatial folder windows, aliases, labels, stationery, expanded Get Info,
           classic application hiding and improved removable-drive desktop controls.
           Also includes window shading, spring-loaded folders and the custom boot theme.
           Download the ISO and its SHA256 checksum from Assets.

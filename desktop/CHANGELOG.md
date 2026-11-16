@@ -1,3 +1,11 @@
+## 0.40 — Optional work and fonts
+
+- Pause optional UI timers when inactive; preserve hidden countdown alarms.
+- Defer Chess, Teapot, browser and backup modules until requested.
+- Bundle MIT-licensed Chicago Kare, Settings/Fonts and Standard fallback.
+- Stage font and attribution into both ISO filesystem and desktop package.
+- Keep USB, Wi-Fi, lock and power service behavior unchanged.
+
 ## 0.39 — Classic Finder behavior
 
 - Spatial folder windows, per-folder view/geometry/layout memory, grid positioning.
