@@ -14,7 +14,9 @@ def package(folder,version):
  dest=folder/('macaque-classic_'+version+'_amd64.deb');subprocess.run(['dpkg-deb','--build',str(root),str(dest)],check=True,capture_output=True);return dest
 with tempfile.TemporaryDirectory() as temp:
  root=Path(temp);old=package(root,'0.40.1');new=package(root,'0.41');store=root/'cache';version={'value':'0.40.1'}
- with patch.object(update_store,'STORE',store),patch.object(update_store,'installed_version',side_effect=lambda:version['value']):
+ # Isolate the simulated installed-system fixture from the ISO chroot live marker.
+ real_exists=Path.exists
+ with patch.object(Path,'exists',autospec=True,side_effect=lambda p:False if p==Path('/etc/macaque-live') else real_exists(p)),patch.object(update_store,'STORE',store),patch.object(update_store,'installed_version',side_effect=lambda:version['value']):
   saved=update_store.cache_package(old);assert maintenance.digest(saved)==maintenance.digest(old)
   assert not update_store.status()['packages'][0]['rollback']
   realrun=subprocess.run;calls=[]
