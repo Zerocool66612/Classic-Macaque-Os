@@ -1,3 +1,26 @@
+## 0.41 — Update Center and recovery
+
+Open **Controls → Software Update** to check desktop releases, read release notes,
+download a checksummed package and install it in the internal Terminal. Save work
+before installation and log out/in afterwards. Administrator authentication and
+APT confirmation remain required. Prototype and live sessions cannot install updates.
+
+**Update History** lists saved desktop versions and past results. **Roll Back Saved
+Desktop** explicitly installs a cached older desktop package. This is not a full
+system snapshot: Debian packages, drivers and personal files are not rolled back.
+The first upgrade may have no previous package cached; successful updates retain
+their package for subsequent rollback. Refresh history after installation.
+
+**Recovery & Diagnostics → Use recovery mode next login** schedules a single login
+without startup apps, saved display restoration or window animations. Save work,
+log out, and sign in. Preferences are retained and the following login is normal.
+You can cancel the request before logging out. Local support reports include
+update history, and are never automatically uploaded.
+
+Desktop packages and checksums are published separately from installer ISOs.
+No 0.41 ISO is included in this update. Package/rollback and UI checks passed with
+APT mocked; actual installation, reboot and recovery login require manual testing.
+
 ## 0.40.1 — Macaque Web downloads
 
 Click a website download link and choose where to save it. The browser's

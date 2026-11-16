@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """Explicit interactive maintenance; never downloads or executes raw source."""
-import hashlib,os,re,subprocess,sys,tempfile,shutil
+import hashlib,os,re,subprocess,sys,tempfile,shutil,fcntl
 from pathlib import Path
 PACKAGE='macaque-classic'
 def installed_target(root='/'):
@@ -24,16 +24,37 @@ def main(args):
         subprocess.run(['/usr/bin/apt-get','update'],check=True)
         # APT asks before applying the package changes; signatures remain enabled.
         subprocess.run(['/usr/bin/apt-get','upgrade'],check=True);return
-    if len(args)==3 and args[0]=='install-desktop':
+    if len(args)==3 and args[0] in ('install-desktop','rollback-desktop'):
         source=Path(args[1]);expected=args[2]
         if not source.is_absolute() or not re.fullmatch('[0-9a-f]{64}',expected):raise ValueError('Invalid package path or checksum.')
+        from update_store import STORE,installed_version,older,cache_package,receipt
+        STORE.mkdir(parents=True,exist_ok=True)
+        lock=(STORE/'update.lock').open('w')
+        try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        except BlockingIOError:raise ValueError('Another desktop update is already running.')
+        rollback=args[0]=='rollback-desktop'
+        if rollback and (source.is_symlink() or source.resolve().parent!=STORE.resolve()):raise ValueError('Choose a saved desktop package from update history.')
+        previous=installed_version()
         # Root-owned snapshot closes the inspection-to-install race. No scripts
         # from the source package execute before APT's final confirmation.
         with tempfile.TemporaryDirectory(prefix='macaque-desktop-update-') as temp:
             os.chmod(temp,0o755);target=Path(temp)/'macaque-classic.deb';shutil.copyfile(source,target);target.chmod(0o644)
             if digest(target)!=expected:raise ValueError('Package changed after inspection. Select it again.')
-            data=metadata(target);print('Install Macaque Classic',data['version'],flush=True)
-            subprocess.run(['/usr/bin/apt-get','install',str(target)],check=True)
+            data=metadata(target)
+            if rollback and not older(data['version'],previous):raise ValueError('Rollback requires an older saved desktop package.')
+            if not rollback and older(data['version'],previous):raise ValueError('Use Roll Back for an older desktop package.')
+            # APT may already have the previous package; retain it when available.
+            if previous:
+                old=Path('/var/cache/apt/archives')/('macaque-classic_'+previous+'_amd64.deb')
+                if old.is_file() and metadata(old)['version']==previous:cache_package(old)
+            print(('Roll back to' if rollback else 'Install')+' Macaque Classic '+data['version'],flush=True)
+            try:
+                subprocess.run(['/usr/bin/apt-get',*(['--allow-downgrades'] if rollback else []),'install',str(target)],check=True)
+            except Exception:
+                receipt(data['version'],previous,'failed or cancelled',args[0]);raise
+            if installed_version()!=data['version']:
+                receipt(data['version'],previous,'not applied',args[0]);raise ValueError('APT did not apply the selected desktop version.')
+            cache_package(target);receipt(data['version'],previous,'installed',args[0])
         print('Desktop package installed. Save your work and log out/in to load the new desktop.');return
     raise ValueError('Unknown maintenance action.')
 if __name__=='__main__':

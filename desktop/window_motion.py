@@ -1,4 +1,5 @@
 """Short snapshot transitions; application widgets keep their original geometry."""
+import os
 from PySide6.QtCore import Qt,QVariantAnimation,QEasingCurve,QRectF
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QWidget,QGraphicsOpacityEffect
@@ -7,7 +8,7 @@ from shiboken6 import isValid
 EFFECTS=['Soft Zoom','Fade','Slide','None']
 
 def enabled(d,opening):
-    return not d.state.get('reduce_motion',False) and d.state.get('open_effect' if opening else 'close_effect','Soft Zoom') in EFFECTS[:-1]
+    return os.environ.get('MACAQUE_SAFE_SESSION')!='1' and not d.state.get('reduce_motion',False) and d.state.get('open_effect' if opening else 'close_effect','Soft Zoom') in EFFECTS[:-1]
 
 class Transition(QWidget):
     def __init__(self,w,opening):

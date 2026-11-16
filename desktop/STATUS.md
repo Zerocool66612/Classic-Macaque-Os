@@ -88,3 +88,5 @@ HTTPS download → Flatpak install → Wayland launch, actual sound/video, keybo
 focus and graphics, and a guest boot with a supplied emulator/ROM/disk combination.
 
 0.40.1 web downloads: deterministic UI lifecycle checks and real sandboxed local HTTP attachment passed. Internet/authenticated-site downloads and VM/hardware remain unverified.
+
+0.41: update receipts, real .deb hash/cache checks, rollback consent and privileged command guards pass with APT mocked. Recovery marker consumption and startup suppression pass without modifying preferences. Real APT installation, rollback login and hardware tests remain manual. First upgrade may lack an older cached package.

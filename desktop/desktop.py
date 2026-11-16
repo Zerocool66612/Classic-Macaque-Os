@@ -20,7 +20,7 @@ from extras import Tasks,Clockwork,Paint,ArchiveViewer,Characters,MediaPlayer
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.40.1'
+VERSION='0.41'
 
 from menu_compat import Menu as QMenu
 
@@ -127,6 +127,9 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         self.desktop_tabs=DesktopTabs(self)
         self.top_bar.help.addAction('Diagnostics',self.diagnostics);QTimer.singleShot(0,self.initial)
     def initial(self):
+        if os.environ.get('MACAQUE_SAFE_SESSION')=='1':
+            self.arrange_icons();self.update_icon_visibility();self.sound_theme.suspended=False
+            self.launch('Recovery & Diagnostics');return
         if not getattr(self,'_welcome_checked',False):
             self._welcome_checked=True
             from first_run import start_welcome

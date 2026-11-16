@@ -27,9 +27,13 @@ def installer():
  if log.parent!=p.parent or not log.name.startswith('installer-'):return {'message':'Installer log reference is invalid.','log':''}
  if data.get('running') and not Path('/proc',str(data.get('pid',0))).exists():data['running']=False;data['message']='Installer process is no longer running. Review the log and the wizard result; completion is unconfirmed.'
  data['log_text']=tail(log);return data
+def update_summary():
+ from update_store import STORE,installed_version
+ return 'Installed desktop: '+installed_version()+'\n'+tail(STORE/'history.json')
 def collect():
  root=Path.home()/'.local/state/macaque';data={
   'summary.txt':f'Macaque diagnostics\nKernel: {platform.release()}\nMachine: {platform.machine()}\nSession type: {os.environ.get("XDG_SESSION_TYPE","unknown")}\nWayland display set: {bool(os.environ.get("WAYLAND_DISPLAY"))}\n',
+  'updates.txt':update_summary(),
   'system.txt':tail('/etc/os-release'),
   'session.log':tail(root/'session.log'),'compositor.log':tail(root/'compositor.log'),
   'login-journal.txt':command(['journalctl','-b','-u','greetd','--no-pager','-n','100','-o','cat']),

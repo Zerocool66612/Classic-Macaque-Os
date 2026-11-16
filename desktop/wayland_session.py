@@ -15,13 +15,15 @@ def main():
     env=native_environment(os.environ)
     if '--preview' in sys.argv:env['MACAQUE_PREVIEW_SESSION']='1'
     logdir=Path.home()/'.local/state/macaque';logdir.mkdir(parents=True,exist_ok=True);children=[]
+    from recovery_mode import consume
+    safe=consume(env,logdir)
     with (logdir/'session.log').open('ab',buffering=0) as log:
         try:
             if shutil.which('dbus-update-activation-environment'):
                 subprocess.run(['dbus-update-activation-environment',*(['--systemd'] if '--preview' not in sys.argv else []),'WAYLAND_DISPLAY','XDG_CURRENT_DESKTOP','XDG_SESSION_TYPE','QT_QPA_PLATFORM','GDK_BACKEND','SDL_VIDEODRIVER','DISPLAY=','XAUTHORITY='],env=env,stdout=log,stderr=log,timeout=10)
             if '--preview' not in sys.argv and shutil.which('lxpolkit'):children.append(subprocess.Popen(['lxpolkit'],env=env,stdout=log,stderr=log))
             if '--preview' not in sys.argv and shutil.which('blueman-applet'):children.append(subprocess.Popen(['blueman-applet'],env=env,stdout=log,stderr=log))
-            if '--preview' not in sys.argv and shutil.which('wlr-randr'):
+            if not safe and '--preview' not in sys.argv and shutil.which('wlr-randr'):
                 children.append(subprocess.Popen([sys.executable,str(ROOT/'display_settings.py'),'--restore'],env=env,stdout=log,stderr=log))
             if '--preview' not in sys.argv:children.append(subprocess.Popen([sys.executable,str(ROOT/'wayland_power.py'),'daemon'],env=env,stdout=log,stderr=log))
             desktop=subprocess.Popen([sys.executable,str(ROOT/'desktop.py')],env=env,stdout=log,stderr=log);children.append(desktop)

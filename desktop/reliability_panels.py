@@ -107,9 +107,19 @@ class Bluetooth(Panel):
 class Diagnostics(Panel):
  app_name='Recovery & Diagnostics'
  def __init__(self,d):
-  super().__init__(d);self.text=QPlainTextEdit();self.text.setReadOnly(True);self.v.addWidget(self.text);self.button('Refresh report preview',self.refresh);self.button('Save support report to Documents',self.export);self.button('Open Documents',lambda:d.open_finder(d.disk.root/'Documents'));self.button('Installer status and logs',lambda:d.launch('Installer Status'));self.v.addWidget(QLabel('Reports stay local. Credential-like lines and common addresses are filtered; review the preview before sharing. No saved network profiles or environment dump is collected.'));self.refresh()
+  super().__init__(d);self.text=QPlainTextEdit();self.text.setReadOnly(True);self.v.addWidget(self.text);self.button('Refresh report preview',self.refresh);self.button('Save support report to Documents',self.export);self.button('Open Documents',lambda:d.open_finder(d.disk.root/'Documents'));self.button('Use recovery mode next login',self.safe_next);self.button('Cancel recovery mode request',self.cancel_safe);self.button('Software Update',lambda:d.launch('Software Update'));self.button('Installer status and logs',lambda:d.launch('Installer Status'));self.v.addWidget(QLabel('Reports stay local. Credential-like lines and common addresses are filtered; review the preview before sharing. No saved network profiles or environment dump is collected.'));self.refresh()
+ def safe_next(self):
+  from recovery_mode import schedule
+  try:schedule();self.status.setText('Recovery mode is ready for your next login. Save work, then log out and sign in. It skips startup apps, animations and saved display restoration for one login; your settings are retained.')
+  except OSError as ex:self.status.setText(str(ex))
+ def cancel_safe(self):
+  from recovery_mode import schedule
+  try:schedule(False);self.status.setText('Next login will use normal startup settings.')
+  except OSError as ex:self.status.setText(str(ex))
  def refresh(self):self.request({'action':'diagnostics-status'},lambda x:self.text.setPlainText(x['text']),helper='diagnostics_backend.py',timeout=65000)
- def export(self):self.request({'action':'diagnostics-export','directory':str(self.d.disk.root/'Documents')},lambda _:self.d.disk_changed.emit(),helper='diagnostics_backend.py',timeout=65000)
+ def export(self):self.request({'action':'diagnostics-export','directory':str(self.d.disk.root/'Documents')},self.exported,helper='diagnostics_backend.py',timeout=65000)
+ def exported(self,data):
+  self.d.disk_changed.emit();self.status.setText('Saved support report: '+data['path']+' · Review before sharing.')
 class InstallerStatus(Panel):
  app_name='Installer Status'
  def __init__(self,d):

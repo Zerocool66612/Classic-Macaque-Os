@@ -1,3 +1,14 @@
+## 0.41 — Update Center and recovery
+
+- Show release notes, transfer activity, running-version checks and update history.
+- Publish desktop .deb + SHA256 release assets so the in-system updater can find them.
+- Retain installed desktop packages and offer explicit rollback to saved older versions.
+- Serialize desktop installs, verify inspected hashes again and record failed/cancelled operations.
+- Add one-login recovery startup: skip startup apps, display restoration and window animations without changing preferences.
+- Include desktop update history in local diagnostics reports.
+- Rollback is package-only, not an OS snapshot; the first upgrade may lack a previous cached package.
+- Real APT changes, recovery login and hardware installation require manual testing.
+
 ## 0.40.1 — Macaque Web downloads
 
 - Follow user-clicked new-window download links inside browser tabs; block automatic popups.

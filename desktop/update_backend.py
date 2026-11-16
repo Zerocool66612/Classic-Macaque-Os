@@ -26,7 +26,7 @@ def releases(data):
             if not re.fullmatch(r'macaque-classic_[0-9][A-Za-z0-9.+~\-]*_amd64\.deb',name) or name+'.sha256' not in assets:continue
             url=asset.get('browser_download_url','');checksum=assets[name+'.sha256'].get('browser_download_url','')
             if not url.startswith(PREFIX) or not checksum.startswith(PREFIX):continue
-            result.append({'name':name,'version':name.split('_')[1],'url':url,'checksum_url':checksum,'tag':release['tag_name'],'prerelease':bool(release.get('prerelease'))})
+            result.append({'name':name,'version':name.split('_')[1],'url':url,'checksum_url':checksum,'tag':release['tag_name'],'prerelease':bool(release.get('prerelease')),'notes':str(release.get('body',''))[:20000]})
     return result
 
 def download(item,folder):
@@ -53,6 +53,9 @@ if __name__=='__main__':
         p=json.loads(sys.stdin.read(32768));action=p['action']
         if action=='check':result={'releases':releases(json.loads(read_url(API,2*1024*1024)))}
         elif action=='download':result=download(p['release'],p['folder'])
+        elif action=='history':
+            from update_store import status
+            result=status()
         elif action=='inspect':result={**metadata(p['path']),'path':str(Path(p['path']).resolve()),'sha256':digest(p['path'])}
         else:raise ValueError('Unknown update action.')
         print(json.dumps(result))
