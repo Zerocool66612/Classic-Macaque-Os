@@ -35,4 +35,10 @@ with tempfile.TemporaryDirectory() as temp:
  finished=yaml.safe_load((mods/'finished.conf').read_text());assert finished['restartNowMode']=='user-unchecked' and finished['restartNowCommand']=='systemctl reboot'
  config.configure(root)
  assert yaml.safe_load((mods/'users.conf').read_text())['passwordRequirements']=={'minLength':8,'maxLength':128}
+ final_settings=yaml.safe_load((base/'settings.conf').read_text());final_seq=final_settings['sequence'][0]['exec']
+ assert final_seq.index('packages')<final_seq.index('shellprocess@macaque_boot_final')<final_seq.index('umount')
+ assert final_seq.count('shellprocess@macaque_boot_final')==1
+ assert sum(x['id']=='macaque_boot_final' for x in final_settings['instances'])==1
+ final=yaml.safe_load((mods/'macaque-boot-final.conf').read_text())
+ assert not final['dontChroot'] and final['script']==['/usr/bin/python3 /usr/local/libexec/macaque-grub-install --finalize']
 print('Offline BIOS/EFI package selection, checksum guards, job sequence and Macaque branding checks passed (mocked package install).')

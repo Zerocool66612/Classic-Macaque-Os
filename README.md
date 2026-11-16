@@ -1,3 +1,17 @@
+## 0.41.1 — Installer boot and dialog correction candidate
+
+The installer now refreshes the selected GRUB bootloader after its package jobs,
+checks that a BIOS target is the whole disk containing the boot filesystem, and
+remembers that target for Debian GRUB updates. Confirmation dialogs no longer
+match the desktop's maximize rule.
+
+The ISO build now requires a fresh installed-disk BIOS boot, a real 0.41 → 0.41.1
+desktop-package upgrade, and another boot with a second virtual drive present.
+These are disposable backend VM tests, not a full Calamares GUI or physical-laptop
+certification. Matching desktop update assets are published with a successful ISO.
+Build and test results will be recorded in the release; no successful laptop test
+is claimed in advance.
+
 ## 0.41 — Update Center and recovery
 
 Open **Controls → Software Update** to check desktop releases, read release notes,

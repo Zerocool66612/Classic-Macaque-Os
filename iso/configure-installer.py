@@ -12,9 +12,17 @@ def configure(root):
     # Debian's helper downloads GRUB; use the cached packages in our target job.
     for online_job in ['bootloader-config','sources-media','sources-media-unmount','sources-final']:
         if online_job in sequence:sequence.remove(online_job)
+    # Reinstall/verify the selected bootloader after all package/filesystem jobs.
+    final_job='shellprocess@macaque_boot_final'
+    if final_job in sequence:sequence.remove(final_job)
+    sequence.insert(sequence.index('umount'),final_job)
+    instances=[x for x in (data.get('instances') or []) if x.get('id')!='macaque_boot_final']
+    instances.append({'id':'macaque_boot_final','module':'shellprocess','config':'macaque-boot-final.conf'})
+    data['instances']=instances
     data['prompt-install']=True;data['branding']='macaque';settings.write_text(yaml.safe_dump(data,sort_keys=False))
     modules=base/'modules'
     (modules/'shellprocess.conf').write_text(yaml.safe_dump({'dontChroot':False,'timeout':300,'script':['/usr/bin/python3 /usr/local/libexec/macaque-installed-setup.py --calamares-target','/usr/bin/python3 /usr/local/libexec/macaque-offline-bootloader.py --calamares-target ${gs[firmwareType]}'],'i18n':{'name':'Configure Macaque login'}}))
+    (modules/'macaque-boot-final.conf').write_text(yaml.safe_dump({'dontChroot':False,'timeout':600,'script':['/usr/bin/python3 /usr/local/libexec/macaque-grub-install --finalize'],'i18n':{'name':'Finalize and verify Macaque bootloader'}}))
     partition=modules/'partition.conf'
     options=yaml.safe_load(partition.read_text()) or {} if partition.exists() else {}
     options.update(userSwapChoices=['none','file'],initialSwapChoice='none')

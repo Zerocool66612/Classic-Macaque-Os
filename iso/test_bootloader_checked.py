@@ -1,26 +1,41 @@
-"""Exercise install sequencing and failure gates with a temporary target and mocked GRUB."""
+"""GRUB target selection, fresh UUID validation, finalization and refusal gates."""
 import tempfile,importlib.util,json
 from pathlib import Path
 from unittest.mock import patch
 spec=importlib.util.spec_from_file_location('checked',Path(__file__).with_name('grub-install-checked.py'));m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-assert m.checked_args(['--target=i386-pc','--force','/dev/example'])==['/usr/sbin/grub-install','--recheck','--target=i386-pc','/dev/example']
-for text in ['menuentry test { root=old-uuid; }','root=new-uuid']:
- try:m.verify_config(text,'new-uuid')
- except RuntimeError:pass
- else:raise AssertionError('Invalid boot menu accepted')
+cmd=m.checked_args(['--target=i386-pc','--force','/dev/example'])
+assert '--force' not in cmd and '--boot-directory=/boot' in cmd and cmd[-1]=='/dev/example'
+assert any(a.startswith('--modules=') and 'search_fs_uuid' in a for a in cmd)
+with patch.object(m,'output',return_value=json.dumps({'blockdevices':[{'name':'/dev/example1','type':'part','children':[{'name':'/dev/example','type':'disk'}]}]})):
+ assert m.bios_install_target(['--target=i386-pc','/dev/example'],'/dev/example1')=='/dev/example'
+ for args in [['--target=i386-pc','/dev/other'],['--target=i386-pc','/dev/example1'],['--target=i386-pc']]:
+  try:m.bios_install_target(args,'/dev/example1')
+  except RuntimeError:pass
+  else:raise AssertionError('Unsafe or missing BIOS disk accepted')
 for bad in [False,True]:
  with tempfile.TemporaryDirectory() as temp:
   root=Path(temp)
   for name,data in {'etc/macaque-installed':'target','boot/vmlinuz-test':'kernel','boot/initrd.img-test':'initramfs','boot/grub/device.map':'stale','boot/grub/i386-pc/normal.mod':'module','boot/grub/grub.cfg':"menuentry 'Macaque' { search --fs-uuid "+('old' if bad else 'new-uuid')+'; }'}.items():
    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(data)
   commands=[]
-  with patch.object(m,'Path',lambda p:root/str(p).lstrip('/')),patch.object(m,'output',return_value='new-uuid'),patch.object(m.os,'geteuid',return_value=0),patch.object(m.subprocess,'run',side_effect=lambda a,**kw:commands.append(a)):
+  def probe(args):
+   assert not (root/'boot/grub/device.map').exists()
+   if '--target=device' in args:return '/dev/example1'
+   return 'new-uuid'
+  with patch.object(m,'Path',lambda p:root/str(p).lstrip('/')),patch.object(m,'output',side_effect=probe),patch.object(m,'physical_disks',return_value={'/dev/example'}),patch.object(m.os,'geteuid',return_value=0),patch.object(m.subprocess,'run',side_effect=lambda a,**kw:commands.append(a)):
    try:m.main(['--target=i386-pc','--force','/dev/example'])
-   except RuntimeError:
-    assert bad
+   except RuntimeError:assert bad
    else:assert not bad
-  assert commands[0]==['/usr/sbin/grub-install','--recheck','--target=i386-pc','/dev/example']
-  assert commands[1]==['/usr/sbin/update-grub']
+  assert commands[0]==['/usr/sbin/update-grub']
+  if bad:assert len(commands)==1
+  else:
+   assert commands[1]==cmd
+   assert commands[2]==['/usr/bin/debconf-set-selections'] and commands[-1]==['/bin/sync']
+  report=json.loads((root/'var/log/macaque-bootloader.json').read_text())
+  assert (report['status']=='failed')==bad and report['install_device']=='/dev/example'
   assert (root/'boot/grub/device.map.before-macaque-install').read_text()=='stale'
-  report=json.loads((root/'var/log/macaque-bootloader.json').read_text());assert (report['status']=='failed')==bad
-print('GRUB fresh-probe arguments, configuration regeneration, UUID failure gates and diagnostic-report tests passed (disk writes mocked).')
+ with tempfile.TemporaryDirectory() as temp:
+  root=Path(temp);p=root/'var/log/macaque-bootloader.json';p.parent.mkdir(parents=True);p.write_text(json.dumps({'arguments':['--target=i386-pc','/dev/example']}))
+  with patch.object(m,'Path',lambda p:root/str(p).lstrip('/')),patch.object(m,'main') as main:
+   m.finalize();main.assert_called_once_with(['--target=i386-pc','/dev/example'])
+print('PASS: whole-disk selection, stale-map removal before probes, generated menu before fresh core, remembered update target and final-job argument reuse. Disk writes mocked.')

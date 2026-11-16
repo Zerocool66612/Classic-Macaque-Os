@@ -3,11 +3,18 @@
 Reaching the live-account marker verifies initramfs -> systemd -> live setup.
 It does not certify Wayland, UEFI firmware, USB hardware or installation.
 """
-import argparse,json,os,subprocess,time
+import argparse,json,os,subprocess,time,socket
 from pathlib import Path
 MARKER=b'MACAQUE_LIVE_USER_READY_V1'
 def command(iso,log):
- return ['qemu-system-x86_64','-machine','pc','-accel','tcg','-m','2048','-smp','2','-boot','order=d,menu=off','-cdrom',str(Path(iso).resolve()),'-display','none','-serial','file:'+str(Path(log).resolve()),'-monitor','none','-nic','none','-no-reboot']
+ return ['qemu-system-x86_64','-machine','pc','-accel','tcg','-m','2048','-smp','2','-boot','order=d,menu=off','-cdrom',str(Path(iso).resolve()),'-display','none','-serial','file:'+str(Path(log).resolve()),'-monitor','unix:'+str(Path(log).resolve())+'.monitor,server=on,wait=off','-nic','none','-no-reboot']
+def select_default(log):
+ try:
+  with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as client:
+   client.settimeout(2);client.connect(str(Path(log).resolve())+'.monitor')
+   client.recv(4096);client.sendall(b'sendkey ret\n')
+  return True
+ except OSError:return False
 def reached(log):
  try:return MARKER in Path(log).read_bytes()
  except FileNotFoundError:return False
@@ -18,9 +25,10 @@ def check(iso,log,timeout=300):
  with log.with_suffix('.qemu.log').open('wb') as errors:
   process=subprocess.Popen(command(iso,log),stdout=errors,stderr=subprocess.STDOUT)
   try:
-   deadline=time.monotonic()+timeout
+   started=time.monotonic();deadline=started+timeout;selected=False
    while time.monotonic()<deadline:
     if reached(log):return True
+    if not selected and time.monotonic()-started>15:selected=select_default(log)
     if process.poll() is not None:return False
     time.sleep(.5)
    return False

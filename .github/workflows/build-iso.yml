@@ -1,5 +1,5 @@
 name: Build Macaque Classic installer ISO
-# Validate maintenance fixtures and installed font assets inside the live chroot.
+# Require disposable installed-disk boot and real desktop-upgrade checks before publishing.
 on:
   workflow_dispatch:
   push:
@@ -16,6 +16,14 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+      - name: Check installer and dialog regressions
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-yaml
+          python3 -m py_compile iso/test-installed-boot.py iso/grub-install-checked.py iso/configure-installer.py iso/boot-check.py
+          python3 iso/test_bootloader_checked.py
+          python3 iso/test_offline_installer.py
+          python3 iso/test_dialog_rules.py
       - name: Build Debian live ISO
         run: bash build-iso.sh
       - name: Preserve build diagnostics
@@ -44,6 +52,9 @@ jobs:
           cat > release-notes.md <<'NOTES'
           Experimental Macaque Classic installer preview.
 
+          0.41.1 refreshes the selected bootloader after all installer package changes,
+          checks the BIOS boot disk against the installed boot filesystem, remembers it
+          for subsequent Debian GRUB updates, and fixes oversized confirmation dialogs.
           Includes the 0.41 Update Center, saved-package rollback, one-login recovery,
           Macaque Web download improvements, and expanded local diagnostics.
           Adds optional-app timer/import improvements and the MIT-licensed Chicago Kare font.
@@ -53,9 +64,25 @@ jobs:
           Download the ISO and its SHA256 checksum from Assets.
           Build diagnostics and the automated boot-check result are included.
 
+          Publication requires fresh installed-disk BIOS boot and a real 0.41 to 0.41.1
+          desktop-package update followed by a two-drive BIOS boot in disposable VMs.
+          These backend tests do not automate the full Calamares GUI.
           Start in a virtual machine. Physical USB boot, UEFI execution, graphics,
           laptop controls, and installation are not certified by this automated build.
           Read the attached boot-check result before testing.
           NOTES
           printf '\nAutomated BIOS boot check: %s.\n' "$boot_status" >> release-notes.md
-          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic ${version} Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt
+          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic ${version} Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt output/installed-boot-check.json output/macaque-classic_*.deb output/macaque-classic_*.deb.sha256
+      - name: Verify published desktop-update download
+        run: |
+          python3 - <<'PY'
+          import sys,json,tempfile
+          sys.path.insert(0,'desktop')
+          from update_backend import API,read_url,releases,download
+          items=releases(json.loads(read_url(API,2*1024*1024)))
+          item=next(x for x in items if x['version']=='0.41.1')
+          with tempfile.TemporaryDirectory() as folder:
+              info=download(item,folder)
+              assert info['version']=='0.41.1'
+          print('Published desktop-update feed, checksum and package metadata verified.')
+          PY

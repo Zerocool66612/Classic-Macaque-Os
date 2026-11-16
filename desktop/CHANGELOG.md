@@ -1,3 +1,13 @@
+## 0.41.1 — Installer bootloader and dialog corrections
+
+- Restrict the desktop maximize rule to the desktop title, keeping dialogs normal-sized.
+- Finalize GRUB again after package changes, immediately before installer unmount.
+- Reject BIOS targets that are not the whole disk containing the installed boot files.
+- Probe fresh boot UUIDs, regenerate the menu before embedding GRUB, and remember the selected BIOS disk for Debian updates.
+- Gate ISO publication on disposable installed-disk BIOS boot and a real desktop package upgrade with a subsequent two-drive boot.
+- Publish matching desktop package/checksum alongside the ISO.
+- Physical laptop, UEFI installation, and full Calamares GUI validation remain manual.
+
 ## 0.41 — Update Center and recovery
 
 - Show release notes, transfer activity, running-version checks and update history.
