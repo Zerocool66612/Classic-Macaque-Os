@@ -18,7 +18,8 @@
  </keyboard>
  <mouse><default /></mouse>
  <windowRules>
-  <windowRule identifier="org.macaque.Classic" serverDecoration="no">
+  <!-- Only the desktop surface fills the output. Qt dialogs share its app_id. -->
+  <windowRule identifier="org.macaque.Classic" title="Macaque Classic * — Macaque Desktop" serverDecoration="no">
    
    <action name="Maximize" /><action name="ToggleAlwaysOnBottom" />
   </windowRule>

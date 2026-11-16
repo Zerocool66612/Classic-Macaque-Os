@@ -1,0 +1,21 @@
+name: Check desktop and dialog window rules
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'desktop/labwc-rc.xml'
+      - 'iso/test_dialog_rules.py'
+      - '.github/workflows/check-dialog-rules.yml'
+  pull_request:
+    paths:
+      - 'desktop/labwc-rc.xml'
+      - 'iso/test_dialog_rules.py'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 iso/test_dialog_rules.py
