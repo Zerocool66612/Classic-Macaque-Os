@@ -15,7 +15,7 @@ with patch.object(m,'output',return_value=json.dumps({'blockdevices':[{'name':'/
 for bad in [False,True]:
  with tempfile.TemporaryDirectory() as temp:
   root=Path(temp)
-  for name,data in {'etc/macaque-installed':'target','boot/vmlinuz-test':'kernel','boot/initrd.img-test':'initramfs','boot/grub/device.map':'stale','boot/grub/i386-pc/normal.mod':'module','boot/grub/grub.cfg':"menuentry 'Macaque' { search --fs-uuid "+('old' if bad else 'new-uuid')+'; }'}.items():
+  for name,data in {'etc/macaque-installed':'target','boot/vmlinuz-test':'kernel','boot/initrd.img-test':'initramfs','boot/grub/device.map':'stale','boot/grub/i386-pc/normal.mod':'module','boot/grub/grub.cfg':"menuentry 'Macaque' {\n search --fs-uuid "+('old' if bad else 'new-uuid')+';\n linux /boot/vmlinuz-test root=UUID='+('old' if bad else 'new-uuid')+' ro\n}\n'}.items():
    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(data)
   commands=[]
   def probe(args):

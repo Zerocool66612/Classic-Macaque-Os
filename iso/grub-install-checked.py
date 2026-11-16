@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """Finalize GRUB against the installed filesystem and the explicitly selected disk."""
-import os,sys,subprocess,json
+import os,sys,subprocess,json,re
 from pathlib import Path
 
 def output(args):return subprocess.check_output(args,text=True,timeout=60).strip()
@@ -13,6 +13,9 @@ def checked_args(args):
 def verify_config(text,uuid):
     if not uuid or uuid not in text:raise RuntimeError('Generated GRUB menu does not reference the installed root filesystem UUID.')
     if 'menuentry ' not in text:raise RuntimeError('Generated GRUB menu contains no boot entries.')
+    linux_lines=[line for line in text.splitlines() if re.match(r'^\s*linux(?:efi)?\s',line)]
+    if not any(re.search(r'\broot=UUID='+re.escape(uuid)+r'(?:\s|$)',line) for line in linux_lines):
+        raise RuntimeError('Generated Linux boot entry must use the installed root UUID, not a temporary device name.')
 
 def physical_disks(device):
     data=json.loads(output(['/usr/bin/lsblk','--json','--paths','--inverse','--output','NAME,TYPE',device]))
@@ -59,6 +62,9 @@ def main(args):
         bios='--target=i386-pc' in args
         target=bios_install_target(args,boot_device) if bios else None
         report.update(root_uuid=uuid,boot_uuid=boot_uuid,boot_device=boot_device,install_device=target)
+        uuid_conf=Path('/etc/default/grub.d/61-macaque-root-uuid.cfg')
+        uuid_conf.parent.mkdir(parents=True,exist_ok=True)
+        uuid_conf.write_text('GRUB_DISABLE_LINUX_UUID=false\nGRUB_DISABLE_LINUX_PARTUUID=true\n')
         # Regenerate the final menu BEFORE embedding a fresh core image.
         subprocess.run(['/usr/sbin/update-grub'],check=True,timeout=300)
         verify_config(Path('/boot/grub/grub.cfg').read_text(),uuid)

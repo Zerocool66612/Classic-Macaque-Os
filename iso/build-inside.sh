@@ -42,7 +42,7 @@ unsquashfs -processors 2 -no-progress -d "$work/readback-root" "$work/readback.s
 [[ -f "$work/readback-root/boot/grub/themes/macaque/theme.txt" ]]
 [[ -f "$work/readback-root/etc/default/grub.d/60-macaque-theme.cfg" ]]
 # Gate publication on a genuine installed-disk boot and real package upgrade.
-python3 /kit/iso/test-installed-boot.py "$work/readback-root" /output /output/macaque-classic_0.41.1_amd64.deb > /output/installed-boot-test.log 2>&1 || { tail -n 100 /output/installed-boot-test.log; exit 1; }
+python3 /kit/iso/test-installed-boot.py "$work/readback-root" /output /output/macaque-classic_0.41.1_amd64.deb > /output/installed-boot-test.log 2>&1 || { tail -n 100 /output/installed-boot-test.log; tail -n 100 /output/installed-fresh.log 2>/dev/null || true; tail -n 100 /output/installed-updated.log 2>/dev/null || true; exit 1; }
 name="macaque-classic-0.41.1-installer-$(date -u +%Y%m%d-%H%M%S).iso"
 cp -- "$image" "/output/$name"
 (cd /output && sha256sum "$name" > "$name.sha256")

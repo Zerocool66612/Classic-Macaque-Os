@@ -53,23 +53,28 @@ def test(source,out,package):
  result={'fresh_bios_disk_boot':False,'desktop_update_applied':False,'updated_bios_disk_boot_with_second_drive':False,'calamares_gui_tested':False,'uefi_install_tested':False,'physical_hardware_tested':False}
  report=out/'installed-boot-check.json'
  with tempfile.TemporaryDirectory(prefix='installed-smoke-',dir=out) as temp:
-  temp=Path(temp);image=temp/'installed.raw';extra=temp/'other.raw';target=temp/'root';target.mkdir();loop=None;mounted=False
+  temp=Path(temp);image=temp/'installed.raw';extra=temp/'other.raw';target=temp/'root';target.mkdir();loop=None;mounted=False;uuid_alias=None
   with image.open('wb') as f:f.truncate(12*1024**3)
   with extra.open('wb') as f:f.truncate(16*1024**2)
   def attach():
-   nonlocal loop,mounted
+   nonlocal loop,mounted,uuid_alias
    loop=subprocess.check_output(['losetup','--find','--show','--partscan',str(image)],text=True).strip()
    if not loop.startswith('/dev/loop') or not loop[9:].isdigit():raise RuntimeError('Unexpected newly allocated loop device.')
    part=partition_node(loop)
+   uuid=subprocess.check_output(['blkid','-s','UUID','-o','value',str(part)],text=True).strip()
+   uuid_alias=Path('/dev/disk/by-uuid')/uuid;uuid_alias.parent.mkdir(parents=True,exist_ok=True)
+   if uuid_alias.exists() or uuid_alias.is_symlink():raise RuntimeError('Unexpected preexisting UUID alias for disposable filesystem.')
+   uuid_alias.symlink_to(part)
    run(['mount',str(part),str(target)]);mounted=True
    for folder in ['dev','proc','sys','run','tmp']:(target/folder).mkdir(exist_ok=True)
    run(['mount','--rbind','/dev',str(target/'dev')]);run(['mount','--make-rslave',str(target/'dev')])
    run(['mount','-t','proc','proc',str(target/'proc')]);run(['mount','--rbind','/sys',str(target/'sys')]);run(['mount','--make-rslave',str(target/'sys')])
    return str(part)
   def detach():
-   nonlocal loop,mounted
+   nonlocal loop,mounted,uuid_alias
    if mounted:
     run(['umount','-R',str(target)]);mounted=False
+   if uuid_alias:uuid_alias.unlink(missing_ok=True);uuid_alias=None
    if loop:run(['losetup','--detach',loop]);loop=None
   try:
    loop=subprocess.check_output(['losetup','--find','--show',str(image)],text=True).strip()

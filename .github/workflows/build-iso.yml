@@ -1,5 +1,5 @@
 name: Build Macaque Classic installer ISO
-# Preflight loop reattachment, then require installed boot and real desktop-upgrade checks.
+# Preflight UUID-root boot and real updater before rebuilding the complete installer.
 on:
   workflow_dispatch:
   push:
@@ -24,6 +24,24 @@ jobs:
           python3 iso/test_bootloader_checked.py
           python3 iso/test_offline_installer.py
           python3 iso/test_dialog_rules.py
+      - name: Preflight installed boot and updater on the previous Debian base
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="$RUNNER_TEMP/macaque-boot-preflight"
+          mkdir -p "$fixture"
+          trap 'sudo rm -rf -- "$fixture"' EXIT
+          curl -fL --retry 3 -o "$fixture/base.iso" https://github.com/Zerocool66612/Classic-Macaque-Os/releases/download/v0.41-preview-build-6/macaque-classic-0.41-installer-20261116-211627.iso
+          printf 'b1573e6df1bcfb57081bc213fe676ae5cedb553b367c30fc5bbf83b2d1117345  %s/base.iso\n' "$fixture" | sha256sum --check
+          docker build -t macaque-classic-iso-builder:trixie iso
+          docker run --rm --privileged --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/kit,readonly" --mount "type=bind,src=$fixture,dst=/preflight" macaque-classic-iso-builder:trixie bash -euc '
+            xorriso -osirrox on -indev /preflight/base.iso -extract /live/filesystem.squashfs /preflight/root.squashfs
+            unsquashfs -processors 2 -no-progress -d /preflight/root /preflight/root.squashfs >/preflight/extract.log 2>&1
+            cp /kit/iso/grub-install-checked.py /preflight/root/usr/local/libexec/macaque-grub-install
+            python3 /kit/build-desktop-deb.py --output /preflight/packages
+            python3 /kit/iso/test-installed-boot.py /preflight/root /preflight/results /preflight/packages/macaque-classic_0.41.1_amd64.deb >/preflight/test.log 2>&1 || { tail -100 /preflight/test.log; tail -100 /preflight/results/installed-fresh.log 2>/dev/null || true; tail -100 /preflight/results/installed-updated.log 2>/dev/null || true; exit 1; }
+            cat /preflight/results/installed-boot-check.json
+          '
       - name: Build Debian live ISO
         run: bash build-iso.sh
       - name: Preserve build diagnostics
