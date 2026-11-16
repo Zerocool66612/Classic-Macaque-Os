@@ -43,6 +43,8 @@ jobs:
           cat > release-notes.md <<'NOTES'
           Experimental Macaque Classic installer preview.
 
+          Includes the 0.41 Update Center, saved-package rollback, one-login recovery,
+          Macaque Web download improvements, and expanded local diagnostics.
           Adds optional-app timer/import improvements and the MIT-licensed Chicago Kare font.
           Also includes spatial folder windows, aliases, labels, stationery, expanded Get Info,
           classic application hiding and improved removable-drive desktop controls.
