@@ -38,7 +38,7 @@ unsquashfs -processors 2 -no-progress -d "$work/readback-root" "$work/readback.s
 [[ -f "$work/readback-root/etc/greetd/config.toml" ]]
 [[ -f "$work/readback-root/boot/grub/themes/macaque/theme.txt" ]]
 [[ -f "$work/readback-root/etc/default/grub.d/60-macaque-theme.cfg" ]]
-name="macaque-classic-0.40-installer-$(date -u +%Y%m%d-%H%M%S).iso"
+name="macaque-classic-0.40.1-installer-$(date -u +%Y%m%d-%H%M%S).iso"
 cp -- "$image" "/output/$name"
 (cd /output && sha256sum "$name" > "$name.sha256")
 cp chroot/usr/share/macaque-build/manifest.txt /output/package-manifest.txt

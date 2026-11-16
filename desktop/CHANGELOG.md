@@ -1,3 +1,12 @@
+## 0.40.1 — Macaque Web downloads
+
+- Follow user-clicked new-window download links inside browser tabs; block automatic popups.
+- Use server-suggested filenames and unique default names for existing files.
+- Add Web Downloads progress, cancellation, saved/failed status and Show in folder.
+- Confirm before closing active downloads; keep download files separate from installation.
+- Verified a real local HTTP attachment byte-for-byte with Chromium sandbox enabled.
+- External authenticated downloads and physical-device integration still need testing.
+
 ## 0.40 — Optional work and fonts
 
 - Pause optional UI timers when inactive; preserve hidden countdown alarms.

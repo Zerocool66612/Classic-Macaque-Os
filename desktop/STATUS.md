@@ -86,3 +86,5 @@ is bundled. The native strip builds from included source against the target Qt. 
 Before calling compatibility complete, test on the target Ryzen 7 / RX 6700 XT:
 HTTPS download → Flatpak install → Wayland launch, actual sound/video, keyboard
 focus and graphics, and a guest boot with a supplied emulator/ROM/disk combination.
+
+0.40.1 web downloads: deterministic UI lifecycle checks and real sandboxed local HTTP attachment passed. Internet/authenticated-site downloads and VM/hardware remain unverified.

@@ -1,3 +1,15 @@
+## 0.40.1 — Macaque Web downloads
+
+Click a website download link and choose where to save it. The browser's
+Downloads button shows transfer progress, Cancel and Show in folder. Clicked
+new-window links stay inside Macaque Web; automatic popups remain blocked.
+Server filenames are retained and existing files get a unique default suggestion.
+Closing active downloads requires confirmation. Files are never auto-installed.
+
+A real local HTTP attachment was saved byte-for-byte with WebEngine sandboxing
+enabled; external authenticated downloads still need manual testing.
+This source update does not include a new ISO; the latest ISO is still 0.39.
+
 ## 0.40 — Optional-app efficiency and classic fonts
 
 - Teapot Studio stops its repaint timer when paused, shaded, minimized or on
