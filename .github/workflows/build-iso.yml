@@ -1,5 +1,5 @@
 name: Build Macaque Classic installer ISO
-# Validate installed-system maintenance fixtures independently of the live chroot.
+# Validate maintenance fixtures and installed font assets inside the live chroot.
 on:
   workflow_dispatch:
   push:

@@ -46,9 +46,14 @@ with tempfile.TemporaryDirectory() as t:
  game=d.launch('Chess');assert game.content.app_name=='Chess'
  d.persist();assert json.loads(d.state_path.read_text())['interface_font']=='Classic'
  d.quitting=True;d.close();QTest.qWait(20)
-with tempfile.TemporaryDirectory() as t:
- runpy.run_path(str(Path(__file__).parent.parent/'iso/stage-fonts.py'))['stage'](t)
- root=Path(t)
+def check_system_font(root):
  assert (root/'usr/share/fonts/truetype/macaque/ChicagoKare-Regular.ttf').read_bytes()==(Path(__file__).parent/'fonts/chicago-kare/ChicagoKare-Regular.ttf').read_bytes()
  assert 'Copyright (c) 2024 Duane King' in (root/'usr/share/doc/macaque-classic/fonts/chicago-kare/LICENSE').read_text()
+stager=Path(__file__).parent.parent/'iso/stage-fonts.py'
+if stager.is_file():
+ with tempfile.TemporaryDirectory() as t:
+  runpy.run_path(str(stager))['stage'](t);check_system_font(Path(t))
+else:
+ # Installed/live checks validate the actual staged font, not a source-only helper.
+ check_system_font(Path('/'))
 print('PASS: deferred imports; classic/standard fonts and attribution; optional timers stop while paused/hidden/minimized; stopwatch time and hidden countdown alarm preserved; system-font staging.')
