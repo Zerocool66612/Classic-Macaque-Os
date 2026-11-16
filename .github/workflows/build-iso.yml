@@ -1,5 +1,5 @@
 name: Build Macaque Classic installer ISO
-# Require disposable installed-disk boot and real desktop-upgrade checks before publishing.
+# Preflight loop reattachment, then require installed boot and real desktop-upgrade checks.
 on:
   workflow_dispatch:
   push:

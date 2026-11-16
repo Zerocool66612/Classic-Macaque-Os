@@ -4,6 +4,7 @@ set -euo pipefail
 python3 /kit/iso/test_dialog_rules.py
 python3 /kit/iso/test_bootloader_checked.py
 python3 /kit/iso/test_grub_theme.py
+python3 /kit/iso/test_loop_devices.py
 python3 /kit/build-desktop-deb.py --output /output
 work=$(mktemp -d /output/build-XXXXXX)
 cd "$work"

@@ -3,7 +3,7 @@
 No host disk is selected: only a newly-created image attached by losetup is written.
 This is not an automated Calamares GUI or physical laptop test.
 """
-import argparse,hashlib,importlib.util,json,os,shutil,subprocess,sys,tempfile,time
+import argparse,hashlib,importlib.util,json,os,shutil,subprocess,sys,tempfile,time,stat,re
 from pathlib import Path
 KIT=Path(__file__).resolve().parent.parent
 def load(name,path):
@@ -31,6 +31,20 @@ def boot(image,extra,log,marker):
     process.terminate()
     try:process.wait(timeout=5)
     except subprocess.TimeoutExpired:process.kill();process.wait()
+def partition_node(loop):
+ if not re.fullmatch(r'/dev/loop[0-9]+',loop):raise ValueError('Expected our newly allocated loop disk.')
+ part=Path(loop+'p1');sysdev=Path('/sys/class/block')/(Path(loop).name+'p1')/'dev'
+ for _ in range(100):
+  if sysdev.exists():break
+  time.sleep(.1)
+ major,minor=map(int,sysdev.read_text().strip().split(':'));device=os.makedev(major,minor)
+ if part.exists():
+  current=part.stat()
+  if not stat.S_ISBLK(current.st_mode):raise RuntimeError('Unexpected non-block partition node.')
+  # Loop partition minors are allocated dynamically and can change on reattach.
+  if current.st_rdev!=device:part.unlink()
+ if not part.exists():os.mknod(part,stat.S_IFBLK|0o600,device)
+ return part
 def test(source,out,package):
  if os.geteuid()!=0:raise RuntimeError('Run in the privileged disposable ISO builder.')
  source=Path(source).resolve();out=Path(out).resolve();package=Path(package).resolve()
@@ -46,14 +60,7 @@ def test(source,out,package):
    nonlocal loop,mounted
    loop=subprocess.check_output(['losetup','--find','--show','--partscan',str(image)],text=True).strip()
    if not loop.startswith('/dev/loop') or not loop[9:].isdigit():raise RuntimeError('Unexpected newly allocated loop device.')
-   part=Path(loop+'p1')
-   for _ in range(50):
-    sysdev=Path('/sys/class/block')/(Path(loop).name+'p1')/'dev'
-    if sysdev.exists():
-     if not part.exists():
-      major,minor=map(int,sysdev.read_text().strip().split(':'));os.mknod(part,0o60600,os.makedev(major,minor))
-     break
-    time.sleep(.1)
+   part=partition_node(loop)
    run(['mount',str(part),str(target)]);mounted=True
    for folder in ['dev','proc','sys','run','tmp']:(target/folder).mkdir(exist_ok=True)
    run(['mount','--rbind','/dev',str(target/'dev')]);run(['mount','--make-rslave',str(target/'dev')])
@@ -72,12 +79,7 @@ def test(source,out,package):
    # Map the freshly-created partition before formatting; no physical-device input exists.
    loop=subprocess.check_output(['losetup','--find','--show','--partscan',str(image)],text=True).strip()
    if not loop.startswith('/dev/loop') or not loop[9:].isdigit():raise RuntimeError('Unexpected loop device.')
-   part=Path(loop+'p1');sysdev=Path('/sys/class/block')/(Path(loop).name+'p1')/'dev'
-   for _ in range(50):
-    if sysdev.exists():break
-    time.sleep(.1)
-   if not part.exists():
-    major,minor=map(int,sysdev.read_text().strip().split(':'));os.mknod(part,0o60600,os.makedev(major,minor))
+   part=partition_node(loop)
    run(['mkfs.ext4','-F',str(part)])
    run(['mount',str(part),str(target)]);mounted=True
    run(['rsync','-aHAX','--exclude=/dev/***','--exclude=/proc/***','--exclude=/sys/***','--exclude=/run/***',str(source)+'/',str(target)+'/'])
