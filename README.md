@@ -18,8 +18,10 @@ You can cancel the request before logging out. Local support reports include
 update history, and are never automatically uploaded.
 
 Desktop packages and checksums are published separately from installer ISOs.
-No 0.41 ISO is included in this update. Package/rollback and UI checks passed with
-APT mocked; actual installation, reboot and recovery login require manual testing.
+The [0.41 installer ISO and checksum](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.41-preview-build-6) are now available.
+ISO assembly and included desktop checks passed. The automated BIOS boot check
+did not confirm startup; validate this preview in a VM or live USB before installation.
+Package/rollback checks use mocked APT; actual installation and recovery login remain manual tests.
 
 ## 0.40.1 — Macaque Web downloads
 
