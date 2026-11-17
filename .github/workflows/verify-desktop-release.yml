@@ -12,21 +12,23 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Check the public update feed and package download
+      - name: Verify release parsing and public package download
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
-          import sys,json,tempfile,time
+          import sys,json,tempfile,time,subprocess
           sys.path.insert(0,'desktop')
-          from update_backend import API,read_url,releases,download
+          from update_backend import releases,download
           item=None
           for attempt in range(6):
-              items=releases(json.loads(read_url(API,2*1024*1024)))
-              item=next((x for x in items if x['version']=='0.41.1'),None)
+              data=json.loads(subprocess.check_output(['gh','api','repos/Zerocool66612/Classic-Macaque-Os/releases'],text=True))
+              item=next((x for x in releases(data) if x['version']=='0.41.1'),None)
               if item:break
               if attempt<5:time.sleep(20)
-          if item is None:raise RuntimeError('Published package has not appeared in the public release listing.')
+          if item is None:raise RuntimeError('0.41.1 is missing from the published release listing.')
           with tempfile.TemporaryDirectory() as folder:
               info=download(item,folder)
               assert info['version']=='0.41.1'
-          print('PASS: public update feed discovered 0.41.1; downloaded package checksum and metadata verified.')
+          print('PASS: update-feed parser, public HTTPS package download, SHA256 and dpkg metadata verified. API metadata used CI authentication to avoid shared-runner rate limits.')
           PY
