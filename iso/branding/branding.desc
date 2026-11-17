@@ -2,7 +2,7 @@
 componentName: macaque
 welcomeStyleCalamares: true
 welcomeExpandingLogo: true
-windowExpanding: normal
+windowExpanding: fullscreen
 windowSize: 1000px,680px
 windowPlacement: center
 strings:

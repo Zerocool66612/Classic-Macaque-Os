@@ -41,7 +41,7 @@ def outside(root,out):
  folder=root/'tmp/macaque-graphics';folder.mkdir(mode=0o700,exist_ok=True)
  runtime=folder/'runtime';runtime.mkdir(mode=0o700,exist_ok=True)
  config=folder/'config';config.mkdir(exist_ok=True)
- (config/'rc.xml').write_text('<labwc_config/>')
+ shutil.copyfile(root/'etc/xdg/macaque/labwc/rc.xml',config/'rc.xml')
  shutil.copyfile(__file__,folder/'test.py')
  env=dict(os.environ,XDG_RUNTIME_DIR='/tmp/macaque-graphics/runtime',WLR_BACKENDS='headless',WLR_RENDERER='pixman',WLR_LIBINPUT_NO_DEVICES='1',WLR_XWAYLAND='/usr/bin/false',QT_QPA_PLATFORM='wayland')
  mounted=[]

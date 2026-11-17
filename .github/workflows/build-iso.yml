@@ -1,5 +1,5 @@
 name: Build Macaque Classic installer ISO
-# Preflight UUID-root boot and real updater with working fixture DNS before rebuilding.
+# Build independent window controls and the full-screen installer with boot/update gates.
 on:
   workflow_dispatch:
   push:

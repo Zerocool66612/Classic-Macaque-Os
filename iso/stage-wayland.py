@@ -13,6 +13,9 @@ def stage(dest,live=False):
     put('usr/share/themes/Macaque Platinum/openbox-3/themerc','wayland/themerc')
     for button in (ROOT/'wayland/buttons').glob('*.xbm'):
         put('usr/share/themes/Macaque Platinum/openbox-3/'+button.name,'wayland/buttons/'+button.name)
+    put('usr/share/themes/Macaque Traffic/openbox-3/themerc','wayland/themerc')
+    for button in (ROOT/'wayland/traffic-buttons').glob('*.svg'):
+        put('usr/share/themes/Macaque Traffic/openbox-3/'+button.name,'wayland/traffic-buttons/'+button.name)
     put('usr/share/themes/Macaque Platinum/gtk-3.0/gtk.css','startup/gtk.css')
     put('usr/share/backgrounds/macaque-login.png','startup/login.png')
     put('etc/pam.d/greetd' if live else 'usr/share/macaque/greetd.pam','wayland/greetd.pam')

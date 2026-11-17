@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Check GNU Chess and Classic window controls
+      - name: Check GNU Chess and independent window controls
         run: |
           sudo apt-get update
           sudo apt-get install -y gnuchess python3-venv libegl1 libopengl0 libxkbcommon0 fonts-dejavu-core

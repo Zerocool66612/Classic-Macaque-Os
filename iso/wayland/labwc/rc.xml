@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <labwc_config>
  <core><decoration>server</decoration><gap>0</gap><xwaylandPersistence>no</xwaylandPersistence></core>
- <theme><name>Macaque Platinum</name><cornerRadius>2</cornerRadius><titlebar><layout>close:iconify,max,menu</layout></titlebar><font name="DejaVu Sans" size="10" /></theme>
+ <theme><name>Macaque Platinum</name><cornerRadius>2</cornerRadius><titlebar><layout>close,iconify,max,shade:menu</layout></titlebar><font name="DejaVu Sans" size="10" /></theme>
  <keyboard>
   <default />
   <keybind key="C-A-t"><action name="Execute" command="/usr/local/bin/macaque-action terminal" /></keybind>

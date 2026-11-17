@@ -1,11 +1,27 @@
 """Classic Platinum window boxes, with optional hello-style traffic lights."""
-from PySide6.QtCore import Qt,QRect
+from PySide6.QtCore import Qt,QRect,Slot,QSignalBlocker
 from PySide6.QtGui import QColor,QPainter,QPen
-from PySide6.QtWidgets import QAbstractButton
+from PySide6.QtWidgets import QAbstractButton,QLabel,QComboBox
 
-def classic_controls(state):
-    choice=state.get('window_buttons','Match theme')
-    return choice=='Classic' or choice=='Match theme' and state.get('interface_font','Classic')=='Classic'
+from decoration_settings import controls,STYLES,SIDES
+
+def classic_controls(state):return controls(state)['window_buttons']=='Classic'
+
+class ControlChoice(QComboBox):
+    def __init__(self,desktop,key,label,choices):
+        super().__init__();self.desktop=desktop;self.key=key
+        self.setAccessibleName(label);self.setObjectName(key);self.addItems(choices);self.setCurrentText(controls(desktop.state)[key])
+        self.currentTextChanged.connect(self.save);desktop.preferences_changed.connect(self.sync)
+    @Slot(str)
+    def save(self,value):self.desktop.set_preference(self.key,value)
+    @Slot(str,object)
+    def sync(self,key,value):
+        if key==self.key:
+            with QSignalBlocker(self):self.setCurrentText(controls({key:value})[key])
+
+def add_control_preferences(layout,desktop):
+    for key,label,choices in [('window_buttons','Button style',STYLES),('window_button_side','Button position',SIDES)]:
+        layout.addWidget(QLabel(label));layout.addWidget(ControlChoice(desktop,key,label,choices))
 
 class WindowButton(QAbstractButton):
     def __init__(self,desktop,kind,callback,parent):

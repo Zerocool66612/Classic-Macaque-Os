@@ -25,7 +25,10 @@ def atomic(path,text):
   os.replace(temp,path)
  finally:Path(temp).unlink(missing_ok=True)
 def render(source='/etc/xdg/macaque/labwc/rc.xml'):
- root=ET.parse(source).getroot();lib=root.find('libinput')
+ root=ET.parse(source).getroot()
+ from decoration_settings import decorate
+ decorate(root)
+ lib=root.find('libinput')
  if lib is None:lib=ET.SubElement(root,'libinput')
  for device in list(lib):
   if device.tag=='device' and device.get('category')=='touchpad':lib.remove(device)

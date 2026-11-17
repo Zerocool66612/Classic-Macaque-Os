@@ -1,3 +1,12 @@
+## 0.42.1 — Independent window controls and full-screen installer
+
+- Choose Classic square buttons or Traffic lights independently of light/dark colors and interface fonts.
+- Choose Left or Right placement for the full group of window controls. The default is Left.
+- Apply choices immediately to existing built-in windows and native Linux windows using compositor decorations. Applications with their own title bars retain their own controls.
+- Appearance and Settings → Fonts both expose synchronized Button style and Button position selectors. Preferences survive login.
+- The live installer wizard now uses Calamares' supported frameless/full-screen branding mode; confirmation dialogs retain normal sizing.
+- Keeps GNU Chess and the successful 0.41.2 boot/install foundation.
+
 ## 0.42 — GNU Chess and Classic window controls
 
 - Play GNU Chess inside the built-in board, with Quick, Normal and Deep thinking times. GNU Chess is included in the ISO and installed as a desktop-update dependency.

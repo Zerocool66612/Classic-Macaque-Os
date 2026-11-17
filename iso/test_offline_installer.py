@@ -42,3 +42,5 @@ with tempfile.TemporaryDirectory() as temp:
  final=yaml.safe_load((mods/'macaque-boot-final.conf').read_text())
  assert not final['dontChroot'] and final['script']==['/usr/bin/python3 /usr/local/libexec/macaque-grub-install --finalize']
 print('Offline BIOS/EFI package selection, checksum guards, job sequence and Macaque branding checks passed (mocked package install).')
+
+assert desc['windowExpanding']=='fullscreen'

@@ -1,3 +1,15 @@
+## 0.42.1 — Choose window controls independently
+
+**Appearance** (also **Settings → Fonts**) now offers separate **Button style**
+(Classic or Traffic lights) and **Button position** (Left or Right) settings.
+They work independently of light/dark colors and Classic/Standard interface fonts.
+The choices apply immediately and persist across login. Native apps using Macaque's
+compositor decorations follow the same choices; apps drawing their own title bars
+retain their own controls.
+
+The installer wizard uses Calamares' frameless/full-screen branding option;
+confirmation dialogs stay normal-sized. Existing applications stay windowed.
+
 ## 0.42 — GNU Chess and Classic window controls
 
 The built-in Chess board can play against GNU Chess locally, with Quick, Normal
