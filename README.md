@@ -1,5 +1,11 @@
 ## 0.42.1 — Choose window controls independently
 
+[Desktop update](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.42.1-desktop-preview) · [New installer ISO and checksums](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.42.1-preview-build-14)
+
+The new ISO passed BIOS live startup, Wayland installer startup/software slideshow,
+fresh installed BIOS boot, desktop-package upgrade and subsequent two-drive boot.
+Full Calamares disk installation and UEFI installation remain manual tests.
+
 **Appearance** (also **Settings → Fonts**) now offers separate **Button style**
 (Classic or Traffic lights) and **Button position** (Left or Right) settings.
 They work independently of light/dark colors and Classic/Standard interface fonts.
