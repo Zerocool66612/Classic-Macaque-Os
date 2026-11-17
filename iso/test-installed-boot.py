@@ -107,6 +107,11 @@ def test(source,out,package):
    result['fresh_bios_disk_boot']=boot(image,None,out/'installed-fresh.log','MACAQUE_INSTALLED_READY_fresh')
    if not result['fresh_bios_disk_boot']:raise RuntimeError('Fresh installed disk did not reach userspace; ISO publication is blocked.')
    attach()
+   # Extracted live images retain a live-session resolver path. The disposable
+   # update fixture needs the builder's DNS when a new package adds dependencies.
+   resolver=target/'etc/resolv.conf'
+   if resolver.is_symlink():resolver.unlink()
+   resolver.write_text(Path('/etc/resolv.conf').read_text())
    sys.path.insert(0,str(KIT/'desktop'))
    import update_backend
    name='macaque-classic_0.41_amd64.deb';url=update_backend.PREFIX+'v0.41-desktop-preview/'+name
