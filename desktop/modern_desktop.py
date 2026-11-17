@@ -73,7 +73,7 @@ class ModernFeatures:
         from interface_fonts import chrome_stylesheet
         css+=chrome_stylesheet(self.state)
         if self.state.get('ui_density','Compact')=='Compact':css=css.replace('padding:5px 10px','padding:3px 7px').replace('padding:6px 26px 6px 13px','padding:4px 22px 4px 10px').replace('padding:7px 12px','padding:4px 8px')
-        if self.state.get('high_contrast',False):css += '\nQWidget {background-color:#080808;color:#ffffff;} QLineEdit,QTextEdit,QPlainTextEdit,QListWidget,QTreeWidget,QComboBox,QSpinBox {background:#000;color:#fff;selection-background-color:#ffe14a;selection-color:#000;} QPushButton,QToolButton {border:1px solid #eee;} QWidget:focus {border:2px solid #ffe14a;} QLabel {background:transparent;}'
+        if self.state.get('high_contrast',False):css += '\nQWidget {background-color:#080808;color:#ffffff;} QLineEdit,QTextEdit,QPlainTextEdit,QListWidget,QTreeWidget,QComboBox,QSpinBox {background:#000;color:#fff;selection-background-color:#a9d7ff;selection-color:#000;} QPushButton,QToolButton {border:1px solid #eee;} QWidget:focus {border:2px solid #a9d7ff;} QLabel {background:transparent;}'
         return css
     def update_icon_visibility(self):
         for b in self.icons+self.desktop_extras:b.setVisible(self.state.get('desktop_icons',True))
