@@ -1,16 +1,18 @@
-## 0.41.1 — Installer boot and dialog correction candidate
+## 0.41.1 — Installer boot and dialog corrections
 
 The installer now refreshes the selected GRUB bootloader after its package jobs,
 checks that a BIOS target is the whole disk containing the boot filesystem, and
 remembers that target for Debian GRUB updates. Confirmation dialogs no longer
 match the desktop's maximize rule.
 
-The ISO build now requires a fresh installed-disk BIOS boot, a real 0.41 → 0.41.1
-desktop-package upgrade, and another boot with a second virtual drive present.
-These are disposable backend VM tests, not a full Calamares GUI or physical-laptop
-certification. Matching desktop update assets are published with a successful ISO.
-Build and test results will be recorded in the release; no successful laptop test
-is claimed in advance.
+The [0.41.1 installer ISO, desktop update and checksums](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.41.1-preview-build-9) are uploaded.
+The actual ISO passed its BIOS live-userspace boot check. Its extracted filesystem
+also passed a fresh installed-disk BIOS boot, a real 0.41 → 0.41.1 desktop-package
+upgrade, and another boot with a second virtual drive present.
+
+These are disposable backend VM tests, not a full Calamares GUI, UEFI-install or
+physical-laptop certification. The public update-feed verification runs separately
+because GitHub's release listing can lag publication.
 
 ## 0.41 — Update Center and recovery
 
