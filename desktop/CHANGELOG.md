@@ -1,3 +1,10 @@
+## 0.41.2 — Installer graphics and selection colors
+
+- Route every live installer launch through the validated native Wayland helper.
+- Use software Qt Quick rendering for installer slideshow stability; retain verbose logs and signal exit status.
+- Use light blue desktop selections and accessibility highlights.
+- Gate ISO publication on actual Wayland installer startup and branded slideshow rendering, alongside installed boot/update checks. Full GUI installation and laptop testing remain manual.
+
 ## 0.41.1 — Installer bootloader and dialog corrections
 
 - Restrict the desktop maximize rule to the desktop title, keeping dialogs normal-sized.

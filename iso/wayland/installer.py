@@ -3,6 +3,18 @@
 import os,stat,sys,tempfile,subprocess,json,time,pwd
 from pathlib import Path
 
+def client_environment(socket,runtime):
+    # Keep root's runtime private, connect to the validated live-user socket.
+    # The slideshow uses Qt Quick: avoid GPU context loss when progress begins.
+    return {'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','HOME':'/root','LANG':'C.UTF-8',
+            'QT_QPA_PLATFORM':'wayland','XDG_SESSION_TYPE':'wayland',
+            'XDG_RUNTIME_DIR':str(runtime),'WAYLAND_DISPLAY':str(socket),
+            'QT_QUICK_BACKEND':'software','QT_OPENGL':'software',
+            'QT_QPA_PLATFORMTHEME':'','QT_STYLE_OVERRIDE':'Fusion'}
+
+def installer_command():
+    return ['/usr/bin/calamares','-platform','wayland','-D','8']
+
 def socket_for(uid,name):
     if not name or '/' in name or name in ('.','..'):raise ValueError('Invalid Wayland socket name.')
     runtime=Path('/run/user')/str(uid);p=runtime/name
@@ -26,6 +38,8 @@ def monitor(command,env,uid,logdir=Path('/var/log/macaque-installer')):
             process=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT)
             data.update(running=True,pid=process.pid,message='Installer running. Use its wizard for progress and disk-change confirmation.');record(status,data)
             code=process.wait()
+            log.write(('\nMacaque installer process exit: '+str(code)+
+                       (' (signal '+str(-code)+')' if code<0 else '')+'\n').encode())
         data.update(running=False,returncode=code,ended=time.time(),message='Installer wizard closed normally. Confirm completion on its final page; cancellation can also exit normally.' if code==0 else 'Installer exited with an error. Open Recovery & Diagnostics and review the installer log.')
         record(status,data);return code
     except Exception as ex:
@@ -37,6 +51,5 @@ def main():
     if uid<=0 or len(sys.argv)!=2:raise SystemExit('Start from the live user desktop.')
     socket=socket_for(uid,sys.argv[1])
     with tempfile.TemporaryDirectory(prefix='macaque-installer-',dir='/run') as runtime:
-        env={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','HOME':'/root','LANG':'C.UTF-8','QT_QPA_PLATFORM':'wayland','XDG_SESSION_TYPE':'wayland','XDG_RUNTIME_DIR':runtime,'WAYLAND_DISPLAY':str(socket)}
-        return monitor(['/usr/bin/calamares'],env,uid)
+        return monitor(installer_command(),client_environment(socket,runtime),uid)
 if __name__=='__main__':sys.exit(main())

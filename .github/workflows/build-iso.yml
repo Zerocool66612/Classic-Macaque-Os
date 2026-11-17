@@ -24,6 +24,7 @@ jobs:
           python3 iso/test_bootloader_checked.py
           python3 iso/test_offline_installer.py
           python3 iso/test_dialog_rules.py
+          python3 iso/test_installer_monitor.py
       - name: Preflight installed boot and updater on the previous Debian base
         shell: bash
         run: |
@@ -39,7 +40,7 @@ jobs:
             unsquashfs -processors 2 -no-progress -d /preflight/root /preflight/root.squashfs >/preflight/extract.log 2>&1
             cp /kit/iso/grub-install-checked.py /preflight/root/usr/local/libexec/macaque-grub-install
             python3 /kit/build-desktop-deb.py --output /preflight/packages
-            python3 /kit/iso/test-installed-boot.py /preflight/root /preflight/results /preflight/packages/macaque-classic_0.41.1_amd64.deb >/preflight/test.log 2>&1 || { tail -100 /preflight/test.log; tail -100 /preflight/results/installed-fresh.log 2>/dev/null || true; tail -100 /preflight/results/installed-updated.log 2>/dev/null || true; exit 1; }
+            python3 /kit/iso/test-installed-boot.py /preflight/root /preflight/results /preflight/packages/macaque-classic_0.41.2_amd64.deb >/preflight/test.log 2>&1 || { tail -100 /preflight/test.log; tail -100 /preflight/results/installed-fresh.log 2>/dev/null || true; tail -100 /preflight/results/installed-updated.log 2>/dev/null || true; exit 1; }
             cat /preflight/results/installed-boot-check.json
           '
       - name: Build Debian live ISO
@@ -70,7 +71,11 @@ jobs:
           cat > release-notes.md <<'NOTES'
           Experimental Macaque Classic installer preview.
 
-          0.41.1 refreshes the selected bootloader after all installer package changes,
+          0.41.2 forces native Wayland installer launch, uses software rendering for the
+          installer slideshow, preserves verbose diagnostics, and adds light blue selections.
+          Publication also requires graphical installer startup and slideshow rendering.
+
+          Includes 0.41.1 fixes: refreshes the selected bootloader after all installer package changes,
           checks the BIOS boot disk against the installed boot filesystem, remembers it
           for subsequent Debian GRUB updates, and fixes oversized confirmation dialogs.
           Includes the 0.41 Update Center, saved-package rollback, one-login recovery,
@@ -82,7 +87,7 @@ jobs:
           Download the ISO and its SHA256 checksum from Assets.
           Build diagnostics and the automated boot-check result are included.
 
-          Publication requires fresh installed-disk BIOS boot and a real 0.41 to 0.41.1
+          Publication requires fresh installed-disk BIOS boot and a real 0.41 to 0.41.2
           desktop-package update followed by a two-drive BIOS boot in disposable VMs.
           These backend tests do not automate the full Calamares GUI.
           Start in a virtual machine. Physical USB boot, UEFI execution, graphics,
@@ -90,7 +95,7 @@ jobs:
           Read the attached boot-check result before testing.
           NOTES
           printf '\nAutomated BIOS boot check: %s.\n' "$boot_status" >> release-notes.md
-          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic ${version} Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt output/installed-boot-check.json output/macaque-classic_*.deb output/macaque-classic_*.deb.sha256
+          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic ${version} Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt output/installed-boot-check.json output/installer-graphics-passed.json output/installer-graphics-slideshow.png output/macaque-classic_*.deb output/macaque-classic_*.deb.sha256
       - name: Verify published desktop-update download
         env:
           GH_TOKEN: ${{ github.token }}
@@ -102,12 +107,12 @@ jobs:
           item=None
           for attempt in range(6):
               items=releases(json.loads(subprocess.check_output(['gh','api','repos/Zerocool66612/Classic-Macaque-Os/releases'],text=True)))
-              item=next((x for x in items if x['version']=='0.41.1'),None)
+              item=next((x for x in items if x['version']=='0.41.2'),None)
               if item:break
               if attempt<5:time.sleep(20)
           if item is None:raise RuntimeError('Published package has not appeared in the public release listing.')
           with tempfile.TemporaryDirectory() as folder:
               info=download(item,folder)
-              assert info['version']=='0.41.1'
-          print('PASS: public update feed discovered 0.41.1; downloaded package checksum and metadata verified.')
+              assert info['version']=='0.41.2'
+          print('PASS: public update feed discovered 0.41.2; downloaded package checksum and metadata verified.')
           PY

@@ -26,7 +26,9 @@ class InstallerSupport:
         if answer!=QMessageBox.Yes:return
         env=dict(os.environ)
         for key in ['QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH','LD_LIBRARY_PATH','PYTHONPATH']:env.pop(key,None)
-        command=['/usr/bin/sudo','-n','--','/usr/local/libexec/macaque-wayland-installer',os.environ.get('WAYLAND_DISPLAY','')] if os.environ.get('MACAQUE_WAYLAND_SESSION')=='1' else ['/usr/bin/sudo','-n','--','/usr/bin/calamares']
+        # All live installations use the validated Wayland launcher, including
+        # desktops restored from older preferences without the session marker.
+        command=['/usr/bin/sudo','-n','--','/usr/local/libexec/macaque-wayland-installer',os.environ.get('WAYLAND_DISPLAY','')]
         try:self.installer_process=subprocess.Popen(command,env=env)
         except OSError as ex:self.error(ex);return
         self.installer_watch=QTimer(self)

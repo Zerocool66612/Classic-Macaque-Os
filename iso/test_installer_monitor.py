@@ -10,3 +10,10 @@ with tempfile.TemporaryDirectory() as temp:
  m.monitor([sys.executable,'-c','print("cancel fixture")'],dict(os.environ),os.getuid(),folder)
  data=json.loads((folder/'last.json').read_text());assert 'cancellation' in data['message'] and 'successfully installed' not in data['message']
 print('Installer stdout/stderr preservation, private log permissions, error status and honest cancellation status passed (no installer/disk operations).')
+
+env=m.client_environment('/run/user/1000/wayland-0','/run/private-root')
+assert env['QT_QPA_PLATFORM']=='wayland' and env['QT_QUICK_BACKEND']=='software'
+assert env['QT_OPENGL']=='software' and env['WAYLAND_DISPLAY']=='/run/user/1000/wayland-0'
+assert not any(k in env for k in ['DISPLAY','XAUTHORITY','QT_PLUGIN_PATH','LD_LIBRARY_PATH'])
+assert m.installer_command()==['/usr/bin/calamares','-platform','wayland','-D','8']
+print('Native Wayland environment, software slideshow and verbose logging checks passed.')

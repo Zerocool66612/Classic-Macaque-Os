@@ -122,7 +122,7 @@ def test(source,out,package):
    digest=hashlib.sha256(package.read_bytes()).hexdigest()
    run(['chroot',str(target),'/usr/bin/python3',updater,'install-desktop','/tmp/new-desktop.deb',digest],input='Y\n',text=True)
    version=subprocess.check_output(['chroot',str(target),'dpkg-query','-W','-f=${Version}','macaque-classic'],text=True).strip()
-   assert version=='0.41.1',version
+   assert version=='0.41.2',version
    assert before==(document.read_bytes(),settings.read_bytes(),(target/'boot/grub/grub.cfg').read_bytes())
    assert 'title="Macaque Classic *' in (target/'etc/xdg/macaque/labwc/rc.xml').read_text()
    history=json.loads((target/'var/lib/macaque-classic/updates/history.json').read_text())
@@ -135,7 +135,7 @@ def test(source,out,package):
   finally:
    try:detach()
    finally:report.write_text(json.dumps(result,indent=2)+'\n')
- print('PASS: fresh installed BIOS disk boot, real 0.41 -> 0.41.1 package update, preserved documents/settings/GRUB menu, and updated two-drive BIOS boot.')
+ print('PASS: fresh installed BIOS disk boot, real 0.41 -> 0.41.2 package update, preserved documents/settings/GRUB menu, and updated two-drive BIOS boot.')
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('source');parser.add_argument('output');parser.add_argument('package');args=parser.parse_args()
  test(args.source,args.output,args.package)
