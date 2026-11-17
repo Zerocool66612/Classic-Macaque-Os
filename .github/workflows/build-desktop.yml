@@ -8,14 +8,14 @@ permissions:
   contents: write
 concurrency:
   group: desktop-release
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   package:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Check installer first-click fullscreen, chess and window controls
+      - name: Check first-click fullscreen, Back/Escape, chess and window controls
         run: |
           sudo apt-get update
           sudo apt-get install -y gnuchess python3-venv libegl1 libopengl0 libxkbcommon0 fonts-dejavu-core
@@ -44,3 +44,7 @@ jobs:
           Path('desktop-release/notes.md').write_text(text+'\n\nDesktop update for an existing installed Macaque system only. Save work before installation, then log out and back in. This is not an ISO and must not be installed on a stock host distribution.\n\nRollback restores saved desktop packages only; it does not undo Debian updates or user files. The first upgrade may have no previous package cached. Local automated checks passed before publication; physical-device installation and recovery still require testing.\n')
           PY
           gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic ${version} Desktop Update" --notes-file desktop-release/notes.md "$package" "$package.sha256"
+          # Supersede our short-lived preview with the tested Back/Escape fix.
+          if [[ "$version" == 0.42.3 ]] && gh release view v0.42.2-desktop-preview >/dev/null 2>&1; then
+            gh release edit v0.42.2-desktop-preview --draft
+          fi

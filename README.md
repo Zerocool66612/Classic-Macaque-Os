@@ -1,4 +1,4 @@
-## 0.42.2 — Full-screen Install entry screen
+## 0.42.3 — Full-screen Install entry screen
 
 The **Install Macaque Classic** desktop icon now opens the first disk/swap
 preparation screen full-screen. 0.42.1 only changed the later Calamares wizard;

@@ -57,5 +57,5 @@ class InstallScreen(QDialog):
         back=QPushButton('Back to Desktop');back.setAutoDefault(False);back.clicked.connect(self.close);layout.addWidget(back)
     def closeEvent(self,event):
         if not self.content.can_close():event.ignore();return
-        super().closeEvent(event)
+        event.accept()
     def reject(self):self.close()

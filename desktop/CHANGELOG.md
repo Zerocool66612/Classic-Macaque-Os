@@ -1,4 +1,4 @@
-## 0.42.2 — Full-screen from the first Install click
+## 0.42.3 — Full-screen from the first Install click
 
 - Fix the missed first screen: the desktop Install icon now opens disk/swap preparation as a real full-screen top-level window, rather than a 760 × 530 internal window.
 - Keep confirmation dialogs normal-sized and preserve disk/swap confirmation and busy-operation guards.

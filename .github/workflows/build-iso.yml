@@ -1,5 +1,5 @@
 name: Build Macaque Classic installer ISO
-# Build and verify the actual first-click full-screen installer presentation.
+# Verify first-click fullscreen and safe Back/Escape before building the installer.
 on:
   workflow_dispatch:
   push:

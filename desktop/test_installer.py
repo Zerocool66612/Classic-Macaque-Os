@@ -1,7 +1,7 @@
 import os,tempfile
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen');os.environ['MACAQUE_SILENT']='1'
 from unittest.mock import patch,Mock
-from PySide6.QtWidgets import QApplication,QMessageBox
+from PySide6.QtWidgets import QApplication,QMessageBox,QPushButton
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtTest import QTest
 from PySide6.QtCore import QTimer,Qt
@@ -35,6 +35,7 @@ with tempfile.TemporaryDirectory() as data:
   assert screen not in d.area.subWindowList()
   assert d.launch_installer() is screen
   screen.content.busy=True;event=QCloseEvent();screen.closeEvent(event);assert not event.isAccepted() and d.installer_busy()
+  QTest.keyClick(screen,Qt.Key_Escape);assert screen.isVisible()
   screen.content.busy=False
   problems=[]
   def dismiss_confirmation():
@@ -57,5 +58,8 @@ with tempfile.TemporaryDirectory() as data:
   assert spawn.call_count==1 and not screen.isVisible()
   child.poll.return_value=0;d.installer_watch.stop()
   other=d.launch('Calculator');QTest.qWait(20);assert not other.isFullScreen() and not other.isMaximized()
-  screen.close();d.quitting=True;d.close();QTest.qWait(20)
+  back=next(b for b in screen.findChildren(QPushButton) if b.text()=='Back to Desktop')
+  QTest.mouseClick(back,Qt.LeftButton);QTest.qWait(20);assert not screen.isVisible()
+  assert d.launch_installer() is screen;QTest.qWait(20);QTest.keyClick(screen,Qt.Key_Escape);QTest.qWait(20);assert not screen.isVisible()
+  d.quitting=True;d.close();QTest.qWait(20)
 print('PASS: actual Install click fills the screen, reuses one preparation view, keeps confirmations normal-sized, preserves busy/cancel guards, and hands off to the wizard; no real disk/sudo processes launched.')
