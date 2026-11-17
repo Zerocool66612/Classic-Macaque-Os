@@ -1,0 +1,32 @@
+name: Verify published desktop update
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/verify-desktop-release.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the public update feed and package download
+        run: |
+          python3 - <<'PY'
+          import sys,json,tempfile,time
+          sys.path.insert(0,'desktop')
+          from update_backend import API,read_url,releases,download
+          item=None
+          for attempt in range(6):
+              items=releases(json.loads(read_url(API,2*1024*1024)))
+              item=next((x for x in items if x['version']=='0.41.1'),None)
+              if item:break
+              if attempt<5:time.sleep(20)
+          if item is None:raise RuntimeError('Published package has not appeared in the public release listing.')
+          with tempfile.TemporaryDirectory() as folder:
+              info=download(item,folder)
+              assert info['version']=='0.41.1'
+          print('PASS: public update feed discovered 0.41.1; downloaded package checksum and metadata verified.')
+          PY
