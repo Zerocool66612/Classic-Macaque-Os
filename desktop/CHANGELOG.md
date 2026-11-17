@@ -1,3 +1,11 @@
+## 0.42 — GNU Chess and Classic window controls
+
+- Play GNU Chess inside the built-in board, with Quick, Normal and Deep thinking times. GNU Chess is included in the ISO and installed as a desktop-update dependency.
+- Engine searches run outside the UI thread and cancel on undo, game/mode changes and close. Practice and two-player modes remain available.
+- Classic interface uses square Platinum close, minimize and zoom boxes. Appearance and Settings → Fonts provide Match theme, Classic and Traffic lights choices, applied immediately to open built-in windows.
+- Native Linux windows receive matching Platinum glyphs; applications drawing their own title bars retain their own controls. Log out/in after updating for compositor theme changes.
+- Keeps the installed/booting 0.41.2 installer foundation and light blue selections.
+
 ## 0.41.2 — Installer graphics and selection colors
 
 - Route every live installer launch through the validated native Wayland helper.

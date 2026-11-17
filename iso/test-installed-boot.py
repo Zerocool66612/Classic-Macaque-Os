@@ -127,7 +127,7 @@ def test(source,out,package):
    digest=hashlib.sha256(package.read_bytes()).hexdigest()
    run(['chroot',str(target),'/usr/bin/python3',updater,'install-desktop','/tmp/new-desktop.deb',digest],input='Y\n',text=True)
    version=subprocess.check_output(['chroot',str(target),'dpkg-query','-W','-f=${Version}','macaque-classic'],text=True).strip()
-   assert version=='0.41.2',version
+   assert version==subprocess.check_output(['dpkg-deb','-f',str(package),'Version'],text=True).strip(),version
    assert before==(document.read_bytes(),settings.read_bytes(),(target/'boot/grub/grub.cfg').read_bytes())
    assert 'title="Macaque Classic *' in (target/'etc/xdg/macaque/labwc/rc.xml').read_text()
    history=json.loads((target/'var/lib/macaque-classic/updates/history.json').read_text())

@@ -20,17 +20,30 @@ from extras import Tasks,Clockwork,Paint,ArchiveViewer,Characters,MediaPlayer
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.41.2'
+VERSION='0.42'
 
 from menu_compat import Menu as QMenu
 
 class TitleBar(QWidget):
     def __init__(self,window,title):
         super().__init__();self.w=window;self.drag=None;self.setFixedHeight(30);layout=QHBoxLayout(self);layout.setContentsMargins(9,0,7,0);layout.setSpacing(6)
-        for color,name,callback in [('#ed6c5d','Close',window.close),('#efc24c','Minimize',window.showMinimized),('#6bbd62','Zoom',window.zoom)]:
-            b=QPushButton();b.setToolTip(name);b.setAccessibleName(name);b.setFixedSize(14,14);b.setStyleSheet(f'QPushButton {{background:{color}; border:1px solid #666; border-radius:7px; padding:0;}}');b.clicked.connect(callback);layout.addWidget(b)
+        from window_controls import WindowButton
+        self.control_layout=layout;self.control_buttons={}
+        for name,callback in [('Close',window.close),('Minimize',window.showMinimized),('Zoom',window.zoom)]:
+            button=WindowButton(window.d,name,callback,self);self.control_buttons[name]=button;layout.addWidget(button)
         layout.addStretch();self.label=QLabel(title);self.label.setTextFormat(Qt.PlainText);self.label.setObjectName('titleCaption');layout.addWidget(self.label);layout.addStretch()
         self.shade_button=QPushButton('▱');self.shade_button.setFixedSize(22,18);self.shade_button.setAccessibleName('Roll up window');self.shade_button.setToolTip('Roll up / unroll window');self.shade_button.clicked.connect(window.shade);layout.addWidget(self.shade_button)
+        self.apply_controls()
+    def apply_controls(self):
+        from window_controls import classic_controls
+        layout=self.control_layout
+        for button in self.control_buttons.values():layout.removeWidget(button);button.apply_theme()
+        layout.insertWidget(0,self.control_buttons['Close'])
+        if classic_controls(self.w.d.state):
+            layout.insertWidget(layout.count()-1,self.control_buttons['Minimize']);layout.insertWidget(layout.count()-1,self.control_buttons['Zoom'])
+        else:
+            layout.insertWidget(1,self.control_buttons['Minimize']);layout.insertWidget(2,self.control_buttons['Zoom'])
+        self.update()
     def contextMenuEvent(self,event):
         menu=QMenu(self);menu.addAction('Minimize',self.w.showMinimized);menu.addAction('Restore' if self.w.isMaximized() else 'Zoom',self.w.zoom);menu.addAction('Unshade' if self.w.shaded else 'Shade',self.w.shade);menu.addAction('Detach Desktop Tab' if self.w.property('desktop_tabbed') else 'Tab to Desktop',lambda:self.w.d.desktop_tabs.detach(self.w) if self.w.property('desktop_tabbed') else self.w.d.desktop_tabs.attach(self.w))
         spaces=menu.addMenu('Move to Workspace')
@@ -152,7 +165,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         palette.setColor(QPalette.Highlight,QColor(self.state.get('accent','#287f70')));palette.setColor(QPalette.HighlightedText,Qt.white);app.setPalette(palette)
         if hasattr(self,'top_bar'):self.top_bar.apply_theme()
         if hasattr(self,'area'):
-            for window in self.area.subWindowList():window.bar.update()
+            for window in self.area.subWindowList():window.bar.apply_controls()
         self.sync_strip_theme()
     def sync_strip_theme(self):
         if getattr(self,'native_strip',None) and self.state.get('sync_strip',True):self.native_strip.apply_theme(self.state.get('mode','light'))
@@ -163,6 +176,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def set_preference(self,key,value):
         if self.state.get(key)==value:return
         self.state[key]=value;self.persist();self.clock();self.top_bar.update_layout();self.sync_strip_theme();self.preferences_changed.emit(key,value)
+        if key=='window_buttons':self.apply_ui_theme()
     def launch_palette(self):return self.launch('Macaque Search')
     def play_sound(self,key):
         if os.environ.get('MACAQUE_SILENT')!='1':return self.sound_theme.play(key)
@@ -641,6 +655,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def appearance(self):
         tabs=QTabWidget();desktop=QWidget();layout=QVBoxLayout(desktop);layout.addWidget(QLabel('Desktop mode'))
         mode=QComboBox();mode.addItems(['Light','Dark']);mode.setCurrentText(self.state.get('mode','light').title());mode.currentTextChanged.connect(lambda value:self.set_mode(value.lower()));layout.addWidget(mode)
+        layout.addWidget(QLabel('Window buttons'));buttons=QComboBox();buttons.setAccessibleName('Window buttons');buttons.addItems(['Match theme','Classic','Traffic lights']);buttons.setCurrentText(self.state.get('window_buttons','Match theme'));buttons.currentTextChanged.connect(lambda value:self.set_preference('window_buttons',value));layout.addWidget(buttons)
         sync=QCheckBox('Match Control Strip to desktop mode');sync.setChecked(self.state.get('sync_strip',True));sync.toggled.connect(lambda value:self.set_preference('sync_strip',value));layout.addWidget(sync)
         compact=QCheckBox('Compact top bar');compact.setChecked(self.state.get('compact_bar',True));compact.toggled.connect(lambda value:self.set_preference('compact_bar',value));layout.addWidget(compact)
         layout.addWidget(QLabel('Accent color'));accents=QHBoxLayout();layout.addLayout(accents)

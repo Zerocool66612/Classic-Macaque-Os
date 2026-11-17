@@ -97,3 +97,5 @@ power-profiles-daemon
 wlr-randr
 
 python3-pyside6.qtquickwidgets
+
+gnuchess

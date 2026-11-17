@@ -30,6 +30,7 @@ class Settings(QWidget):
         font=QComboBox();font.setAccessibleName('Interface font');font.addItems(['Classic','Standard']);font.setCurrentText(d.state.get('interface_font','Classic'));font.currentTextChanged.connect(lambda v:self.save('interface_font',v));form.addWidget(font)
         note=QLabel('Classic uses Chicago Kare for menus, window titles and desktop labels. Document and terminal fonts stay readable.');note.setWordWrap(True);form.addWidget(note)
         license=QPushButton('Font license…');license.clicked.connect(lambda:d.text_window('Chicago Kare — MIT License',__import__('interface_fonts').license_text()));form.addWidget(license)
+        form.addWidget(QLabel('Window buttons'));buttons=QComboBox();buttons.setAccessibleName('Window buttons');buttons.addItems(['Match theme','Classic','Traffic lights']);buttons.setCurrentText(d.state.get('window_buttons','Match theme'));buttons.currentTextChanged.connect(lambda value:self.save('window_buttons',value));form.addWidget(buttons)
         form.addStretch();tabs.addTab(fonts,'Fonts')
         motion=QWidget();form=QVBoxLayout(motion)
         form.addWidget(QLabel('Window animations'))

@@ -1,3 +1,18 @@
+## 0.42 — GNU Chess and Classic window controls
+
+The built-in Chess board can play against GNU Chess locally, with Quick, Normal
+and Deep thinking times. Practice and two-player modes remain available.
+GNU Chess is installed by the desktop update and included in future ISOs.
+
+Classic interface fonts now select square Platinum window controls by default.
+**Appearance → Window buttons** (also **Settings → Fonts**) lets you choose
+Match theme, Classic or Traffic lights. Existing built-in windows update immediately.
+Native Linux windows using compositor decorations get matching Platinum glyphs;
+apps drawing their own title bars retain their own controls.
+
+Desktop update: save work, install **0.42** from **Software Update**, then log out
+and back in. The newest installer ISO remains the working **0.41.2** linked below.
+
 ## 0.41.2 — Wayland installer graphics and light blue selections
 
 [Download the 0.41.2 ISO, desktop update and checksums](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.41.2-preview-build-12).

@@ -40,7 +40,7 @@ jobs:
             unsquashfs -processors 2 -no-progress -d /preflight/root /preflight/root.squashfs >/preflight/extract.log 2>&1
             cp /kit/iso/grub-install-checked.py /preflight/root/usr/local/libexec/macaque-grub-install
             python3 /kit/build-desktop-deb.py --output /preflight/packages
-            python3 /kit/iso/test-installed-boot.py /preflight/root /preflight/results /preflight/packages/macaque-classic_0.41.2_amd64.deb >/preflight/test.log 2>&1 || { tail -100 /preflight/test.log; tail -100 /preflight/results/installed-fresh.log 2>/dev/null || true; tail -100 /preflight/results/installed-updated.log 2>/dev/null || true; exit 1; }
+            python3 /kit/iso/test-installed-boot.py /preflight/root /preflight/results /preflight/packages/macaque-classic_*.deb >/preflight/test.log 2>&1 || { tail -100 /preflight/test.log; tail -100 /preflight/results/installed-fresh.log 2>/dev/null || true; tail -100 /preflight/results/installed-updated.log 2>/dev/null || true; exit 1; }
             cat /preflight/results/installed-boot-check.json
           '
       - name: Build Debian live ISO
@@ -68,32 +68,11 @@ jobs:
           version=$(dpkg-deb -f output/macaque-classic_*.deb Version)
           tag="v${version}-preview-build-${GITHUB_RUN_NUMBER}"
           boot_status=$(python3 -c 'import json,sys; print("passed" if json.load(open(sys.argv[1])).get("bios_live_userspace_reached") else "did not confirm startup; manual VM validation required")' "$image.boot-check.json")
-          cat > release-notes.md <<'NOTES'
-          Experimental Macaque Classic installer preview.
-
-          0.41.2 forces native Wayland installer launch, uses software rendering for the
-          installer slideshow, preserves verbose diagnostics, and adds light blue selections.
-          Publication also requires graphical installer startup and slideshow rendering.
-
-          Includes 0.41.1 fixes: refreshes the selected bootloader after all installer package changes,
-          checks the BIOS boot disk against the installed boot filesystem, remembers it
-          for subsequent Debian GRUB updates, and fixes oversized confirmation dialogs.
-          Includes the 0.41 Update Center, saved-package rollback, one-login recovery,
-          Macaque Web download improvements, and expanded local diagnostics.
-          Adds optional-app timer/import improvements and the MIT-licensed Chicago Kare font.
-          Also includes spatial folder windows, aliases, labels, stationery, expanded Get Info,
-          classic application hiding and improved removable-drive desktop controls.
-          Also includes window shading, spring-loaded folders and the custom boot theme.
-          Download the ISO and its SHA256 checksum from Assets.
-          Build diagnostics and the automated boot-check result are included.
-
-          Publication requires fresh installed-disk BIOS boot and a real 0.41 to 0.41.2
-          desktop-package update followed by a two-drive BIOS boot in disposable VMs.
-          These backend tests do not automate the full Calamares GUI.
-          Start in a virtual machine. Physical USB boot, UEFI execution, graphics,
-          laptop controls, and installation are not certified by this automated build.
-          Read the attached boot-check result before testing.
-          NOTES
+          python3 - <<'PYNOTES'
+          from pathlib import Path
+          text=Path('desktop/CHANGELOG.md').read_text().split('\n## ',1)[0]
+          Path('release-notes.md').write_text(text+'\n\nExperimental installer preview. Publication requires Wayland installer startup, software slideshow rendering, fresh installed BIOS boot, desktop-package upgrade and subsequent two-drive boot. Full Calamares installation, UEFI installation and physical laptop testing remain manual. Download the ISO and SHA256 from Assets.\n')
+          PYNOTES
           printf '\nAutomated BIOS boot check: %s.\n' "$boot_status" >> release-notes.md
           gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic ${version} Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt output/installed-boot-check.json output/installer-graphics-passed.json output/installer-graphics-slideshow.png output/macaque-classic_*.deb output/macaque-classic_*.deb.sha256
       - name: Verify published desktop-update download
@@ -101,18 +80,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
-          import sys,json,tempfile,time,subprocess
+          import sys,json,tempfile,time,subprocess,re
+          from pathlib import Path
+          expected=re.search(r"VERSION=[\'\"]([^\'\"]+)",Path("desktop/desktop.py").read_text())[1]
           sys.path.insert(0,'desktop')
           from update_backend import API,read_url,releases,download
           item=None
           for attempt in range(6):
               items=releases(json.loads(subprocess.check_output(['gh','api','repos/Zerocool66612/Classic-Macaque-Os/releases'],text=True)))
-              item=next((x for x in items if x['version']=='0.41.2'),None)
+              item=next((x for x in items if x['version']==expected),None)
               if item:break
               if attempt<5:time.sleep(20)
           if item is None:raise RuntimeError('Published package has not appeared in the public release listing.')
           with tempfile.TemporaryDirectory() as folder:
               info=download(item,folder)
-              assert info['version']=='0.41.2'
-          print('PASS: public update feed discovered 0.41.2; downloaded package checksum and metadata verified.')
+              assert info['version']==expected
+          print('PASS: public update feed discovered '+expected+'; downloaded package checksum and metadata verified.')
           PY
