@@ -1,5 +1,5 @@
 name: Build Macaque Classic installer ISO
-# Build independent window controls and the full-screen installer with boot/update gates.
+# Validate source and installed test layouts for independent controls and the full-screen installer.
 on:
   workflow_dispatch:
   push:

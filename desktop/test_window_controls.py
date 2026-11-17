@@ -8,12 +8,26 @@ from window_controls import classic_controls
 app=QApplication([])
 from pathlib import Path
 from PySide6.QtGui import QImage
-import runpy
-with tempfile.TemporaryDirectory() as staged:
- runpy.run_path(str(Path(__file__).resolve().parent.parent/'iso/stage-wayland.py'))['stage'](staged)
+import runpy,shutil,subprocess,sys
+
+def check_native_assets(root):
  for name in ['close','iconify','max','max_toggled']:
-  image=QImage(str(Path(staged)/'usr/share/themes/Macaque Platinum/openbox-3'/ (name+'.xbm')))
+  image=QImage(str(root/'usr/share/themes/Macaque Platinum/openbox-3'/(name+'.xbm')))
   assert not image.isNull() and image.width()==16 and image.height()==16,name
+  image=QImage(str(root/'usr/share/themes/Macaque Traffic/openbox-3'/(name+'.svg')))
+  assert not image.isNull() and image.width()==16 and image.height()==16,name
+
+stager=Path(__file__).resolve().parent.parent/'iso/stage-wayland.py'
+if stager.is_file():
+ with tempfile.TemporaryDirectory() as staged:
+  root=Path(staged);runpy.run_path(str(stager))['stage'](root);check_native_assets(root)
+  # Also execute in the installed layout, which has no source-only iso/ helpers.
+  installed=root/'opt/macaque-classic'
+  shutil.copytree(Path(__file__).parent,installed,ignore=shutil.ignore_patterns('__pycache__','.venv','*.so','*.pyc'))
+  env=dict(os.environ,MACAQUE_TEST_STAGED_ROOT=str(root))
+  subprocess.run([sys.executable,str(installed/'test_window_controls.py')],env=env,check=True,timeout=45)
+else:
+ check_native_assets(Path(os.environ.get('MACAQUE_TEST_STAGED_ROOT','/')))
 with tempfile.TemporaryDirectory() as path:
  d=Desktop(path);d.state.update(startup_files=False,startup_notes=False,reduce_motion=True);d.show();QTest.qWait(30)
  w=d.text_window('Window controls fixture','Test controls');QTest.qWait(30)
