@@ -1,3 +1,11 @@
+## 0.42.2 — Full-screen Install entry screen
+
+The **Install Macaque Classic** desktop icon now opens the first disk/swap
+preparation screen full-screen. 0.42.1 only changed the later Calamares wizard;
+it left that first screen at 760 × 530. Confirmation dialogs remain normal-sized.
+**Back to Desktop** returns safely, and opening Terminal or continuing to Calamares
+hides the preparation screen so it does not cover the next application.
+
 ## 0.42.1 — Choose window controls independently
 
 [Desktop update](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.42.1-desktop-preview) · [New installer ISO and checksums](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.42.1-preview-build-14)

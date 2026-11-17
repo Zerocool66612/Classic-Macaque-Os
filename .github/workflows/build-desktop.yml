@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Check GNU Chess and independent window controls
+      - name: Check installer first-click fullscreen, chess and window controls
         run: |
           sudo apt-get update
           sudo apt-get install -y gnuchess python3-venv libegl1 libopengl0 libxkbcommon0 fonts-dejavu-core
@@ -23,6 +23,7 @@ jobs:
           .ci-venv/bin/pip install -r desktop/requirements.txt
           QT_QPA_PLATFORM=offscreen QT_AUDIO_BACKEND=pulseaudio MACAQUE_SILENT=1 .ci-venv/bin/python desktop/test_gnu_chess.py
           QT_QPA_PLATFORM=offscreen QT_AUDIO_BACKEND=pulseaudio MACAQUE_SILENT=1 .ci-venv/bin/python desktop/test_window_controls.py
+          QT_QPA_PLATFORM=offscreen QT_AUDIO_BACKEND=pulseaudio MACAQUE_SILENT=1 .ci-venv/bin/python desktop/test_installer.py
       - name: Build desktop update
         run: python3 build-desktop-deb.py --output desktop-release
       - name: Publish checksummed desktop package

@@ -1,6 +1,6 @@
 """Visible disk/swap inventory before opening the installation wizard."""
 import json
-from PySide6.QtCore import QProcess
+from PySide6.QtCore import QProcess,Qt
 from PySide6.QtWidgets import *
 HELPER='/usr/local/libexec/macaque-swap-helper.py'
 class InstallPreparation(QWidget):
@@ -11,7 +11,10 @@ class InstallPreparation(QWidget):
         self.disks=QComboBox();layout.addWidget(self.disks);self.details=QPlainTextEdit();self.details.setReadOnly(True);layout.addWidget(self.details,1)
         row=QHBoxLayout();layout.addLayout(row);self.refresh_button=QPushButton('Refresh Disks');self.refresh_button.clicked.connect(self.refresh);row.addWidget(self.refresh_button);self.release_button=QPushButton('Release Selected Disk’s Swap');self.release_button.clicked.connect(self.release_swap);row.addWidget(self.release_button)
         launch=QPushButton('Continue to Installer…');launch.clicked.connect(self.continue_install);layout.addWidget(launch);self.launch_button=launch
-        terminal=QPushButton('Open Terminal');terminal.clicked.connect(d.launch_terminal);layout.addWidget(terminal);self.process=QProcess(self);self.process.finished.connect(self.finished);self.process.errorOccurred.connect(self.failed);self.buffer='';self.kind='';self.refresh()
+        terminal=QPushButton('Open Terminal');terminal.clicked.connect(self.open_terminal);layout.addWidget(terminal);self.process=QProcess(self);self.process.finished.connect(self.finished);self.process.errorOccurred.connect(self.failed);self.buffer='';self.kind='';self.refresh()
+    def open_terminal(self):
+        if self.window().property('macaqueInstallScreen'):self.window().hide()
+        self.d.launch_terminal();self.d.activateWindow()
     def run(self,kind,program,args):
         self.kind=kind;self.buffer='';self.busy=True
         for w in [self.refresh_button,self.release_button,self.launch_button,self.disks]:w.setEnabled(False)
@@ -42,3 +45,17 @@ class InstallPreparation(QWidget):
     def continue_install(self):
         if not self.busy:self.d.launch_installer_wizard()
     def can_close(self):return not self.busy
+
+class InstallScreen(QDialog):
+    """First Install-click screen: a real full-screen top-level, not an MDI window."""
+    def __init__(self,desktop):
+        super().__init__(desktop,Qt.Window|Qt.FramelessWindowHint)
+        self.setWindowTitle('Install Macaque Classic');self.setProperty('macaqueInstallScreen',True)
+        layout=QVBoxLayout(self);layout.setContentsMargins(24,20,24,20)
+        heading=QLabel('Install Macaque Classic');heading.setStyleSheet('font-size:24px;font-weight:bold;');layout.addWidget(heading)
+        self.content=InstallPreparation(desktop);layout.addWidget(self.content,1)
+        back=QPushButton('Back to Desktop');back.setAutoDefault(False);back.clicked.connect(self.close);layout.addWidget(back)
+    def closeEvent(self,event):
+        if not self.content.can_close():event.ignore();return
+        super().closeEvent(event)
+    def reject(self):self.close()

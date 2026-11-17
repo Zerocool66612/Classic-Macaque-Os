@@ -1,5 +1,5 @@
 name: Build Macaque Classic installer ISO
-# Validate source and installed test layouts for independent controls and the full-screen installer.
+# Build and verify the actual first-click full-screen installer presentation.
 on:
   workflow_dispatch:
   push:
@@ -25,7 +25,7 @@ jobs:
           python3 iso/test_offline_installer.py
           python3 iso/test_dialog_rules.py
           python3 iso/test_installer_monitor.py
-      - name: Preflight installed boot and updater on the previous Debian base
+      - name: Preflight first Install click, installed boot and updater
         shell: bash
         run: |
           set -euo pipefail
@@ -38,6 +38,11 @@ jobs:
           docker run --rm --privileged --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/kit,readonly" --mount "type=bind,src=$fixture,dst=/preflight" macaque-classic-iso-builder:trixie bash -euc '
             xorriso -osirrox on -indev /preflight/base.iso -extract /live/filesystem.squashfs /preflight/root.squashfs
             unsquashfs -processors 2 -no-progress -d /preflight/root /preflight/root.squashfs >/preflight/extract.log 2>&1
+            rsync -a --exclude="*.so" --exclude="__pycache__" /kit/desktop/ /preflight/root/opt/macaque-classic/
+            cp /kit/iso/wayland/installer.py /preflight/root/usr/local/libexec/macaque-wayland-installer
+            python3 -c "import runpy; runpy.run_path(\"/kit/iso/stage-wayland.py\")[\"stage\"](\"/preflight/root\")"
+            python3 /kit/iso/test-installer-graphics.py /preflight/root /preflight/first-click --click-only >/preflight/click-test.log 2>&1 || { cat /preflight/click-test.log; cat /preflight/first-click/installer-graphics-install-click.log 2>/dev/null || true; cat /preflight/first-click/installer-graphics-compositor.log 2>/dev/null || true; exit 1; }
+            cat /preflight/first-click/installer-graphics-passed.json
             cp /kit/iso/grub-install-checked.py /preflight/root/usr/local/libexec/macaque-grub-install
             python3 /kit/build-desktop-deb.py --output /preflight/packages
             python3 /kit/iso/test-installed-boot.py /preflight/root /preflight/results /preflight/packages/macaque-classic_*.deb >/preflight/test.log 2>&1 || { tail -100 /preflight/test.log; tail -100 /preflight/results/installed-fresh.log 2>/dev/null || true; tail -100 /preflight/results/installed-updated.log 2>/dev/null || true; exit 1; }

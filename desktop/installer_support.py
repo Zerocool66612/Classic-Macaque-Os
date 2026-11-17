@@ -3,6 +3,7 @@ import os,subprocess
 from pathlib import Path
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QTimer
+from shiboken6 import isValid
 
 def installer_available():
     try:
@@ -12,17 +13,22 @@ def installer_available():
 class InstallerSupport:
     def installer_busy(self):
         p=getattr(self,'installer_process',None)
-        return p is not None and p.poll() is None
+        screen=getattr(self,'installer_screen',None)
+        return (p is not None and p.poll() is None) or (screen is not None and isValid(screen) and screen.content.busy)
     def launch_installer(self):
         if not installer_available():return self.text_window('Installer unavailable','Boot the Macaque installer ISO first.')
-        from install_preparation import InstallPreparation
-        for w in self.area.subWindowList():
-            if isinstance(w.content,InstallPreparation):self.activate_window(w);return w
-        return self.window('Install Preparation',InstallPreparation(self),(760,530))
+        from install_preparation import InstallScreen
+        screen=getattr(self,'installer_screen',None)
+        if screen is None or not isValid(screen):
+            screen=InstallScreen(self);self.installer_screen=screen
+        elif not screen.content.busy:screen.content.refresh()
+        screen.setGeometry(self.screen().geometry());screen.showFullScreen();screen.raise_();screen.activateWindow();return screen
     def launch_installer_wizard(self):
         if not installer_available():return self.text_window('Installer unavailable','Boot the Macaque installer ISO to install the system. This option is unavailable in the normal desktop prototype.')
         if self.installer_busy():return self.text_window('Installer running','Use Alt+Tab to switch to the installer. Finish or cancel there before ending this session.')
-        answer=QMessageBox.question(self,'Install Macaque Classic','Open the disk installation wizard?\n\nYou can review and cancel before applying changes. Installation can erase data on the disk you select.\n\nFor this preview, test with an empty virtual disk first.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)
+        screen=getattr(self,'installer_screen',None)
+        parent=screen if screen is not None and isValid(screen) and screen.isVisible() else self
+        answer=QMessageBox.question(parent,'Install Macaque Classic','Open the disk installation wizard?\n\nYou can review and cancel before applying changes. Installation can erase data on the disk you select.\n\nFor this preview, test with an empty virtual disk first.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)
         if answer!=QMessageBox.Yes:return
         env=dict(os.environ)
         for key in ['QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH','LD_LIBRARY_PATH','PYTHONPATH']:env.pop(key,None)
@@ -31,6 +37,7 @@ class InstallerSupport:
         command=['/usr/bin/sudo','-n','--','/usr/local/libexec/macaque-wayland-installer',os.environ.get('WAYLAND_DISPLAY','')]
         try:self.installer_process=subprocess.Popen(command,env=env)
         except OSError as ex:self.error(ex);return
+        if screen is not None and isValid(screen):screen.hide()
         self.installer_watch=QTimer(self)
         def check():
             code=self.installer_process.poll()
