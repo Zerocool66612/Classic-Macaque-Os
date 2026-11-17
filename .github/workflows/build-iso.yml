@@ -92,14 +92,16 @@ jobs:
           printf '\nAutomated BIOS boot check: %s.\n' "$boot_status" >> release-notes.md
           gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "Macaque Classic ${version} Preview (build ${GITHUB_RUN_NUMBER})" --notes-file release-notes.md "$image" "$image.sha256" "$image.boot-check.json" output/package-manifest.txt output/boot-layout.txt output/installed-boot-check.json output/macaque-classic_*.deb output/macaque-classic_*.deb.sha256
       - name: Verify published desktop-update download
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
-          import sys,json,tempfile,time
+          import sys,json,tempfile,time,subprocess
           sys.path.insert(0,'desktop')
           from update_backend import API,read_url,releases,download
           item=None
           for attempt in range(6):
-              items=releases(json.loads(read_url(API,2*1024*1024)))
+              items=releases(json.loads(subprocess.check_output(['gh','api','repos/Zerocool66612/Classic-Macaque-Os/releases'],text=True)))
               item=next((x for x in items if x['version']=='0.41.1'),None)
               if item:break
               if attempt<5:time.sleep(20)

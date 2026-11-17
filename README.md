@@ -11,8 +11,10 @@ also passed a fresh installed-disk BIOS boot, a real 0.41 → 0.41.1 desktop-pac
 upgrade, and another boot with a second virtual drive present.
 
 These are disposable backend VM tests, not a full Calamares GUI, UEFI-install or
-physical-laptop certification. The public update-feed verification runs separately
-because GitHub's release listing can lag publication.
+physical-laptop certification. The separate update verification also passed: feed parsing, public HTTPS package
+download, SHA256 and package metadata. CI used authenticated API metadata to avoid
+the shared runner's anonymous GitHub rate limit; the file download used the normal
+updater path.
 
 ## 0.41 — Update Center and recovery
 
