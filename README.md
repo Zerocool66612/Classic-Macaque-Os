@@ -1,5 +1,14 @@
 ## 0.42.3 — Full-screen Install entry screen
 
+[Download the 0.42.3 installer ISO and checksums](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.42.3-preview-build-16) · [Desktop update](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.42.3-desktop-preview)
+
+The actual Install-icon double-click passed on Wayland before assembly and again
+against the finished ISO filesystem: preparation fills the screen, confirmation
+dialogs stay normal-sized, Back/Escape work, and opening Terminal/Calamares hides
+preparation. Inventory, disk and sudo operations are mocked in that UI test.
+BIOS live startup, installed-disk boot, real package update and two-drive boot also
+passed. Full Calamares disk installation and UEFI installation remain manual tests.
+
 The **Install Macaque Classic** desktop icon now opens the first disk/swap
 preparation screen full-screen. 0.42.1 only changed the later Calamares wizard;
 it left that first screen at 760 × 530. Confirmation dialogs remain normal-sized.
