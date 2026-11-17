@@ -1,3 +1,20 @@
+## 0.41.2 — Wayland installer graphics and light blue selections
+
+[Download the 0.41.2 ISO, desktop update and checksums](https://github.com/Zerocool66612/Classic-Macaque-Os/releases/tag/v0.41.2-preview-build-12).
+
+Every live installer launch now uses the validated Wayland helper. Calamares uses
+software Qt Quick rendering for its slideshow and records verbose diagnostics
+and process exit signals. Desktop selections and accessibility highlights use
+light blue. The 0.41.1 bootloader and dialog corrections remain included.
+
+The published ISO passed native Wayland installer startup and branded slideshow
+rendering in its extracted Debian filesystem, BIOS live-userspace startup, fresh
+installed BIOS boot, a real desktop-package update and another boot with a second
+drive attached. The public desktop update download passed checksum/metadata checks.
+The full Calamares disk-installation wizard, UEFI installation and physical laptop
+installation still require manual testing; startup checks do not establish that
+the reported 1% crash is resolved on every machine.
+
 ## 0.41.1 — Installer boot and dialog corrections
 
 The installer now refreshes the selected GRUB bootloader after its package jobs,
