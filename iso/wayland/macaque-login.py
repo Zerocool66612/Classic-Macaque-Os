@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
     QPushButton, QVBoxLayout, QWidget,
 )
 
-SOCKET_PATH = Path("/run/greetd.sock")
+SOCKET_PATH = Path(os.environ.get("GREETD_SOCK", "/run/greetd.sock"))
 SESSION = ["/usr/local/bin/macaque-session"]
 
 
@@ -188,6 +188,7 @@ class Login(QWidget):
 
 
 def main():
+    os.environ.setdefault("QT_QPA_PLATFORM", "wayland")
     app = QApplication(sys.argv)
     app.setStyleSheet("""
         QWidget#login {background-color: #7895a9; color: #20242a;}
