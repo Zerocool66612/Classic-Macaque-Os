@@ -29,8 +29,8 @@ d=Parent();w=WelcomeAnimation(d);w.show();QTest.qWait(20);assert w.timer.isActiv
 assert not hasattr(w,'skip') and not hasattr(w,'mute')
 QTest.keyClick(w,Qt.Key_Escape);QTest.keyClick(w,Qt.Key_Return);w.reject();w.accept();w.close();assert w.isVisible() and w.timer.isActive()
 w.chime();d.play_sound.assert_called_once_with('welcome')
-for t in (0.,1.,3.,6.,8.,10.,14.9):w.t=t;assert not w.grab().isNull()
-w.clock=Mock();w.clock.elapsed.return_value=15001;w.tick();assert not w.isVisible() and not w.timer.isActive()
+for t in (0.,1.,3.,6.,8.,10.,23.9):w.t=t;assert not w.grab().isNull()
+w.clock=Mock();w.clock.elapsed.return_value=24001;w.tick();assert not w.isVisible() and not w.timer.isActive()
 print('Installed/native/live/preview guards, durable once-only claim, private marker, failed-write behavior, animated frames, non-skippable completion, Escape/Return/close/reject guards passed.')
 
 # Actual desktop startup waits for the intro; Skip continues into Welcome Center.
@@ -38,7 +38,7 @@ from desktop import Desktop
 with tempfile.TemporaryDirectory() as t,patch('first_run.claim_welcome',return_value=True) as claim:
  desktop=Desktop(Path(t));desktop.show();QTest.qWait(80)
  assert desktop.welcome_intro.isVisible() and not desktop.area.subWindowList()
- desktop.welcome_intro.clock=Mock();desktop.welcome_intro.clock.elapsed.return_value=15001;desktop.welcome_intro.tick();QTest.qWait(350)
+ desktop.welcome_intro.clock=Mock();desktop.welcome_intro.clock.elapsed.return_value=24001;desktop.welcome_intro.tick();QTest.qWait(350)
  assert any(w.windowTitle()=='Setup Assistant' for w in desktop.area.subWindowList());claim.assert_called_once()
  desktop.quitting=True;desktop.close()
 print('Actual desktop first-run deferral and completion -> Setup Assistant continuation passed.')

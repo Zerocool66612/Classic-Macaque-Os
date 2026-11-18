@@ -8,6 +8,8 @@ def build(output):
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='macaque-deb-') as temp:
         root=Path(temp);dest=root/'opt/macaque-classic';shutil.copytree(ROOT/'desktop',dest,ignore=shutil.ignore_patterns('__pycache__','.venv','.git','*.so','*.so.*','*.pyc'))
+        import runpy
+        runpy.run_path(str(dest/'startup_chime.py'))['write'](dest/'sounds/startup.wav')
         for wheel in (ROOT/'vendor').glob('chess-*.whl'):
             with zipfile.ZipFile(wheel) as z:z.extractall(dest)
         session=root/'usr/local/bin/macaque-session';session.parent.mkdir(parents=True);shutil.copy2(ROOT/'iso/macaque-session',session);session.chmod(0o755)
