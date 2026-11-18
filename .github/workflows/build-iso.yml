@@ -3,8 +3,12 @@ name: Build Macaque Classic installer ISO
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - '.github/workflows/build-iso.yml'
+      - 'desktop/**'
+      - 'iso/**'
+      - 'build-desktop-deb.py'
 permissions:
   contents: write
 concurrency:
