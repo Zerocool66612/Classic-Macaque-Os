@@ -253,8 +253,6 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def apply_mouse(self):
         QApplication.instance().setDoubleClickInterval(self.state.get('double_click_ms',400))
         QApplication.instance().setStartDragDistance(self.state.get('drag_distance',10))
-        from mouse_tools import mouse_cursor
-        self.setCursor(mouse_cursor(self.state.get('mouse_style','System Default')))
     def transfer_paths(self,paths,target,copy=False):
         # Validate the whole batch before changing any item.
         try:
