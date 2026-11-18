@@ -191,7 +191,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         menu.addSeparator();menu.addAction('Search Classic…',self.launch_palette);menu.addAction('Notifications…',self.notifications);menu.addAction('Sound Output…',lambda:self.launch('Sound'));menu.addAction('Wi-Fi & Network…',lambda:self.launch('Network'))
         menu.addAction('Show / Restore Desktop',self.show_desktop);menu.addAction('Save Screenshot',self.capture_desktop)
         more=menu.addMenu('More Options')
-        more.addAction('Appearance…',self.appearance);more.addAction('Mouse…',lambda:self.launch('Mouse'));more.addAction('Wallpapers…',lambda:self.launch('Wallpapers'));more.addAction('Show Control Strip',lambda:self.native_strip.show() if self.native_strip else self.diagnostics());more.addAction('Full Screen',self.fullscreen)
+        more.addAction('Appearance Manager…',self.appearance);more.addAction('Mouse…',lambda:self.launch('Mouse'));more.addAction('Wallpapers…',lambda:self.launch('Wallpapers'));more.addAction('Show Control Strip',lambda:self.native_strip.show() if self.native_strip else self.diagnostics());more.addAction('Full Screen',self.fullscreen)
         self.window_menu(self.top_bar.switch_menu);more.addMenu(self.top_bar.switch_menu).setText('Windows')
         self.special_menu();more.addMenu(self.top_bar.special).setText('Desktop Actions')
         clock=more.addMenu('Clock')
@@ -462,6 +462,14 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         try:result=fn();self.disk_changed.emit();self.play_sound(sound);return result
         except (OSError,ValueError,KeyError) as ex:self.error(ex)
     def launch(self,name,key=None):
+        if name=='Macaque Sherlock':name='Macaque Search'
+        if name in ('System Profiler','Extensions Manager','Disk Utility'):
+            from classic_utilities import SystemProfiler,ExtensionsManager,DiskUtility
+            cls={'System Profiler':SystemProfiler,'Extensions Manager':ExtensionsManager,'Disk Utility':DiskUtility}[name]
+            for w in self.area.subWindowList():
+                if isinstance(w.content,cls):self.activate_window(w);return w
+            return self.window(name,cls(self),(760,560))
+
         if name in ('Chess','Teapot Studio'):
             if name=='Chess':from chess_app import Chess as cls
             else:from teapot import Teapot as cls
@@ -672,8 +680,17 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         pattern=QComboBox();pattern.addItems(['Solid','Pinstripes','Dither','Grid']);pattern.setCurrentText(self.state.get('pattern','Solid'));pattern.currentTextChanged.connect(lambda value:self.change_appearance('pattern',value));layout.addWidget(QLabel('Desktop pattern'));layout.addWidget(pattern)
         wallpapers=QPushButton('Wallpaper Gallery…');wallpapers.clicked.connect(lambda:self.launch('Wallpapers'));layout.addWidget(wallpapers)
         mouse=QPushButton('Mouse Options…');mouse.clicked.connect(lambda:self.launch('Mouse'));layout.addWidget(mouse)
-        layout.addWidget(QLabel('Window style: Macaque Classic with traffic-light controls\nControl Strip themes are customized in the strip itself.'));layout.addStretch();tabs.addTab(desktop,'Appearance')
-        return self.window('Appearance',tabs,(650,520))
+        layout.addWidget(QLabel('Window controls, colors, desktop patterns and Control Strip syncing are managed here.'))
+        layout.addStretch();tabs.addTab(desktop,'Desktop & Windows')
+        extras=QWidget();extra_layout=QVBoxLayout(extras)
+        extra_layout.addWidget(QLabel('More appearance customization'))
+        for title,callback in [('Wallpapers',lambda:self.launch('Wallpapers')),
+                               ('Interface Fonts',lambda:self.launch('Settings')),
+                               ('Classic Sounds',lambda:self.launch('Classic Sounds')),
+                               ('Mouse & Pointer',lambda:self.launch('Mouse'))]:
+            b=QPushButton(title+'…');b.clicked.connect(callback);extra_layout.addWidget(b)
+        extra_layout.addStretch();tabs.addTab(extras,'Fonts, Sounds & More')
+        return self.window('Appearance Manager',tabs,(740,570))
     def change_appearance(self,key,value):
         if key in ('color','pattern'):self.state['wallpaper']=''
         self.state[key]=value;self.apply_appearance()
