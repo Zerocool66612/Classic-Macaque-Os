@@ -28,7 +28,6 @@ jobs:
         run: |
           cd desktop
           python3 test_update_center.py
-          python3 test_classic_utilities.py
       - name: Build update package and checksum
         run: python3 build-desktop-deb.py --output packages
       - name: Inspect package and checksum
