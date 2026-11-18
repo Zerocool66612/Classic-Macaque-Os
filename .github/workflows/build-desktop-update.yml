@@ -51,11 +51,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create v0.42.6-desktop-preview \
-            packages/macaque-classic_0.42.6_amd64.deb \
-            packages/macaque-classic_0.42.6_amd64.deb.sha256 \
-            --title 'Macaque Classic 0.42.6 Desktop Update' \
-            --notes 'Desktop update from 0.42.5. Adds only an original startup chime. Mouse pointer styles, multilingual welcome and additional codecs are deferred. Restart after installing.'
+          tag=v0.42.6-desktop-preview
+          notes='Desktop update from 0.42.5. Adds only an original startup chime. Mouse pointer styles, multilingual welcome and additional codecs are deferred. Restart after installing.'
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" \
+              packages/macaque-classic_0.42.6_amd64.deb \
+              packages/macaque-classic_0.42.6_amd64.deb.sha256 --clobber
+            gh release edit "$tag" --title 'Macaque Classic 0.42.6 Desktop Update' --notes "$notes"
+          else
+            gh release create "$tag" \
+              packages/macaque-classic_0.42.6_amd64.deb \
+              packages/macaque-classic_0.42.6_amd64.deb.sha256 \
+              --title 'Macaque Classic 0.42.6 Desktop Update' --notes "$notes"
+          fi
       - name: Save downloadable release candidate
         uses: actions/upload-artifact@v4
         with:
