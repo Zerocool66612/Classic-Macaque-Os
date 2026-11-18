@@ -55,7 +55,7 @@ jobs:
             packages/macaque-classic_0.42.6_amd64.deb \
             packages/macaque-classic_0.42.6_amd64.deb.sha256 \
             --title 'Macaque Classic 0.42.6 Desktop Update' \
-            --notes 'Desktop update from 0.42.5. Adds an original startup chime and Classic Arrow / Rainbow Wheel mouse pointer styles. Multilingual welcome and additional codecs are deferred. Restart after installing.'
+            --notes 'Desktop update from 0.42.5. Adds only an original startup chime. Mouse pointer styles, multilingual welcome and additional codecs are deferred. Restart after installing.'
       - name: Save downloadable release candidate
         uses: actions/upload-artifact@v4
         with:
