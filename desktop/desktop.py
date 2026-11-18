@@ -20,7 +20,7 @@ from extras import Tasks,Clockwork,Paint,ArchiveViewer,Characters,MediaPlayer
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.42.5'
+VERSION='0.42.6'
 
 from menu_compat import Menu as QMenu
 
@@ -253,6 +253,8 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def apply_mouse(self):
         QApplication.instance().setDoubleClickInterval(self.state.get('double_click_ms',400))
         QApplication.instance().setStartDragDistance(self.state.get('drag_distance',10))
+        from mouse_tools import mouse_cursor
+        self.setCursor(mouse_cursor(self.state.get('mouse_style','System Default')))
     def transfer_paths(self,paths,target,copy=False):
         # Validate the whole batch before changing any item.
         try:
