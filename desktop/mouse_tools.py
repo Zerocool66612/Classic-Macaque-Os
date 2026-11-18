@@ -147,15 +147,18 @@ def beachball_frame(angle=0):
 class BeachballAnimator:
     """Animate only while Qt's normal wait cursor is active."""
     def __init__(self,app):
-        self.app=app;self.angle=0;self.active=False
+        self.app=app;self.angle=0;self.active=False;self.last_key=None
         self.timer=QTimer(app);self.timer.timeout.connect(self.tick);self.timer.start(90)
     def tick(self):
         current=self.app.overrideCursor()
         if current is None:
-            self.active=False;return
+            self.active=False;self.last_key=None;return
+        if self.active and current.pixmap().cacheKey()!=self.last_key:
+            self.active=False;self.last_key=None
         if not self.active and current.shape()!=Qt.WaitCursor:return
         self.active=True;self.angle=(self.angle+24)%360
-        self.app.changeOverrideCursor(beachball_frame(self.angle))
+        cursor=beachball_frame(self.angle);self.last_key=cursor.pixmap().cacheKey()
+        self.app.changeOverrideCursor(cursor)
 
 def mouse_cursor(style):
     """Only the Classic Arrow replaces the normal pointer."""
