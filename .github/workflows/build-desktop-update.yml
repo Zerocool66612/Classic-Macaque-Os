@@ -1,6 +1,13 @@
 name: Build Macaque Classic 0.42.4 desktop update
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'desktop/**'
+      - 'iso/**'
+      - 'build-desktop-deb.py'
+      - '.github/workflows/build-desktop-update.yml'
   pull_request:
     paths:
       - 'desktop/**'
@@ -8,7 +15,7 @@ on:
       - 'build-desktop-deb.py'
       - '.github/workflows/build-desktop-update.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -36,6 +43,16 @@ jobs:
           dpkg-deb --info packages/macaque-classic_0.42.4_amd64.deb
           cd packages
           sha256sum -c macaque-classic_0.42.4_amd64.deb.sha256
+      - name: Publish verified 0.42.4 desktop update
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create v0.42.4-desktop-preview \
+            packages/macaque-classic_0.42.4_amd64.deb \
+            packages/macaque-classic_0.42.4_amd64.deb.sha256 \
+            --title 'Macaque Classic 0.42.4 Desktop Update' \
+            --notes 'Desktop update from 0.42.3. Includes the existing desktop features and update version bump. Login redesign and new utility panels are not yet included. Restart after installing.'
       - name: Save downloadable release candidate
         uses: actions/upload-artifact@v4
         with:
