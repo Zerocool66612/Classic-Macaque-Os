@@ -137,7 +137,7 @@ def mouse_cursor(style):
         return QCursor(Qt.ArrowCursor)
     canvas=QPixmap(32,32);canvas.fill(Qt.transparent)
     painter=QPainter(canvas);painter.setRenderHint(QPainter.Antialiasing)
-    if style == 'Rainbow Wheel':
+    if style == 'Mac OS X Beachball (Busy)':
         hues=['#e5484d','#f49d37','#e6d542','#4bb66b','#3b9cdb','#8754c6']
         for i,color in enumerate(hues):
             painter.setPen(Qt.NoPen);painter.setBrush(QColor(color))
@@ -156,7 +156,8 @@ class MousePreferences(QWidget):
     def __init__(self,d):
         super().__init__();self.d=d;layout=QVBoxLayout(self);layout.addWidget(QLabel('Mouse options apply inside Macaque.'))
         layout.addWidget(QLabel('Pointer style'))
-        pointer=QComboBox();pointer.addItems(['System Default','Classic Arrow','Rainbow Wheel']);pointer.setCurrentText(d.state.get('mouse_style','System Default'));pointer.currentTextChanged.connect(lambda value:self.save('mouse_style',value));layout.addWidget(pointer)
+        pointer=QComboBox();pointer.addItems(['System Default','Classic Arrow','Mac OS X Beachball (Busy)']);pointer.setCurrentText('Mac OS X Beachball (Busy)' if d.state.get('mouse_style')=='Rainbow Wheel' else d.state.get('mouse_style','System Default'));pointer.currentTextChanged.connect(lambda value:self.save('mouse_style',value));layout.addWidget(pointer)
+        layout.addWidget(QLabel('Mac OS X Beachball is a busy cursor, not the regular pointer.'))
         for key,title,default in [('single_click','Single-click desktop icons and file items',False),('snap_icons','Snap dragged desktop icons to a grid',False),('spring_folders','Spring-loaded folders while dragging',True)]:
             b=QCheckBox(title);b.setChecked(d.state.get(key,default));b.toggled.connect(lambda value,k=key:self.save(k,value));layout.addWidget(b)
         for key,title,low,high,default in [('double_click_ms','Double-click interval (ms)',200,1000,400),('drag_distance','Drag threshold (pixels)',3,30,10),('spring_delay_ms','Spring-loaded folder delay (ms)',300,2000,700)]:
