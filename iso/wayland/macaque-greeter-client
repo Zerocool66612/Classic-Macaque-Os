@@ -2,4 +2,4 @@
 set -eu
 unset DISPLAY XAUTHORITY
 export GDK_BACKEND=wayland
-exec gtkgreet -l -c /usr/local/bin/macaque-session -s /etc/greetd/macaque.css
+exec /usr/bin/python3 /usr/local/bin/macaque-login
