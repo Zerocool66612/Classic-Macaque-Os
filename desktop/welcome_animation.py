@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt,QTimer,QElapsedTimer,QRectF
 from PySide6.QtGui import QPainter,QColor,QFont,QLinearGradient
 from PySide6.QtWidgets import QDialog
 from visuals import icon
-DURATION=24.0
+DURATION=15.0
 
 class WelcomeAnimation(QDialog):
     def __init__(self,d,replay=False):
@@ -36,12 +36,12 @@ class WelcomeAnimation(QDialog):
         p.setPen(Qt.NoPen)
         for i in range(5):
             p.setBrush(QColor(170,235,235,12+i*3));offset=math.sin(t*.15+i)*w*.04;p.drawEllipse(QRectF(-w*.3+offset,h*.38+i*h*.12,w*1.7,h*.85))
-        if t<16.0:
-            words=['Hello','Bonjour','Hola','Hallo','Ciao','Olá','こんにちは','你好','안녕하세요','Hej','Cześć','नमस्ते'];step=16.0/len(words);index=min(len(words)-1,int(t/step));phase=(t%step)/step;opacity=min(1,phase*5,(1-phase)*5)
+        if t<7.2:
+            words=['Hello','Bonjour','Hola','Hello'];index=min(3,int(t/1.8));phase=(t%1.8)/1.8;opacity=min(1,phase*4,(1-phase)*4)
             p.setOpacity(max(0,opacity));font=QFont('DejaVu Serif',max(28,int(h*.11)));font.setItalic(True);p.setFont(font);p.setPen(QColor('white'));p.drawText(QRectF(20,h*.31,w-40,h*.25),Qt.AlignCenter,words[index])
         else:
-            opacity=min(1,(t-16.0)/1.1);p.setOpacity(opacity);size=int(h*.19);self.logo.paint(p,int((w-size)/2),int(h*.20),size,size)
+            opacity=min(1,(t-7.2)/1.1);p.setOpacity(opacity);size=int(h*.19);self.logo.paint(p,int((w-size)/2),int(h*.20),size,size)
             p.setPen(QColor('white'));p.setFont(QFont('DejaVu Sans',max(18,int(h*.043)),QFont.Bold));p.drawText(QRectF(20,h*.45,w-40,h*.11),Qt.AlignCenter,'Welcome to Macaque Classic')
             p.setFont(QFont('DejaVu Sans',max(12,int(h*.025))));p.drawText(QRectF(20,h*.58,w-40,h*.07),Qt.AlignCenter,'Made by Drew')
-            p.setOpacity(opacity*min(1,max(0,(t-19)/1.2)));p.drawText(QRectF(20,h*.69,w-40,h*.07),Qt.AlignCenter,'A familiar beginning. A new adventure.')
+            p.setOpacity(opacity*min(1,max(0,(t-10)/1.2)));p.drawText(QRectF(20,h*.69,w-40,h*.07),Qt.AlignCenter,'A familiar beginning. A new adventure.')
         p.setOpacity(1)
