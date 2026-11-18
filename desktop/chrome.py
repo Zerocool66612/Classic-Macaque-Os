@@ -21,6 +21,7 @@ class TopBar(QWidget):
         self.row.addStretch(1);self.version=QLabel('v0.24');self.row.addWidget(self.version);self.controls={}
         self.search=self.control('search','⌕','Search files and apps · F6',d.launch_palette);self.search.setIcon(icon('search',22));self.search.setIconSize(QSize(17,17));self.search.setToolButtonStyle(Qt.ToolButtonIconOnly)
         self.network=self.control('network','◎','Network information');self.network_menu=self.popup(self.network,lambda menu:d.network_menu(menu))
+        self.wifi=QToolButton();self.wifi.setText('◌');self.wifi.setToolTip('Wi-Fi status');self.wifi.setAccessibleName('Wi-Fi connection status');self.row.addWidget(self.wifi);self.wifi.clicked.connect(lambda:d.launch('Network'));self.wifi_timer=QTimer(self);self.wifi_timer.timeout.connect(self.refresh_wifi);self.wifi_timer.start(15000);self.refresh_wifi()
         self.sound=self.control('sound','♪','Sound output');self.sound.clicked.connect(lambda:d.launch('Sound'))
         self.notifications=self.control('notifications','♧','Notifications');self.notifications.clicked.connect(d.notifications)
         self.theme=self.control('theme','☾','Light / dark mode',d.toggle_dark)
@@ -78,6 +79,21 @@ class TopBar(QWidget):
             QWidget#topBar QLabel {{color:{muted};background:transparent;font-size:10px;padding:0 3px;}}
         """)
         self.theme.setText('☀' if self.d.state.get('mode','light')=='dark' else '☾');self.theme.setToolTip('Switch appearance');self.update()
+    def refresh_wifi(self):
+        # nmcli reports NetworkManager state without requesting a scan or secrets.
+        from classic_utilities import safe_command
+        output=safe_command(['nmcli','-t','-f','IN-USE,SSID,SIGNAL','device','wifi','list','--rescan','no'],timeout=2)
+        connected=next((line for line in output.splitlines() if line.startswith('*:')),None)
+        if connected:
+            parts=connected.split(':')
+            strength=int(parts[-1]) if parts[-1].isdigit() else 0
+            self.wifi.setText('▂▄▆' if strength>=65 else '▂▄' if strength>=30 else '▂')
+            self.wifi.setToolTip('Wi-Fi connected: '+':'.join(parts[1:-1]))
+        else:
+            self.wifi.setText('◌')
+            self.wifi.setToolTip('Wi-Fi disconnected or unavailable · open Network')
+        self.update_layout()
+
     def refresh_battery(self):
         from laptop_support import batteries,battery_summary
         items=batteries();text,tip=battery_summary(items);self.battery.setText(text);self.battery.setToolTip(tip);self.battery.setVisible(bool(text));self.update_layout()
@@ -103,7 +119,7 @@ class TopBar(QWidget):
         for key,b in self.controls.items():b.setVisible(key in ('search','switch'))
         self.version.hide()
         hidden=[5,8] # Special actions live in Controls; apps live in Macaque.
-        available=self.width()-self.quick.sizeHint().width()-self.clock.sizeHint().width()-(self.battery.sizeHint().width() if self.battery.isVisible() else 0)-self.switch.sizeHint().width()-75
+        available=self.width()-self.quick.sizeHint().width()-self.clock.sizeHint().width()-(self.battery.sizeHint().width() if self.battery.isVisible() else 0)-self.wifi.sizeHint().width()-self.switch.sizeHint().width()-75
         used=sum(b.sizeHint().width() for i,b in enumerate(self.buttons) if i not in hidden)
         for index in [7,6,4,3,2,1]:
             if used<=available:break
