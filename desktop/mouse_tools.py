@@ -131,21 +131,40 @@ class DesktopIcon(QToolButton):
             if target=='trash':self.d.trash_paths(paths)
             else:self.d.transfer_paths(paths,Path(target),bool(e.modifiers()&Qt.ControlModifier))
             e.acceptProposedAction()
-def mouse_cursor(style):
-    """Original Macaque cursors; never change the host desktop pointer."""
-    if style == 'System Default':
-        return QCursor(Qt.ArrowCursor)
+def beachball_frame(angle=0):
+    """Original spinning Mac OS X-inspired busy indicator."""
     canvas=QPixmap(32,32);canvas.fill(Qt.transparent)
     painter=QPainter(canvas);painter.setRenderHint(QPainter.Antialiasing)
-    if style == 'Mac OS X Beachball (Busy)':
-        hues=['#e5484d','#f49d37','#e6d542','#4bb66b','#3b9cdb','#8754c6']
-        for i,color in enumerate(hues):
-            painter.setPen(Qt.NoPen);painter.setBrush(QColor(color))
-            painter.drawPie(3,3,26,26,90*16-i*60*16,-60*16)
-        painter.setPen(QPen(QColor('#242424'),1.5));painter.setBrush(QColor('#f5f5f5'))
-        painter.drawEllipse(11,11,10,10)
-        painter.end();return QCursor(canvas,16,16)
-    # Classic black-outlined arrow, drawn as original vector geometry.
+    hues=['#e5484d','#f49d37','#e6d542','#4bb66b','#3b9cdb','#8754c6']
+    for i,color in enumerate(hues):
+        painter.setPen(Qt.NoPen);painter.setBrush(QColor(color))
+        painter.drawPie(3,3,26,26,(90+angle-i*60)*16,-60*16)
+    painter.setPen(QPen(QColor('#242424'),1.5));painter.setBrush(QColor('#f5f5f5'))
+    painter.drawEllipse(11,11,10,10)
+    painter.end()
+    return QCursor(canvas,16,16)
+
+class BeachballAnimator:
+    """Animate only while Qt's normal wait cursor is active."""
+    def __init__(self,app):
+        self.app=app;self.angle=0;self.active=False;self.last_key=None
+        self.timer=QTimer(app);self.timer.timeout.connect(self.tick);self.timer.start(90)
+    def tick(self):
+        current=self.app.overrideCursor()
+        if current is None:
+            self.active=False;self.last_key=None;return
+        if self.active and current.pixmap().cacheKey()!=self.last_key:
+            self.active=False;self.last_key=None
+        if not self.active and current.shape()!=Qt.WaitCursor:return
+        self.active=True;self.angle=(self.angle+24)%360
+        cursor=beachball_frame(self.angle);self.last_key=cursor.pixmap().cacheKey()
+        self.app.changeOverrideCursor(cursor)
+
+def mouse_cursor(style):
+    """Only the Classic Arrow replaces the normal pointer."""
+    if style != 'Classic Arrow':return QCursor(Qt.ArrowCursor)
+    canvas=QPixmap(32,32);canvas.fill(Qt.transparent)
+    painter=QPainter(canvas);painter.setRenderHint(QPainter.Antialiasing)
     from PySide6.QtGui import QPolygon
     painter.setPen(QPen(QColor('#111111'),2));painter.setBrush(QColor('#ffffff'))
     painter.drawPolygon(QPolygon([QPoint(3,2),QPoint(3,26),QPoint(9,20),QPoint(14,29),QPoint(19,26),QPoint(14,17),QPoint(23,16)]))

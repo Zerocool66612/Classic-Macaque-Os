@@ -20,7 +20,7 @@ from extras import Tasks,Clockwork,Paint,ArchiveViewer,Characters,MediaPlayer
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.42.7'
+VERSION='0.42.8'
 
 from menu_compat import Menu as QMenu
 
@@ -255,6 +255,9 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         QApplication.instance().setStartDragDistance(self.state.get('drag_distance',10))
         from mouse_tools import mouse_cursor
         self.setCursor(mouse_cursor(self.state.get('mouse_style','System Default')))
+        if self.state.get('mouse_style') in ('Rainbow Wheel','Mac OS X Beachball (Busy)') and not hasattr(self,'beachball_animator'):
+            from mouse_tools import BeachballAnimator
+            self.beachball_animator=BeachballAnimator(QApplication.instance())
     def transfer_paths(self,paths,target,copy=False):
         # Validate the whole batch before changing any item.
         try:
