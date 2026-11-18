@@ -1,0 +1,45 @@
+name: Build Macaque Classic 0.42.4 desktop update
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - 'iso/**'
+      - 'build-desktop-deb.py'
+      - '.github/workflows/build-desktop-update.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install package-building prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev python3 python3-pyside6.qtwidgets python3-pyside6.qtcore python3-pyside6.qtgui python3-pyside6.qttest
+      - name: Compile-check Python sources
+        run: python3 -m compileall -q desktop iso
+      - name: Run offline update and UI tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+          MACAQUE_SILENT: '1'
+        run: |
+          cd desktop
+          python3 test_update_center.py
+          python3 test_classic_utilities.py
+      - name: Build update package and checksum
+        run: python3 build-desktop-deb.py --output packages
+      - name: Inspect package and checksum
+        run: |
+          dpkg-deb --info packages/macaque-classic_0.42.4_amd64.deb
+          cd packages
+          sha256sum -c macaque-classic_0.42.4_amd64.deb.sha256
+      - name: Save downloadable release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: macaque-classic-0.42.4-release-candidate
+          path: |
+            packages/macaque-classic_0.42.4_amd64.deb
+            packages/macaque-classic_0.42.4_amd64.deb.sha256
