@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from PySide6.QtCore import Qt,QMimeData,QPoint,QTimer
-from PySide6.QtGui import QDrag,QGuiApplication
+from PySide6.QtGui import QDrag,QGuiApplication,QCursor,QPixmap,QPainter,QColor,QPen
 from PySide6.QtWidgets import *
 MIME='application/x-macaque-files'
 def paths_from(mime):
@@ -131,10 +131,32 @@ class DesktopIcon(QToolButton):
             if target=='trash':self.d.trash_paths(paths)
             else:self.d.transfer_paths(paths,Path(target),bool(e.modifiers()&Qt.ControlModifier))
             e.acceptProposedAction()
+def mouse_cursor(style):
+    """Original Macaque cursors; never change the host desktop pointer."""
+    if style == 'System Default':
+        return QCursor(Qt.ArrowCursor)
+    canvas=QPixmap(32,32);canvas.fill(Qt.transparent)
+    painter=QPainter(canvas);painter.setRenderHint(QPainter.Antialiasing)
+    if style == 'Rainbow Wheel':
+        hues=['#e5484d','#f49d37','#e6d542','#4bb66b','#3b9cdb','#8754c6']
+        for i,color in enumerate(hues):
+            painter.setPen(Qt.NoPen);painter.setBrush(QColor(color))
+            painter.drawPie(3,3,26,26,90*16-i*60*16,-60*16)
+        painter.setPen(QPen(QColor('#242424'),1.5));painter.setBrush(QColor('#f5f5f5'))
+        painter.drawEllipse(11,11,10,10)
+        painter.end();return QCursor(canvas,16,16)
+    # Classic black-outlined arrow, drawn as original vector geometry.
+    from PySide6.QtGui import QPolygon
+    painter.setPen(QPen(QColor('#111111'),2));painter.setBrush(QColor('#ffffff'))
+    painter.drawPolygon(QPolygon([QPoint(3,2),QPoint(3,26),QPoint(9,20),QPoint(14,29),QPoint(19,26),QPoint(14,17),QPoint(23,16)]))
+    painter.end();return QCursor(canvas,3,2)
+
 class MousePreferences(QWidget):
     app_name='Mouse'
     def __init__(self,d):
         super().__init__();self.d=d;layout=QVBoxLayout(self);layout.addWidget(QLabel('Mouse options apply inside Macaque.'))
+        layout.addWidget(QLabel('Pointer style'))
+        pointer=QComboBox();pointer.addItems(['System Default','Classic Arrow','Rainbow Wheel']);pointer.setCurrentText(d.state.get('mouse_style','System Default'));pointer.currentTextChanged.connect(lambda value:self.save('mouse_style',value));layout.addWidget(pointer)
         for key,title,default in [('single_click','Single-click desktop icons and file items',False),('snap_icons','Snap dragged desktop icons to a grid',False),('spring_folders','Spring-loaded folders while dragging',True)]:
             b=QCheckBox(title);b.setChecked(d.state.get(key,default));b.toggled.connect(lambda value,k=key:self.save(k,value));layout.addWidget(b)
         for key,title,low,high,default in [('double_click_ms','Double-click interval (ms)',200,1000,400),('drag_distance','Drag threshold (pixels)',3,30,10),('spring_delay_ms','Spring-loaded folder delay (ms)',300,2000,700)]:
