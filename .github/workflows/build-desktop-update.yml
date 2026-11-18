@@ -1,4 +1,4 @@
-name: Build Macaque Classic 0.42.4 desktop update
+name: Build Macaque Classic 0.42.5 desktop update
 on:
   workflow_dispatch:
   push:
@@ -36,27 +36,30 @@ jobs:
         run: |
           cd desktop
           python3 test_update_center.py
+          python3 test_classic_utilities.py
+          cd ../iso
+          python3 test_macaque_login.py
       - name: Build update package and checksum
         run: python3 build-desktop-deb.py --output packages
       - name: Inspect package and checksum
         run: |
-          dpkg-deb --info packages/macaque-classic_0.42.4_amd64.deb
+          dpkg-deb --info packages/macaque-classic_0.42.5_amd64.deb
           cd packages
-          sha256sum -c macaque-classic_0.42.4_amd64.deb.sha256
-      - name: Publish verified 0.42.4 desktop update
+          sha256sum -c macaque-classic_0.42.5_amd64.deb.sha256
+      - name: Publish 0.42.5 only after explicit release approval and VM validation
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create v0.42.4-desktop-preview \
-            packages/macaque-classic_0.42.4_amd64.deb \
-            packages/macaque-classic_0.42.4_amd64.deb.sha256 \
-            --title 'Macaque Classic 0.42.4 Desktop Update' \
-            --notes 'Desktop update from 0.42.3. Includes the existing desktop features and update version bump. Login redesign and new utility panels are not yet included. Restart after installing.'
+          gh release create v0.42.5-desktop-preview \
+            packages/macaque-classic_0.42.5_amd64.deb \
+            packages/macaque-classic_0.42.5_amd64.deb.sha256 \
+            --title 'Macaque Classic 0.42.5 Desktop Update' \
+            --notes 'Desktop update from 0.42.4. Adds redesigned login, Sherlock search, System Profiler, Extensions Manager, Disk Utility, Appearance Manager and Wi-Fi status. Restart after installing.'
       - name: Save downloadable release candidate
         uses: actions/upload-artifact@v4
         with:
-          name: macaque-classic-0.42.4-release-candidate
+          name: macaque-classic-0.42.5-release-candidate
           path: |
-            packages/macaque-classic_0.42.4_amd64.deb
-            packages/macaque-classic_0.42.4_amd64.deb.sha256
+            packages/macaque-classic_0.42.5_amd64.deb
+            packages/macaque-classic_0.42.5_amd64.deb.sha256

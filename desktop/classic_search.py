@@ -26,12 +26,12 @@ def classic_files(root,query,limit=250,examined_limit=10000,predicate=None):
     return results,truncated
 
 class ClassicSearch(QWidget):
-    app_name='Macaque Search'
+    app_name='Macaque Sherlock'
     def __init__(self,d):
-        super().__init__();self.d=d;self.entries=[];layout=QVBoxLayout(self);heading=QLabel('Search Classic');heading.setStyleSheet('font-size:21px;font-weight:bold');layout.addWidget(heading);layout.addWidget(QLabel('Find apps, files and folders · choose a search location below.'))
+        super().__init__();self.d=d;self.entries=[];layout=QVBoxLayout(self);heading=QLabel('Macaque Sherlock');heading.setStyleSheet('font-size:21px;font-weight:bold');layout.addWidget(heading);layout.addWidget(QLabel('Find apps, files and folders · choose a search location below.'))
         self.input=QLineEdit();self.input.setPlaceholderText('Name or label:Project…');self.input.installEventFilter(self);layout.addWidget(self.input);self.scope=QComboBox();self.scope.addItems(['Everything in Classic','Applications','Files and folders']);self.native_home=os.environ.get('MACAQUE_NATIVE_SESSION')=='1' and os.environ.get('MACAQUE_PREVIEW_SESSION')!='1';
         if self.native_home:self.scope.addItem('This PC · home files')
-        layout.addWidget(self.scope);self.results=QListWidget();self.results.setIconSize(QSize(24,24));layout.addWidget(self.results,1);self.status=QLabel('Type a name to search.');self.status.setWordWrap(True);layout.addWidget(self.status)
+        layout.addWidget(self.scope);filters=QHBoxLayout();layout.addLayout(filters);filters.addWidget(QLabel('File type'));self.kind=QComboBox();self.kind.addItems(['All types','Folders','Documents','Images']);filters.addWidget(self.kind);self.kind.currentIndexChanged.connect(self.search);self.results=QListWidget();self.results.setIconSize(QSize(24,24));layout.addWidget(self.results,1);self.status=QLabel('Type a name to search.');self.status.setWordWrap(True);layout.addWidget(self.status)
         self.timer=QTimer(self);self.timer.setSingleShot(True);self.timer.timeout.connect(self.search);self.input.textChanged.connect(lambda:self.timer.start(150));self.scope.currentIndexChanged.connect(self.search);self.input.returnPressed.connect(self.activate);self.results.itemActivated.connect(lambda _:self.activate());d.disk_changed.connect(self.search);self.search()
     def eventFilter(self,watched,event):
         if watched==self.input and event.type()==QEvent.KeyPress and event.key() in (Qt.Key_Down,Qt.Key_Up):
@@ -56,6 +56,9 @@ class ClassicSearch(QWidget):
             paths,truncated=classic_files(root,query,predicate=(lambda p:metadata(self.d,p).get('label','None').casefold()==label) if label is not None else None)
             for path in paths:
                 if path.name.endswith('.app'):continue
+                if self.kind.currentIndex()==1 and not path.is_dir():continue
+                if self.kind.currentIndex()==2 and (path.is_dir() or path.suffix.lower() not in ('.txt','.md','.pdf','.odt','.docx','.rtf')):continue
+                if self.kind.currentIndex()==3 and path.suffix.lower() not in ('.png','.jpg','.jpeg','.webp','.gif','.bmp'):continue
                 self.add(path.name,str(path.relative_to(root)),'folder' if path.is_dir() else 'note',lambda p=path:self.d.open_item(p))
         self.status.setText(f'{self.results.count()} results · '+('home files' if scope==3 and label is None else 'Macaque HD only')+(' · result/scan limit reached; use a more specific name' if truncated else ''))
         if self.results.count():self.results.setCurrentRow(0)

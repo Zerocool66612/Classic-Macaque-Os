@@ -10,6 +10,8 @@ with tempfile.TemporaryDirectory() as temp:
  config=root/'etc/greetd/config.toml';cfg=tomllib.loads(config.read_text())
  assert cfg['default_session']['user']=='_greetd' and cfg['initial_session']['user']=='macaque'
  assert (root/'usr/local/bin/macaque-greeter').is_file()
+ assert (root/'usr/local/bin/macaque-login').is_file()
+ assert 'macaque-login' in (root/'usr/local/bin/macaque-greeter-client').read_text()
  assert (root/'usr/share/wayland-sessions/macaque.desktop').is_file()
  assert not (root/'etc/lightdm').exists() and not (root/'usr/share/xsessions').exists()
  theme=root/'usr/share/plymouth/themes/macaque';ini=configparser.ConfigParser();ini.read(theme/'macaque.plymouth');assert ini['Plymouth Theme']['ModuleName']=='script'
