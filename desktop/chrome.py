@@ -21,7 +21,7 @@ class TopBar(QWidget):
         self.row.addStretch(1);self.version=QLabel('v0.24');self.row.addWidget(self.version);self.controls={}
         self.search=self.control('search','⌕','Search files and apps · F6',d.launch_palette);self.search.setIcon(icon('search',22));self.search.setIconSize(QSize(17,17));self.search.setToolButtonStyle(Qt.ToolButtonIconOnly)
         self.network=self.control('network','◎','Network information');self.network_menu=self.popup(self.network,lambda menu:d.network_menu(menu))
-        self.wifi=QToolButton();self.wifi.setText('◌');self.wifi.setToolTip('Wi-Fi status');self.wifi.setAccessibleName('Wi-Fi connection status');self.row.addWidget(self.wifi);self.wifi.clicked.connect(lambda:d.launch('Network'));self.wifi_timer=QTimer(self);self.wifi_timer.timeout.connect(self.refresh_wifi);self.wifi_timer.start(15000);self.refresh_wifi()
+        self.wifi=QToolButton();self.wifi.setText('◌');self.wifi.setToolTip('Wi-Fi status');self.wifi.setAccessibleName('Wi-Fi connection status');self.row.addWidget(self.wifi);self.wifi.clicked.connect(lambda:d.launch('Network'));self.wifi_timer=QTimer(self);self.wifi_timer.timeout.connect(self.refresh_wifi);self.wifi_timer.start(15000);QTimer.singleShot(0,self.refresh_wifi)
         self.sound=self.control('sound','♪','Sound output');self.sound.clicked.connect(lambda:d.launch('Sound'))
         self.notifications=self.control('notifications','♧','Notifications');self.notifications.clicked.connect(d.notifications)
         self.theme=self.control('theme','☾','Light / dark mode',d.toggle_dark)
