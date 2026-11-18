@@ -1,6 +1,7 @@
 import os,tempfile
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen');os.environ['MACAQUE_SILENT']='1'
 from unittest.mock import patch,Mock
+from types import SimpleNamespace
 from PySide6.QtWidgets import QApplication,QMessageBox,QPushButton
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtTest import QTest
@@ -8,6 +9,11 @@ from PySide6.QtCore import QTimer,Qt
 from desktop import Desktop
 from installer_support import installer_available
 app=QApplication([]);app.setQuitOnLastWindowClosed(False);app.setDesktopFileName('org.macaque.Classic')
+# Isolate the installer launcher mock without replacing subprocess.Popen globally.
+# The desktop's asynchronous Wi-Fi scan must remain a real independent process.
+installer_process_module=SimpleNamespace(Popen=Mock())
+installer_process_patch=patch('installer_support.subprocess',installer_process_module)
+installer_process_patch.start()
 with tempfile.TemporaryDirectory() as data:
  d=Desktop(data);d.state.update(startup_files=False,startup_notes=False,reduce_motion=True);d.show();QTest.qWait(20)
  assert not installer_available()
@@ -62,4 +68,5 @@ with tempfile.TemporaryDirectory() as data:
   QTest.mouseClick(back,Qt.LeftButton);QTest.qWait(20);assert not screen.isVisible()
   assert d.launch_installer() is screen;QTest.qWait(20);QTest.keyClick(screen,Qt.Key_Escape);QTest.qWait(20);assert not screen.isVisible()
   d.quitting=True;d.close();QTest.qWait(20)
+installer_process_patch.stop()
 print('PASS: actual Install click fills the screen, reuses one preparation view, keeps confirmations normal-sized, preserves busy/cancel guards, and hands off to the wizard; no real disk/sudo processes launched.')
