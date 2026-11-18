@@ -7,6 +7,8 @@ def prepare(dest):
     dest=Path(dest)
     if dest.exists() and any(dest.iterdir()):raise SystemExit('Use an empty destination for image files.')
     shutil.copytree(ROOT/'desktop',dest/'opt/macaque-classic',ignore=shutil.ignore_patterns('__pycache__','.venv','.git','*.so','*.so.*'))
+    import runpy
+    runpy.run_path(str(dest/'opt/macaque-classic/startup_chime.py'))['write'](dest/'opt/macaque-classic/sounds/startup.wav')
     for wheel in (ROOT/'vendor').glob('chess-*.whl'):
         with zipfile.ZipFile(wheel) as z:z.extractall(dest/'opt/macaque-classic')
     def write(path,text,mode=0o644):
