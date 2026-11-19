@@ -81,7 +81,7 @@ class DesktopTabs(QObject):
         self.bar.raise_()
     def descriptor(self,w):
         """Only restore safe, known app windows and existing folders."""
-        from classic_files import Finder
+        from applications import Finder
         from pathlib import Path
         if isinstance(w.content,Finder):
             path=Path(w.content.path)
