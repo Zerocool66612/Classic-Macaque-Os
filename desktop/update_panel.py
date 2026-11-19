@@ -107,7 +107,7 @@ class Updates(QWidget):
         if path:self.run({'action':'inspect','path':path},self.offer_install)
     def native_installed(self):
         from maintenance import installed_target
-        return os.environ.get('MACAQUE_NATIVE_SESSION')=='1' and installed_target()
+        return os.environ.get('MACAQUE_PREVIEW_SESSION')!='1' and installed_target()
     def offer_install(self,data):
         from desktop import VERSION
         from update_store import older
@@ -116,8 +116,11 @@ class Updates(QWidget):
         if data['version']==installed:self.status.setText('Macaque Classic '+installed+' is already installed.');return
         if older(data['version'],installed):self.status.setText('This is an older desktop version. Use Update History to select a saved rollback package.');return
         self.status.setText('Package ready: Macaque Classic '+data['version'])
-        if not self.native_installed():self.status.setText('Package downloaded, but installation is only available from an installed Macaque login session.');return
-        if classic_question(self.d,'Install desktop update','Install Macaque Classic '+data['version']+' from this package?\n\nAdministrator authentication and APT confirmation follow in Terminal. Save work and log out/in after installation.',QMessageBox.No)==QMessageBox.Yes:self.terminal('Desktop Update',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'install-desktop',data['path'],data['sha256']])
+        if not self.native_installed():
+            self.status.setText('Package downloaded, but installation requires an installed Macaque system (not live USB or preview).')
+            return
+        if QMessageBox.question(self,'Install desktop update','Install Macaque Classic '+data['version']+' from this package?\n\nAdministrator authentication and APT confirmation follow in Terminal. Save work and log out/in after installation.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:
+            self.terminal('Desktop Update',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'install-desktop',data['path'],data['sha256']])
     def terminal(self,title,args):
         from terminal_app import Terminal
         panel=Terminal(self.d,command=args);self.d.window(title,panel,(960,620));panel.view.setFocus()
