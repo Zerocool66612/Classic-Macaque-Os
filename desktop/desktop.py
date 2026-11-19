@@ -662,7 +662,22 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
     def text_window(self,title,text,size=(490,340)):
         box=QTextEdit();box.setReadOnly(True);box.setPlainText(text);return self.window(title,box,size)
     def about(self):
-        panel=QWidget();layout=QHBoxLayout(panel);picture=QLabel();picture.setPixmap(icon('macaque-round',100).pixmap(100,100));layout.addWidget(picture);body=QLabel(f'<h2>Macaque Classic {VERSION}</h2><b>Macaque Desktop</b><p>Native Qt · Linux prototype<br>Classic Control Strip 2.0.6<br>Created with Drew Owen</p><p>Running: {platform.system()} {platform.machine()}<br>Target: Ryzen 7 + Radeon RX 6700 XT</p><p>Macaque Files · Control Panels · Macaque Text<br>Macaque Notes · Macaque Search · classic extras</p>');body.setWordWrap(True);layout.addWidget(body,1);return self.window('About This Computer',panel,(550,330))
+        from html import escape
+        from classic_utilities import local_hardware
+        info=local_hardware()
+        panel=QWidget();layout=QHBoxLayout(panel)
+        picture=QLabel();picture.setPixmap(icon('macaque-round',100).pixmap(100,100));layout.addWidget(picture)
+        body=QLabel(
+            f'<h2>Macaque Classic {escape(VERSION)}</h2><b>Macaque Desktop</b>'
+            '<p>Classic Control Strip 2.0.6<br>Created by Drew Owen</p>'
+            f'<p><b>Processor:</b> {escape(info["processor"])}<br>'
+            f'<b>Graphics:</b> {escape(info["graphics"])}<br>'
+            f'<b>Memory:</b> {escape(info["memory"])}<br>'
+            f'<b>Architecture:</b> {escape(info["architecture"])}<br>'
+            f'<b>System:</b> {escape(info["system"])}</p>')
+        body.setWordWrap(True);body.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        layout.addWidget(body,1)
+        return self.window('About This Computer',panel,(690,350))
     def control_panels(self):
         panel=QWidget();layout=QVBoxLayout(panel);grid=QGridLayout();layout.addLayout(grid)
         actions=[('Appearance','appearance',self.appearance),('Date & Time','clock',self.calendar),('Sound','computer',lambda:self.launch('Sound')),('Memory','computer',self.memory),('Desktop Disk','disk',lambda:self.text_window('Desktop Disk',f'Macaque HD is stored at:\n{self.disk.root}\n\nAvailable on host filesystem: {self.format_bytes(self.free_space())}')),('Screen Saver','computer',self.screensaver)]
