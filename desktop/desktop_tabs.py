@@ -5,7 +5,7 @@ from shiboken6 import isValid
 
 class DesktopTabs(QObject):
     def __init__(self,d):
-        super().__init__(d);self.d=d;self.records={};self.bar=QTabBar(d.area.viewport());self.bar.setObjectName('desktopDrawerTabs');self.bar.setExpanding(False);self.bar.setMovable(True);self.bar.setUsesScrollButtons(True);self.bar.setElideMode(Qt.ElideRight);self.bar.setDrawBase(False);self.bar.setShape(QTabBar.RoundedNorth);self.bar.hide();self.bar.tabBarClicked.connect(self.toggle_index);self.bar.tabMoved.connect(lambda *_:self.layout());self.bar.setContextMenuPolicy(Qt.CustomContextMenu);self.bar.customContextMenuRequested.connect(self.context);d.area.viewport().installEventFilter(self)
+        super().__init__(d);self.d=d;self.records={};self.bar=QTabBar(d.area.viewport());self.bar.setObjectName('desktopDrawerTabs');self.bar.setExpanding(False);self.bar.setMovable(True);self.bar.setUsesScrollButtons(True);self.bar.setElideMode(Qt.ElideRight);self.bar.setDrawBase(False);self.bar.setShape(QTabBar.RoundedNorth);self.bar.hide();self.bar.tabBarClicked.connect(self.toggle_index);self.bar.tabMoved.connect(lambda *_:(self.layout(),self.save()));self.bar.setContextMenuPolicy(Qt.CustomContextMenu);self.bar.customContextMenuRequested.connect(self.context);d.area.viewport().installEventFilter(self)
         self.timer=QTimer(self);self.timer.setInterval(250);self.timer.timeout.connect(self.layout);self.timer.start()
     def eventFilter(self,obj,event):
         if event.type() in (QEvent.Resize,QEvent.Show):QTimer.singleShot(0,self.layout)
@@ -17,7 +17,7 @@ class DesktopTabs(QObject):
         if w.shaded:w.shade()
         self.records[w]={'geometry':QRect(geometry or w.geometry()),'drawer_size':w.size(),'open':False};w.setProperty('desktop_tabbed',True)
         i=self.bar.addTab(w.windowTitle());self.bar.setTabData(i,w);self.bar.setTabToolTip(i,w.windowTitle()+' · click to open/collapse · right-click for options')
-        w.windowTitleChanged.connect(lambda *_:self.titles());w.destroyed.connect(lambda *_ ,key=w:self.remove_deleted(key));w.hide();self.layout()
+        w.windowTitleChanged.connect(lambda *_:self.titles());w.destroyed.connect(lambda *_ ,key=w:self.remove_deleted(key));w.hide();self.layout();self.save()
     def titles(self):
         for w in self.records:
             if isValid(w):
@@ -28,7 +28,7 @@ class DesktopTabs(QObject):
         if not isValid(self.bar):return
         i=self.index(w)
         if i>=0:self.bar.removeTab(i)
-        self.layout()
+        self.layout();self.save()
     def toggle_index(self,index):
         w=self.bar.tabData(index)
         if w not in self.records:return
@@ -53,7 +53,7 @@ class DesktopTabs(QObject):
             w.setProperty('desktop_tabbed',False)
             if not keep_geometry:w.setGeometry(record['geometry'])
             if w.property('workspace')==self.d.workspace:w.showNormal();w.raise_();self.d.area.setActiveSubWindow(w)
-        self.layout()
+        self.layout();self.save()
     def layout(self):
         if not isValid(self.d.area) or not isValid(self.bar):return
         viewport=self.d.area.viewport();visible=[]
@@ -79,7 +79,58 @@ class DesktopTabs(QObject):
             size=record['drawer_size'];width=max(280,min(size.width(),viewport.width()));height_w=max(200,min(size.height(),max(200,y)))
             i=self.index(w);tab=self.bar.tabRect(i);x=max(0,min(left+tab.left(),viewport.width()-width));w.setGeometry(x,max(0,y-height_w),width,height_w);record['last_size']=w.size()
         self.bar.raise_()
+    def descriptor(self,w):
+        """Only restore safe, known app windows and existing folders."""
+        from applications import Finder
+        from pathlib import Path
+        if isinstance(w.content,Finder):
+            path=Path(w.content.path)
+            return {'kind':'folder','value':str(path),'workspace':int(w.property('workspace') or 0)}
+        title=w.windowTitle()
+        # These built-in windows can be reopened by name without document loss.
+        allowed={'Macaque Web','Downloads','Applications','Macaque Applications','Calculator',
+                 'Chess','Teapot Studio','Macaque Search','Macaque Tiles','Macaque Clips',
+                 'Sound','Network','Storage','System Monitor','Display','Battery & Power',
+                 'USB Drives','Software Update','Clockwork','Character Map','Wallpapers',
+                 'Mouse','Tasks','Workspaces','Welcome Center','Macaque Notes'}
+        name='Applications' if title=='Macaque Applications' else title
+        if name in allowed:return {'kind':'app','value':name,'workspace':int(w.property('workspace') or 0)}
+        return None
+    def save(self):
+        if getattr(self,'restoring',False) or getattr(self,'shutting_down',False):return
+        entries=[]
+        for i in range(self.bar.count()):
+            w=self.bar.tabData(i)
+            if w in self.records and isValid(w):
+                item=self.descriptor(w)
+                if item and item not in entries:entries.append(item)
+        self.d.state['bottom_drawer_tabs']=entries
+        self.d.persist()
+    def restore(self):
+        from pathlib import Path
+        entries=self.d.state.get('bottom_drawer_tabs',[])
+        if not isinstance(entries,list):return
+        self.restoring=True
+        try:
+            for item in entries[:30]:
+                if not isinstance(item,dict) or item.get('kind') not in ('folder','app'):continue
+                value=item.get('value')
+                if not isinstance(value,str) or not value:continue
+                try:
+                    if item['kind']=='folder':
+                        path=Path(value)
+                        if not path.is_dir():continue
+                        w=self.d.open_finder(path)
+                    else:w=self.d.launch(value)
+                    if w is None or not isValid(w):continue
+                    w.setProperty('workspace',max(0,min(3,int(item.get('workspace',0)))))
+                    self.attach(w)
+                except (OSError,ValueError,TypeError,KeyError):continue
+        finally:
+            self.restoring=False
+        self.save()
     def shutdown(self):
+        self.save();self.shutting_down=True
         self.timer.stop();self.bar.blockSignals(True)
         while self.bar.count():self.bar.removeTab(0)
         self.records.clear();self.bar.hide()
