@@ -19,8 +19,8 @@ for action in ('poweroff','reboot','logout'):
  except ValueError:pass
 with tempfile.TemporaryDirectory() as t:
  d=Desktop(Path(t));d.show();QTest.qWait(60);d.system_menu();texts=[a.text() for a in d.top_bar.system.actions()];assert all(s in texts for s in ('Shut Down…','Restart…','Log Out…'))
- with patch.dict(os.environ,env),patch.object(actions,'Task',FakeTask),patch.object(QMessageBox,'question',return_value=QMessageBox.No):d.session_action('reboot');assert not FakeTask.calls
- with patch.dict(os.environ,env),patch.object(actions,'Task',FakeTask),patch.object(QMessageBox,'question',return_value=QMessageBox.Yes):
+ with patch.dict(os.environ,env),patch.object(actions,'Task',FakeTask),patch.object(actions,'classic_question',return_value=QMessageBox.No):d.session_action('reboot');assert not FakeTask.calls
+ with patch.dict(os.environ,env),patch.object(actions,'Task',FakeTask),patch.object(actions,'classic_question',return_value=QMessageBox.Yes):
   w=d.launch('Macaque Text')
   with patch.object(w.content,'can_close',return_value=False):d.session_action('poweroff');assert not FakeTask.calls
   with patch.object(w.content,'can_close',return_value=True):
