@@ -1,4 +1,4 @@
-name: Build Macaque Classic 0.42.9 desktop update
+name: Build Macaque Classic 0.42.10 desktop update
 on:
   workflow_dispatch:
   push:
@@ -43,31 +43,31 @@ jobs:
         run: python3 build-desktop-deb.py --output packages
       - name: Inspect package and checksum
         run: |
-          dpkg-deb --info packages/macaque-classic_0.42.9_amd64.deb
+          dpkg-deb --info packages/macaque-classic_0.42.10_amd64.deb
           cd packages
-          sha256sum -c macaque-classic_0.42.9_amd64.deb.sha256
-      - name: Publish 0.42.9 only after explicit release approval and VM validation
+          sha256sum -c macaque-classic_0.42.10_amd64.deb.sha256
+      - name: Publish 0.42.10 only after explicit release approval and VM validation
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tag=v0.42.9-desktop-preview
+          tag=v0.42.10-desktop-preview
           notes='Desktop update from 0.42.5. Adds animated busy-only Mac OS X-inspired beachball and improved secure wake lock styling, while retaining welcome, codecs and startup chime. Restart after installing.'
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" \
-              packages/macaque-classic_0.42.9_amd64.deb \
-              packages/macaque-classic_0.42.9_amd64.deb.sha256 --clobber
-            gh release edit "$tag" --title 'Macaque Classic 0.42.9 Desktop Update' --notes "$notes"
+              packages/macaque-classic_0.42.10_amd64.deb \
+              packages/macaque-classic_0.42.10_amd64.deb.sha256 --clobber
+            gh release edit "$tag" --title 'Macaque Classic 0.42.10 Desktop Update' --notes "$notes"
           else
             gh release create "$tag" \
-              packages/macaque-classic_0.42.9_amd64.deb \
-              packages/macaque-classic_0.42.9_amd64.deb.sha256 \
-              --title 'Macaque Classic 0.42.9 Desktop Update' --notes "$notes"
+              packages/macaque-classic_0.42.10_amd64.deb \
+              packages/macaque-classic_0.42.10_amd64.deb.sha256 \
+              --title 'Macaque Classic 0.42.10 Desktop Update' --notes "$notes"
           fi
       - name: Save downloadable release candidate
         uses: actions/upload-artifact@v4
         with:
-          name: macaque-classic-0.42.9-release-candidate
+          name: macaque-classic-0.42.10-release-candidate
           path: |
-            packages/macaque-classic_0.42.9_amd64.deb
-            packages/macaque-classic_0.42.9_amd64.deb.sha256
+            packages/macaque-classic_0.42.10_amd64.deb
+            packages/macaque-classic_0.42.10_amd64.deb.sha256
