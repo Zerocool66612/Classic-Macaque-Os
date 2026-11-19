@@ -62,21 +62,31 @@ def main(args):
         if not list(Path('/boot').glob('initrd.img-*')):raise RuntimeError('Installed initramfs is missing from /boot.')
         mapping=Path('/boot/grub/device.map')
         if mapping.exists():mapping.rename(mapping.with_name('device.map.before-macaque-install'))
+        bios='--target=i386-pc' in args
+        # Calamares has already selected the destination. Do not make the
+        # initial installation depend on grub-probe or a pre-existing menu.
+        # Those checks can fail before GRUB has created its own files.
+        targets=[os.path.realpath(a) for a in args if a.startswith('/dev/')]
+        if bios:
+            if len(targets)!=1 or not Path(targets[0]).exists():
+                raise RuntimeError('BIOS installation requires one existing whole-disk destination.')
+            kind=output(['/usr/bin/lsblk','--noheadings','--nodeps','--output','TYPE',targets[0]])
+            if kind.strip() not in ('disk','loop'):
+                raise RuntimeError('Refusing to install BIOS GRUB to a partition or non-disk device.')
+        target=targets[0] if bios else None
+        report.update(install_device=target)
+        uuid_conf=Path('/etc/default/grub.d/61-macaque-root-uuid.cfg')
+        uuid_conf.parent.mkdir(parents=True,exist_ok=True)
+        uuid_conf.write_text('GRUB_DISABLE_LINUX_UUID=false\\nGRUB_DISABLE_LINUX_PARTUUID=true\\n')
+        # Install using GRUB's native device discovery first, then generate
+        # and verify the menu against the completed installation.
+        install_grub(args)
+        subprocess.run(['/usr/sbin/update-grub'],check=True,timeout=300)
         uuid=output(['/usr/sbin/grub-probe','--target=fs_uuid','/'])
         boot_uuid=output(['/usr/sbin/grub-probe','--target=fs_uuid','/boot/grub'])
         boot_device=output(['/usr/sbin/grub-probe','--target=device','/boot/grub'])
-        actual_uuid=output(['/usr/sbin/blkid','-s','UUID','-o','value',boot_device])
-        if not boot_uuid or actual_uuid!=boot_uuid:raise RuntimeError('GRUB boot UUID does not match the installed boot filesystem.')
-        bios='--target=i386-pc' in args
-        target=bios_install_target(args,boot_device) if bios else None
-        report.update(root_uuid=uuid,boot_uuid=boot_uuid,boot_device=boot_device,install_device=target)
-        uuid_conf=Path('/etc/default/grub.d/61-macaque-root-uuid.cfg')
-        uuid_conf.parent.mkdir(parents=True,exist_ok=True)
-        uuid_conf.write_text('GRUB_DISABLE_LINUX_UUID=false\nGRUB_DISABLE_LINUX_PARTUUID=true\n')
-        # Regenerate the final menu BEFORE embedding a fresh core image.
-        subprocess.run(['/usr/sbin/update-grub'],check=True,timeout=300)
+        report.update(root_uuid=uuid,boot_uuid=boot_uuid,boot_device=boot_device)
         verify_config(Path('/boot/grub/grub.cfg').read_text(),uuid)
-        install_grub(args)
         platform='i386-pc' if bios else 'x86_64-efi'
         if not (Path('/boot/grub')/platform/'normal.mod').is_file():raise RuntimeError('Installed GRUB normal.mod is missing for '+platform)
         if bios:remember_bios_target(target)
