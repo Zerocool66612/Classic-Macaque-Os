@@ -17,6 +17,40 @@ def safe_command(argv, timeout=3):
     except (OSError,subprocess.TimeoutExpired):
         return "Unavailable"
 
+def local_hardware():
+    """Read current machine hardware, never a developer's target specifications."""
+    cpu='Unknown processor'
+    try:
+        for line in Path('/proc/cpuinfo').read_text().splitlines():
+            if line.lower().startswith(('model name','hardware','processor')) and ':' in line:
+                candidate=line.split(':',1)[1].strip()
+                if candidate and not candidate.isdigit():
+                    cpu=candidate
+                    break
+    except OSError:
+        pass
+    if cpu=='Unknown processor':
+        cpu=platform.processor() or cpu
+    memory='Unavailable'
+    try:
+        for line in Path('/proc/meminfo').read_text().splitlines():
+            if line.startswith('MemTotal:'):
+                memory=f"{int(line.split()[1])/1048576:.1f} GiB"
+                break
+    except (OSError,ValueError,IndexError):
+        pass
+    graphics='Unavailable'
+    result=safe_command(['lspci','-nn'])
+    if result not in ('Not available','Unavailable','No information'):
+        devices=[]
+        for line in result.splitlines():
+            if any(tag in line.lower() for tag in ('vga compatible controller','3d controller','display controller')):
+                devices.append(line.split(': ',1)[-1].strip())
+        if devices:graphics='; '.join(devices)
+    return {'processor':cpu,'memory':memory,'graphics':graphics,
+            'architecture':platform.machine() or 'Unknown',
+            'system':platform.system()+' '+platform.release()}
+
 def hardware_summary():
     lines=["Macaque Classic System Profiler","",f"System: {platform.system()} {platform.release()}",
            f"Architecture: {platform.machine()}",f"Processor: {platform.processor() or 'Unknown'}",
