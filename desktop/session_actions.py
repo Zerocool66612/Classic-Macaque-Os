@@ -2,6 +2,7 @@
 import os
 from PySide6.QtWidgets import QMessageBox
 from system_tasks import Task
+from classic_dialogs import question as classic_question
 LABELS={'poweroff':('Shut Down','Shut down this computer now?'),'reboot':('Restart','Restart this computer now?'),'logout':('Log Out','Log out and return to the login screen?')}
 def command(action,env=None):
     env=os.environ if env is None else env
@@ -17,7 +18,7 @@ def request(d,action):
     if getattr(d,'_session_job',None):return
     if d.installer_busy():QMessageBox.information(d,'Installer running','Finish the installation wizard before ending this session.');return
     title,prompt=LABELS[action]
-    if QMessageBox.question(d,title,prompt+'\nYou will be asked to save open Macaque documents.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)!=QMessageBox.Yes:return
+    if classic_question(d,title,prompt+'\nYou will be asked to save open Macaque documents.',QMessageBox.No)!=QMessageBox.Yes:return
     for window in d.area.subWindowList():
         if hasattr(window.content,'can_close') and not window.content.can_close():return
     if not d.app_support.can_close():return

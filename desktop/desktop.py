@@ -20,7 +20,7 @@ from extras import Tasks,Clockwork,Paint,ArchiveViewer,Characters,MediaPlayer
 from wallpapers import Wallpapers,render as render_wallpaper,NAMES as WALLPAPERS
 from mouse_tools import DesktopIcon,MousePreferences,paths_from
 from system_apps import AppHub,Sound,Network,Storage,Monitor,Display,ImageViewer,EmbeddedDialog
-VERSION='0.42.10'
+VERSION='0.42.11'
 
 from menu_compat import Menu as QMenu
 
@@ -157,7 +157,17 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         self.desktop_tabs.restore()
         if self.strip:self.strip.raise_()
         self.sound_theme.suspended=False
-        if not getattr(self,'welcome_intro',None):self.play_sound('startup')
+        if not getattr(self,'welcome_intro',None) and os.environ.get('MACAQUE_SILENT')!='1':
+            QTimer.singleShot(1800,lambda:self.startup_audio(0))
+    def startup_audio(self,attempt):
+        """Wait for the user's audio sink to appear before playing the startup chime."""
+        if self.sound_theme.suspended or not self.state.get('sounds_enabled',True):return
+        if not self.sound_theme.available:
+            self.sound_theme=SoundTheme(self)
+        if self.sound_theme.available:
+            self.play_sound('startup')
+        elif attempt<8:
+            QTimer.singleShot(1000,lambda:self.startup_audio(attempt+1))
     def colors(self):return theme_colors(self.state.get('mode','light'))
     def apply_ui_theme(self):
         c=self.colors();app=QApplication.instance();app.setStyleSheet(self.desktop_stylesheet())
