@@ -31,7 +31,8 @@ def decorate(dialog, desktop):
     dialog.resize(max(440,dialog.width()),dialog.height()+33)
     bar.raise_()
     dialog._macaque_title_bar=bar
-    dialog.setStyleSheet(desktop.desktop_stylesheet())
+    from theme import stylesheet as theme_stylesheet
+    dialog.setStyleSheet(theme_stylesheet(desktop.state.get('mode','light')))
     return dialog
 
 def question(desktop,title,message,default=QMessageBox.No):
