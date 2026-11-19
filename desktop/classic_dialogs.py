@@ -24,7 +24,13 @@ def decorate(dialog, desktop):
     bar.setStyleSheet('QWidget#macaqueDialogTitle {background:'+palette['title']+';border-bottom:1px solid '+palette['stripe']+';color:'+palette['text']+';}')
     layout=dialog.layout()
     if layout is not None:
-        layout.insertWidget(0,bar)
+        margins=layout.contentsMargins()
+        layout.setContentsMargins(margins.left(),margins.top()+33,margins.right(),margins.bottom())
+    bar.move(0,0)
+    bar.resize(max(300,dialog.width()),31)
+    dialog.resize(max(440,dialog.width()),dialog.height()+33)
+    bar.raise_()
+    dialog._macaque_title_bar=bar
     dialog.setStyleSheet(desktop.desktop_stylesheet())
     return dialog
 
