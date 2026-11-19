@@ -3,6 +3,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QListWidget,QListWidgetItem,QFileDialog,QMessageBox,QPlainTextEdit,QProgressBar
 from system_tasks import Task
+from classic_dialogs import question as classic_question, file_name as classic_file_name
 class Updates(QWidget):
     app_name='Software Update'
     def __init__(self,d):
@@ -59,13 +60,13 @@ class Updates(QWidget):
         item=self.rollback_list.currentItem()
         if not item:self.history();return
         data=item.data(Qt.UserRole)
-        if QMessageBox.question(self,'Roll back desktop','Install saved Macaque Classic '+data['version']+'?\n\nSave your work first. This changes only the desktop package, not Debian updates, drivers or personal files. Administrator authentication and APT confirmation follow.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:
+        if classic_question(self.d,'Roll back desktop','Install saved Macaque Classic '+data['version']+'?\n\nSave your work first. This changes only the desktop package, not Debian updates, drivers or personal files. Administrator authentication and APT confirmation follow.',QMessageBox.No)==QMessageBox.Yes:
             self.terminal('Desktop Rollback',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'rollback-desktop',data['path'],data['sha256']])
     def download(self):
         item=self.releases.currentItem()
         if item:self.run({'action':'download','release':item.data(Qt.UserRole),'folder':str(self.d.disk.root/'Downloads')},self.offer_install)
     def choose(self):
-        path,_=QFileDialog.getOpenFileName(self,'Choose a Macaque desktop update',str(self.d.disk.root/'Downloads'),'Debian package (*.deb)')
+        path,_=classic_file_name(self.d,'Choose a Macaque desktop update',str(self.d.disk.root/'Downloads'),'Debian package (*.deb)')
         if path:self.run({'action':'inspect','path':path},self.offer_install)
     def native_installed(self):
         from maintenance import installed_target
@@ -77,7 +78,7 @@ class Updates(QWidget):
         if older(data['version'],VERSION):self.status.setText('This is an older desktop version. Use Update History to select a saved rollback package.');return
         self.status.setText('Package ready: Macaque Classic '+data['version'])
         if not self.native_installed():self.status.setText('Package ready. Install updates from an installed Macaque login session, not live media or the standalone prototype.');return
-        if QMessageBox.question(self,'Install desktop update','Install Macaque Classic '+data['version']+' from this package?\n\nAdministrator authentication and APT confirmation follow in Terminal. Save work and log out/in after installation.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:self.terminal('Desktop Update',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'install-desktop',data['path'],data['sha256']])
+        if classic_question(self.d,'Install desktop update','Install Macaque Classic '+data['version']+' from this package?\n\nAdministrator authentication and APT confirmation follow in Terminal. Save work and log out/in after installation.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:self.terminal('Desktop Update',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'install-desktop',data['path'],data['sha256']])
     def terminal(self,title,args):
         from terminal_app import Terminal
         panel=Terminal(self.d,command=args);self.d.window(title,panel,(960,620));panel.view.setFocus()

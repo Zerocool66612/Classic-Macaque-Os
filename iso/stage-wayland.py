@@ -19,6 +19,7 @@ def stage(dest,live=False):
         put('usr/share/themes/Macaque Traffic/openbox-3/'+button.name,'wayland/traffic-buttons/'+button.name)
     put('usr/share/themes/Macaque Platinum/gtk-3.0/gtk.css','startup/gtk.css')
     put('usr/share/backgrounds/macaque-login.png','startup/login.png')
+    put('usr/share/macaque/gtklock.css','wayland/macaque-gtklock.css')
     put('etc/pam.d/greetd' if live else 'usr/share/macaque/greetd.pam','wayland/greetd.pam')
     put('etc/greetd/macaque.css','wayland/macaque.css')
     # Keep the package's greetd config as a conffile, and generate our config

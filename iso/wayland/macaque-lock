@@ -1,14 +1,13 @@
 #!/bin/sh
 set -eu
 [ "${XDG_SESSION_TYPE:-}" = wayland ] && [ -n "${WAYLAND_DISPLAY:-}" ] || { echo 'A native Wayland session is required.' >&2; exit 1; }
-# Match the Macaque Classic blue/Platinum login palette on wake. The user
-# session stays running; swaylock authenticates through PAM, not greetd.
-# -f returns only after the compositor lock is established (before suspend).
-exec swaylock -f \
-  -c 7895a9 -i /usr/share/backgrounds/macaque-login.png \
+# gtklock uses ext-session-lock and PAM, retaining the existing user session.
+# Its GTK entry/card replaces swaylock's circular indicator on wake.
+if command -v gtklock >/dev/null 2>&1; then
+  exec gtklock --daemonize --style /usr/share/macaque/gtklock.css
+fi
+# Safe fallback for older installs lacking gtklock; never show an unsecured screen.
+exec swaylock -f -c 7895a9 -i /usr/share/backgrounds/macaque-login.png \
   --indicator-radius 85 --indicator-thickness 8 \
   --inside-color ecececee --ring-color 5c7790ff \
-  --line-color 454545ff --separator-color 454545ff \
-  --text-color 20242aff --key-hl-color 3b9cdbff \
-  --inside-ver-color ececeeee --ring-ver-color 3b9cdbff \
-  --inside-wrong-color f2ddddff --ring-wrong-color 9b2020ff
+  --text-color 20242aff --key-hl-color 3b9cdbff

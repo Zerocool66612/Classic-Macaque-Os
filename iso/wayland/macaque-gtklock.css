@@ -1,0 +1,7 @@
+/* Macaque Classic wake screen: same palette and centered login card as greetd. */
+window {background-color:#7895a9;background-image:url('/usr/share/backgrounds/macaque-login.png');background-size:cover;background-position:center;}
+#window-box {background:#ececec;border:2px solid #454545;border-radius:8px;padding:26px;min-width:350px;}
+#clock-label {color:#20242a;font-size:23px;font-weight:bold;}
+#input-label,#user-label {color:#20242a;font-size:15px;}
+#input-field {background:#ffffff;color:#20242a;border:1px solid #888;border-radius:5px;padding:10px;min-width:270px;}
+#error-label {color:#9b2020;}
