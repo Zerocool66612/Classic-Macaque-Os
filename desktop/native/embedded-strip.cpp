@@ -262,6 +262,7 @@ int readVolume() {
 }
 void writeVolume(int value) {
     value=qBound(0,value,100);
+    QSettings("MacaqueOS", "ClassicControlStripDesktop").setValue("savedSystemVolume",value);
     if(hasCommand("wpctl")) QProcess::startDetached("wpctl",{"set-volume","@DEFAULT_AUDIO_SINK@",QString::number(value)+"%"});
     else if(hasCommand("pactl")) QProcess::startDetached("pactl",{"set-sink-volume","@DEFAULT_SINK@",QString::number(value)+"%"});
     }
