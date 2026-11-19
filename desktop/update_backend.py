@@ -8,11 +8,11 @@ PREFIX='https://github.com/Zerocool66612/Classic-Macaque-Os/releases/download/'
 class HTTPSRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,req,fp,code,msg,headers,newurl):
         u=urllib.parse.urlsplit(newurl)
-        if u.scheme!='https' or not (u.hostname=='github.com' or (u.hostname or '').endswith('.githubusercontent.com')):raise ValueError('Unexpected download redirect.')
+        if u.scheme!='https' or not (u.hostname=='github.com' or (u.hostname or '').endswith('.githubusercontent.com') or (u.hostname or '').endswith('.github.com')):raise ValueError('Unexpected download redirect.')
         return super().redirect_request(req,fp,code,msg,headers,newurl)
 def read_url(url,limit):
     req=urllib.request.Request(url,headers={'User-Agent':'Macaque-Classic-Updater','Accept':'application/vnd.github+json' if url==API else '*/*'})
-    with urllib.request.build_opener(HTTPSRedirect()).open(req,timeout=30) as response:
+    with urllib.request.build_opener(HTTPSRedirect()).open(req,timeout=60) as response:
         content=response.read(limit+1)
         if len(content)>limit:raise ValueError('Download exceeds the allowed size.')
         return content
