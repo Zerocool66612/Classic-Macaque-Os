@@ -28,6 +28,7 @@ with tempfile.TemporaryDirectory() as temp:
  for f in desc['images'].values():assert (base/'branding/macaque'/f).is_file()
  assert 'debian-logo' not in str(desc)
  assert yaml.safe_load((mods/'partition.conf').read_text())['initialSwapChoice']=='none'
+ assert yaml.safe_load((mods/'partition.conf').read_text())['defaultPartitionTableType']=='msdos'
  assert yaml.safe_load((mods/'packages.conf').read_text())['update_db'] is False
  assert yaml.safe_load((mods/'bootloader.conf').read_text())['grubInstall']=='/usr/local/libexec/macaque-grub-install'
  users=yaml.safe_load((mods/'users.conf').read_text());assert users['passwordRequirements']=={'minLength':8,'maxLength':128}
