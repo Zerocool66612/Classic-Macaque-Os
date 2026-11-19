@@ -28,7 +28,7 @@ class Updates(QWidget):
         self.status.setText('Working…');self.progress.show();self.job=Task(self,Task.helper('update_backend.py'),payload,180000)
         def done(ok,text):
             self.job=None;self.progress.hide()
-            if not ok:self.status.setText(text);return
+            if not ok:self.status.setText('Update failed: '+text+'  Please retry or open Recovery & Diagnostics.');return
             try:data=json.loads(text)
             except ValueError:self.status.setText('Invalid updater response.');return
             callback(data)
@@ -64,7 +64,15 @@ class Updates(QWidget):
             self.terminal('Desktop Rollback',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'rollback-desktop',data['path'],data['sha256']])
     def download(self):
         item=self.releases.currentItem()
-        if item:self.run({'action':'download','release':item.data(Qt.UserRole),'folder':str(self.d.disk.root/'Downloads')},self.offer_install)
+        if not item:
+            self.status.setText('Select a desktop release first. Click Check Desktop Releases to refresh the list.')
+            return
+        release=item.data(Qt.UserRole)
+        if not release or not release.get('url'):
+            self.status.setText('The selected release has no downloadable desktop package.')
+            return
+        self.status.setText('Downloading Macaque Classic '+release['version']+'…')
+        self.run({'action':'download','release':release,'folder':str(self.d.disk.root/'Downloads')},self.offer_install)
     def choose(self):
         path,_=classic_file_name(self.d,'Choose a Macaque desktop update',str(self.d.disk.root/'Downloads'),'Debian package (*.deb)')
         if path:self.run({'action':'inspect','path':path},self.offer_install)
@@ -74,10 +82,12 @@ class Updates(QWidget):
     def offer_install(self,data):
         from desktop import VERSION
         from update_store import older
-        if data['version']==VERSION:self.status.setText('Macaque Classic '+VERSION+' is already running.');return
-        if older(data['version'],VERSION):self.status.setText('This is an older desktop version. Use Update History to select a saved rollback package.');return
+        from update_store import installed_version
+        installed=installed_version() or VERSION
+        if data['version']==installed:self.status.setText('Macaque Classic '+installed+' is already installed.');return
+        if older(data['version'],installed):self.status.setText('This is an older desktop version. Use Update History to select a saved rollback package.');return
         self.status.setText('Package ready: Macaque Classic '+data['version'])
-        if not self.native_installed():self.status.setText('Package ready. Install updates from an installed Macaque login session, not live media or the standalone prototype.');return
+        if not self.native_installed():self.status.setText('Package downloaded, but installation is only available from an installed Macaque login session.');return
         if classic_question(self.d,'Install desktop update','Install Macaque Classic '+data['version']+' from this package?\n\nAdministrator authentication and APT confirmation follow in Terminal. Save work and log out/in after installation.',QMessageBox.No)==QMessageBox.Yes:self.terminal('Desktop Update',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'install-desktop',data['path'],data['sha256']])
     def terminal(self,title,args):
         from terminal_app import Terminal

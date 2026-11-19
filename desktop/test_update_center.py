@@ -68,6 +68,10 @@ with tempfile.TemporaryDirectory() as temp:
  with patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.No):
   panel.offer_install({'version':'99.0.0','path':'/tmp/new.deb','sha256':'b'*64})
   terminal.assert_not_called()
+ panel.releases.clear();panel.download();assert 'Select a desktop release' in panel.status.text()
+ with patch('update_store.installed_version',return_value='0.40.1'),patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.Yes):
+  panel.offer_install({'version':'0.42.13','path':'/tmp/new.deb','sha256':'b'*64})
+  terminal.assert_called_once()
  panel.checked({'releases':[{'version':'0.41','tag':'test','prerelease':True,'notes':'<script>plain text</script>'}]});assert panel.notes.toPlainText()=='<script>plain text</script>'
  panel.deleteLater();app.processEvents()
 print('PASS: real .deb cache/hash/metadata, install and rollback command guards (APT mocked), failure receipts, consent, release notes, one-login recovery and unchanged preferences.')
