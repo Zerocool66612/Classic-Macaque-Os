@@ -26,6 +26,9 @@ def configure(root):
     partition=modules/'partition.conf'
     options=yaml.safe_load(partition.read_text()) or {} if partition.exists() else {}
     options.update(userSwapChoices=['none','file'],initialSwapChoice='none')
+    # Prefer a BIOS-compatible MBR layout for automatic Erase Disk installs.
+    # Calamares may override this for EFI installations or user-selected layouts.
+    options['defaultPartitionTableType']='msdos'
     partition.write_text(yaml.safe_dump(options,sort_keys=False))
     finished=modules/'finished.conf'
     final=yaml.safe_load(finished.read_text()) or {} if finished.exists() else {}
