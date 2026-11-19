@@ -4,7 +4,7 @@ set -eu
 # gtklock uses ext-session-lock and PAM, retaining the existing user session.
 # Its GTK entry/card replaces swaylock's circular indicator on wake.
 if command -v gtklock >/dev/null 2>&1; then
-  exec gtklock --style /usr/share/macaque/gtklock.css
+  exec gtklock --daemonize --style /usr/share/macaque/gtklock.css
 fi
 # Safe fallback for older installs lacking gtklock; never show an unsecured screen.
 exec swaylock -f -c 7895a9 -i /usr/share/backgrounds/macaque-login.png \
