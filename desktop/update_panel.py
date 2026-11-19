@@ -1,6 +1,6 @@
 import json,os
 from pathlib import Path
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt,QTimer
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QListWidget,QListWidgetItem,QFileDialog,QMessageBox,QPlainTextEdit,QProgressBar
 from system_tasks import Task
 from classic_dialogs import question as classic_question, file_name as classic_file_name
@@ -11,7 +11,10 @@ class Updates(QWidget):
         from desktop import VERSION
         v.addWidget(QLabel('Macaque Classic '+VERSION+' · Software Update'));self.status=QLabel('Desktop updates are installed as packages. Your files and preferences stay in your user folder.');self.status.setWordWrap(True);self.status.setTextFormat(Qt.PlainText);v.addWidget(self.status)
         self.releases=QListWidget();v.addWidget(self.releases);row=QHBoxLayout();v.addLayout(row)
-        for title,fn in [('Check Desktop Releases',self.check),('Download Selected',self.download),('Install Desktop Package…',self.choose)]:b=QPushButton(title);b.clicked.connect(fn);row.addWidget(b)
+        self.download_button=None
+        for title,fn in [('Check Desktop Releases',self.check),('Download Selected',self.download),('Install Desktop Package…',self.choose)]:
+            b=QPushButton(title);b.clicked.connect(fn);row.addWidget(b)
+            if title=='Download Selected':self.download_button=b
         self.notes=QPlainTextEdit();self.notes.setReadOnly(True);self.notes.setPlaceholderText('Release notes appear here when you select a release.');self.notes.setMaximumHeight(130);v.addWidget(self.notes)
         self.releases.currentItemChanged.connect(self.selection_changed)
         self.progress=QProgressBar();self.progress.setRange(0,0);self.progress.hide();v.addWidget(self.progress)
@@ -22,12 +25,18 @@ class Updates(QWidget):
         self.packages=QPlainTextEdit();self.packages.setReadOnly(True);self.packages.setPlaceholderText('Debian updates shown here use the current local package index.');v.addWidget(self.packages)
         row=QHBoxLayout();v.addLayout(row)
         for title,fn in [('List Debian Updates',self.list_updates),('Update Debian…',self.system_update)]:b=QPushButton(title);b.clicked.connect(fn);row.addWidget(b)
+        QTimer.singleShot(0,self.check)
         note=QLabel('Desktop downloads use HTTPS and a release checksum, not a signed Macaque update feed. Install only desktop packages you trust. Debian updates use APT signature verification and ask before changes.');note.setWordWrap(True);v.addWidget(note)
     def run(self,payload,callback):
-        if self.job:return
-        self.status.setText('Working…');self.progress.show();self.job=Task(self,Task.helper('update_backend.py'),payload,180000)
+        if self.job:
+            self.status.setText('An update operation is already running. Please wait for it to finish.')
+            return
+        self.status.setText('Working…');self.progress.show()
+        if self.download_button:self.download_button.setEnabled(False)
+        self.job=Task(self,Task.helper('update_backend.py'),payload,180000)
         def done(ok,text):
             self.job=None;self.progress.hide()
+            if self.download_button:self.download_button.setEnabled(True)
             if not ok:self.status.setText('Update failed: '+text+'  Please retry or open Recovery & Diagnostics.');return
             try:data=json.loads(text)
             except ValueError:self.status.setText('Invalid updater response.');return
@@ -65,8 +74,13 @@ class Updates(QWidget):
     def download(self):
         item=self.releases.currentItem()
         if not item:
-            self.status.setText('Select a desktop release first. Click Check Desktop Releases to refresh the list.')
-            return
+            if self.releases.count():
+                self.releases.setCurrentRow(0)
+                item=self.releases.currentItem()
+            if not item:
+                self.status.setText('No release is selected. Checking for available desktop updates…')
+                self.check()
+                return
         release=item.data(Qt.UserRole)
         if not release or not release.get('url'):
             self.status.setText('The selected release has no downloadable desktop package.')

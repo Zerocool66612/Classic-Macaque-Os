@@ -68,7 +68,10 @@ with tempfile.TemporaryDirectory() as temp:
  with patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.No):
   panel.offer_install({'version':'99.0.0','path':'/tmp/new.deb','sha256':'b'*64})
   terminal.assert_not_called()
- panel.releases.clear();panel.download();assert 'Select a desktop release' in panel.status.text()
+ panel.releases.clear()
+ with patch.object(panel,'check') as refresh:
+  panel.download();refresh.assert_called_once()
+ assert 'Checking for available desktop updates' in panel.status.text()
  with patch('update_store.installed_version',return_value='0.40.1'),patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.Yes):
   panel.offer_install({'version':'0.42.13','path':'/tmp/new.deb','sha256':'b'*64})
   terminal.assert_called_once()
