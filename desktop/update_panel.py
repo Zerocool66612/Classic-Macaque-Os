@@ -1,4 +1,4 @@
-import json,os
+import json,os,traceback,time
 from pathlib import Path
 from PySide6.QtCore import Qt,QTimer
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QListWidget,QListWidgetItem,QFileDialog,QMessageBox,QPlainTextEdit,QProgressBar
@@ -33,15 +33,30 @@ class Updates(QWidget):
             return
         self.status.setText('Working…');self.progress.show()
         if self.download_button:self.download_button.setEnabled(False)
-        self.job=Task(self,Task.helper('update_backend.py'),payload,180000)
+        try:
+            self.job=Task(self,Task.helper('update_backend.py'),payload,180000)
+        except Exception as ex:
+            self.progress.hide()
+            if self.download_button:self.download_button.setEnabled(True)
+            self.report_failure('Could not launch updater: '+str(ex))
+            return
         def done(ok,text):
             self.job=None;self.progress.hide()
             if self.download_button:self.download_button.setEnabled(True)
-            if not ok:self.status.setText('Update failed: '+text+'  Please retry or open Recovery & Diagnostics.');return
+            if not ok:self.report_failure(text);return
             try:data=json.loads(text)
-            except ValueError:self.status.setText('Invalid updater response.');return
-            callback(data)
+            except ValueError:self.report_failure('Invalid updater response: '+text[:1000]);return
+            try:callback(data)
+            except Exception as ex:self.report_failure('Updater UI failed: '+str(ex)+'\n'+traceback.format_exc())
         self.job.done.connect(done)
+    def report_failure(self,message):
+        self.status.setText('Update failed: '+message.splitlines()[0][:400])
+        try:
+            path=Path.home()/'.local/share/macaque-classic/update-errors.log'
+            path.parent.mkdir(parents=True,exist_ok=True)
+            with path.open('a') as log:log.write(time.strftime('%Y-%m-%d %H:%M:%S')+' '+message[:4000]+'\n')
+        except OSError:pass
+        QMessageBox.warning(self,'Software Update failed',message[:1500]+'\n\nPlease report this error so the updater can be repaired.')
     def check(self):self.run({'action':'check'},self.checked)
     def checked(self,data):
         self.releases.clear()
