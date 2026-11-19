@@ -59,20 +59,24 @@ with tempfile.TemporaryDirectory() as temp:
  panel=Updates(Mock());panel.history_loaded({'installed_version':'0.41','packages':[{'version':'0.40.1','path':str(saved),'sha256':'a'*64,'rollback':True}],'history':[]})
  with patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.No):panel.rollback();terminal.assert_not_called()
  with patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.Yes):panel.rollback();assert terminal.call_args.args[1][-3]=='rollback-desktop'
- # Downloaded newer package must open themed confirmation and launch installer.
- with patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.Yes) as confirm:
+ # Installed-system detection must not depend on a fragile session environment variable.
+ with patch('maintenance.installed_target',return_value=True),patch.dict(os.environ,{'MACAQUE_NATIVE_SESSION':'0'},clear=False):
+  os.environ.pop('MACAQUE_PREVIEW_SESSION',None)
+  assert panel.native_installed()
+ # Downloaded newer package must open a parented confirmation and launch installer.
+ with patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.QMessageBox.question',return_value=QMessageBox.Yes) as confirm:
   panel.offer_install({'version':'99.0.0','path':'/tmp/new.deb','sha256':'b'*64})
   confirm.assert_called_once()
   assert confirm.call_args.args[-1]==QMessageBox.No
   assert terminal.call_args.args[1][-3:]==['install-desktop','/tmp/new.deb','b'*64]
- with patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.No):
+ with patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.QMessageBox.question',return_value=QMessageBox.No):
   panel.offer_install({'version':'99.0.0','path':'/tmp/new.deb','sha256':'b'*64})
   terminal.assert_not_called()
  panel.releases.clear()
  with patch.object(panel,'check') as refresh:
   panel.download();refresh.assert_called_once()
  assert 'Checking for available desktop updates' in panel.status.text()
- with patch('update_store.installed_version',return_value='0.40.1'),patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.classic_question',return_value=QMessageBox.Yes):
+ with patch('update_store.installed_version',return_value='0.40.1'),patch.object(panel,'native_installed',return_value=True),patch.object(panel,'terminal') as terminal,patch('update_panel.QMessageBox.question',return_value=QMessageBox.Yes):
   panel.offer_install({'version':'0.42.13','path':'/tmp/new.deb','sha256':'b'*64})
   terminal.assert_called_once()
  panel.checked({'releases':[{'version':'0.41','tag':'test','prerelease':True,'notes':'<script>plain text</script>'}]});assert panel.notes.toPlainText()=='<script>plain text</script>'
