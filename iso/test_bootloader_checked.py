@@ -17,19 +17,21 @@ for bad in [False,True]:
   root=Path(temp)
   for name,data in {'etc/macaque-installed':'target','boot/vmlinuz-test':'kernel','boot/initrd.img-test':'initramfs','boot/grub/device.map':'stale','boot/grub/i386-pc/normal.mod':'module','boot/grub/grub.cfg':"menuentry 'Macaque' {\n search --fs-uuid "+('old' if bad else 'new-uuid')+';\n linux /boot/vmlinuz-test root=UUID='+('old' if bad else 'new-uuid')+' ro\n}\n'}.items():
    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(data)
+  (root/'dev/example').parent.mkdir(parents=True,exist_ok=True);(root/'dev/example').touch()
   commands=[]
   def probe(args):
    assert not (root/'boot/grub/device.map').exists()
+   if '--output' in args:return 'disk'
    if '--target=device' in args:return '/dev/example1'
    return 'new-uuid'
-  with patch.object(m,'Path',lambda p:root/str(p).lstrip('/')),patch.object(m,'output',side_effect=probe),patch.object(m,'physical_disks',return_value={'/dev/example'}),patch.object(m.os,'geteuid',return_value=0),patch.object(m.subprocess,'run',side_effect=lambda a,**kw:(commands.append(a) or subprocess.CompletedProcess(a,0,'',''))):
+  with patch.object(m,'Path',lambda p:root/str(p).lstrip('/')),patch.object(m,'output',side_effect=probe),patch.object(m,'physical_disks',return_value={'/dev/example'}),patch.object(m.os.path,'realpath',side_effect=lambda p:p),patch.object(m.os,'geteuid',return_value=0),patch.object(m.subprocess,'run',side_effect=lambda a,**kw:(commands.append(a) or subprocess.CompletedProcess(a,0,'',''))):
    try:m.main(['--target=i386-pc','--force','/dev/example'])
    except RuntimeError:assert bad
    else:assert not bad
-  assert commands[0]==['/usr/sbin/update-grub']
-  if bad:assert len(commands)==1
+  assert commands[0]==cmd
+  assert commands[1]==['/usr/sbin/update-grub']
+  if bad:assert len(commands)==2
   else:
-   assert commands[1]==cmd
    assert commands[2]==['/usr/bin/debconf-set-selections'] and commands[-1]==['/bin/sync']
   report=json.loads((root/'var/log/macaque-bootloader.json').read_text())
   assert (report['status']=='failed')==bad and report['install_device']=='/dev/example'
