@@ -1,5 +1,5 @@
 """GRUB target selection, fresh UUID validation, finalization and refusal gates."""
-import tempfile,importlib.util,json
+import tempfile,importlib.util,json,subprocess
 from pathlib import Path
 from unittest.mock import patch
 spec=importlib.util.spec_from_file_location('checked',Path(__file__).with_name('grub-install-checked.py'));m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -22,7 +22,7 @@ for bad in [False,True]:
    assert not (root/'boot/grub/device.map').exists()
    if '--target=device' in args:return '/dev/example1'
    return 'new-uuid'
-  with patch.object(m,'Path',lambda p:root/str(p).lstrip('/')),patch.object(m,'output',side_effect=probe),patch.object(m,'physical_disks',return_value={'/dev/example'}),patch.object(m.os,'geteuid',return_value=0),patch.object(m.subprocess,'run',side_effect=lambda a,**kw:commands.append(a)):
+  with patch.object(m,'Path',lambda p:root/str(p).lstrip('/')),patch.object(m,'output',side_effect=probe),patch.object(m,'physical_disks',return_value={'/dev/example'}),patch.object(m.os,'geteuid',return_value=0),patch.object(m.subprocess,'run',side_effect=lambda a,**kw:(commands.append(a) or subprocess.CompletedProcess(a,0,'',''))):
    try:m.main(['--target=i386-pc','--force','/dev/example'])
    except RuntimeError:assert bad
    else:assert not bad
