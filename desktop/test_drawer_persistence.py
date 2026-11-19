@@ -6,8 +6,9 @@ from PySide6.QtWidgets import QApplication,QMainWindow,QMdiArea,QWidget
 from desktop_tabs import DesktopTabs
 from pathlib import Path
 app=QApplication.instance() or QApplication([])
-class Fake:
+class Fake(QWidget):
     def __init__(self,base):
+        super().__init__()
         self.state={};self.path=Path(base)/'state.json'
         self.area=QMdiArea();self.workspace=0;self.strip=None
     def persist(self):
