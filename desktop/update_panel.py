@@ -78,7 +78,7 @@ class Updates(QWidget):
         if older(data['version'],VERSION):self.status.setText('This is an older desktop version. Use Update History to select a saved rollback package.');return
         self.status.setText('Package ready: Macaque Classic '+data['version'])
         if not self.native_installed():self.status.setText('Package ready. Install updates from an installed Macaque login session, not live media or the standalone prototype.');return
-        if classic_question(self.d,'Install desktop update','Install Macaque Classic '+data['version']+' from this package?\n\nAdministrator authentication and APT confirmation follow in Terminal. Save work and log out/in after installation.',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)==QMessageBox.Yes:self.terminal('Desktop Update',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'install-desktop',data['path'],data['sha256']])
+        if classic_question(self.d,'Install desktop update','Install Macaque Classic '+data['version']+' from this package?\n\nAdministrator authentication and APT confirmation follow in Terminal. Save work and log out/in after installation.',QMessageBox.No)==QMessageBox.Yes:self.terminal('Desktop Update',['sudo','--','/usr/bin/python3',str(Path(__file__).with_name('maintenance.py')),'install-desktop',data['path'],data['sha256']])
     def terminal(self,title,args):
         from terminal_app import Terminal
         panel=Terminal(self.d,command=args);self.d.window(title,panel,(960,620));panel.view.setFocus()
