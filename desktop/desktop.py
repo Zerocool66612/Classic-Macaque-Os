@@ -154,6 +154,7 @@ class Desktop(InstallerSupport,ContextActions,WorkspaceFeatures,ModernFeatures,Q
         for i,key in enumerate(list(self.stickies)[:4] if self.state.get('startup_notes',True) else []):self.launch('Macaque Notes',key=key).move(370+i*25,max(100,self.area.viewport().height()-330+i*15))
         for name in self.state.get('startup_apps',[]):
             if name in APP_NAMES and name not in CREATIVE_APPS and name not in ('Settings','Notifications'):self.launch(name)
+        self.desktop_tabs.restore()
         if self.strip:self.strip.raise_()
         self.sound_theme.suspended=False
         if not getattr(self,'welcome_intro',None):self.play_sound('startup')
