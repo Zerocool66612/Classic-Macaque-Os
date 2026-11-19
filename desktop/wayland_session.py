@@ -26,6 +26,7 @@ def main():
             if not safe and '--preview' not in sys.argv and shutil.which('wlr-randr'):
                 children.append(subprocess.Popen([sys.executable,str(ROOT/'display_settings.py'),'--restore'],env=env,stdout=log,stderr=log))
             if '--preview' not in sys.argv:children.append(subprocess.Popen([sys.executable,str(ROOT/'wayland_power.py'),'daemon'],env=env,stdout=log,stderr=log))
+            if '--preview' not in sys.argv:children.append(subprocess.Popen([sys.executable,str(ROOT/'volume_restore.py')],env=env,stdout=log,stderr=log))
             desktop=subprocess.Popen([sys.executable,str(ROOT/'desktop.py')],env=env,stdout=log,stderr=log);children.append(desktop)
             def stopped(*_):
                 if desktop.poll() is None:desktop.terminate()
