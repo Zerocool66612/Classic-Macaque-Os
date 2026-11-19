@@ -40,6 +40,13 @@ def monitor(command,env,uid,logdir=Path('/var/log/macaque-installer')):
             code=process.wait()
             log.write(('\nMacaque installer process exit: '+str(code)+
                        (' (signal '+str(-code)+')' if code<0 else '')+'\n').encode())
+        if code!=0:
+            try:
+                journal=subprocess.run(['/usr/bin/journalctl','-b','--no-pager','-n','100','-o','short-iso'],capture_output=True,text=True,timeout=12)
+                with open(name,'ab') as extra:
+                    extra.write(b'\n=== Recent system journal after installer failure ===\n')
+                    extra.write((journal.stdout+journal.stderr)[-24000:].encode(errors='replace'))
+            except (OSError,subprocess.SubprocessError):pass
         data.update(running=False,returncode=code,ended=time.time(),message='Installer wizard closed normally. Confirm completion on its final page; cancellation can also exit normally.' if code==0 else 'Installer exited with an error. Open Recovery & Diagnostics and review the installer log.')
         record(status,data);return code
     except Exception as ex:

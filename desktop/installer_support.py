@@ -43,5 +43,10 @@ class InstallerSupport:
             code=self.installer_process.poll()
             if code is None:return
             self.installer_watch.stop()
-            if code!=0:self.launch('Installer Status')
+            if code!=0:
+                status=self.launch('Installer Status')
+                QMessageBox.warning(self,'Installer stopped unexpectedly',
+                    'The installer exited before completion (code '+str(code)+'). No successful installation is confirmed.\n\n'
+                    'Installer Status has opened with the recorded error log. '
+                    'Please copy or photograph the final error lines before retrying.')
         self.installer_watch.timeout.connect(check);self.installer_watch.start(1000)

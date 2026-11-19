@@ -17,3 +17,7 @@ assert env['QT_OPENGL']=='software' and env['WAYLAND_DISPLAY']=='/run/user/1000/
 assert not any(k in env for k in ['DISPLAY','XAUTHORITY','QT_PLUGIN_PATH','LD_LIBRARY_PATH'])
 assert m.installer_command()==['/usr/bin/calamares','-platform','wayland','-D','8']
 print('Native Wayland environment, software slideshow and verbose logging checks passed.')
+
+# Avoid animated Qt Quick transitions during the critical partition/unpack phase.
+assert 'Timer {' not in (ROOT/'iso/branding/show.qml').read_text()
+print('PASS: installer slideshow has no timed transitions during installation.')
