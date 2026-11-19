@@ -44,6 +44,14 @@ def remember_bios_target(device):
     settings='grub-pc grub-pc/install_devices multiselect '+stable+'\ngrub-pc grub-pc/install_devices_empty boolean false\n'
     subprocess.run(['/usr/bin/debconf-set-selections'],input=settings,text=True,check=True,timeout=30)
 
+def install_grub(args):
+    command=checked_args(args)
+    result=subprocess.run(command,capture_output=True,text=True,timeout=300)
+    if result.returncode:
+        details=(result.stdout+'\n'+result.stderr).strip()
+        print(details,file=sys.stderr,flush=True)
+        raise RuntimeError('GRUB installation failed (exit '+str(result.returncode)+'): '+details[-4000:])
+
 def main(args):
     report={'arguments':args,'status':'preparing'}
     dest=Path('/var/log/macaque-bootloader.json')
@@ -68,7 +76,7 @@ def main(args):
         # Regenerate the final menu BEFORE embedding a fresh core image.
         subprocess.run(['/usr/sbin/update-grub'],check=True,timeout=300)
         verify_config(Path('/boot/grub/grub.cfg').read_text(),uuid)
-        subprocess.run(checked_args(args),check=True,timeout=300)
+        install_grub(args)
         platform='i386-pc' if bios else 'x86_64-efi'
         if not (Path('/boot/grub')/platform/'normal.mod').is_file():raise RuntimeError('Installed GRUB normal.mod is missing for '+platform)
         if bios:remember_bios_target(target)
