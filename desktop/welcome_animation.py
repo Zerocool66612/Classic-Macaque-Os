@@ -1,10 +1,29 @@
 """Original Qt-rendered first-run welcome, no Apple footage or sampled audio."""
 import math
 from PySide6.QtCore import Qt,QTimer,QElapsedTimer,QRectF
-from PySide6.QtGui import QPainter,QColor,QFont,QLinearGradient
+from PySide6.QtGui import QPainter,QColor,QFont,QFontDatabase,QLinearGradient
 from PySide6.QtWidgets import QDialog
 from visuals import icon
 DURATION=24.0
+
+# The welcome film cycles through multiple writing systems. DejaVu Serif
+# alone cannot render CJK glyphs; use Noto faces bundled in the ISO.
+WELCOME_FONTS = {
+    'こんにちは': 'Noto Sans CJK JP',
+    '你好': 'Noto Sans CJK SC',
+    '안녕하세요': 'Noto Sans CJK KR',
+    'नमस्ते': 'Noto Sans Devanagari',
+}
+
+def greeting_font(word, pixel_size):
+    family = WELCOME_FONTS.get(word, 'DejaVu Serif')
+    # Qt will fall back to another installed family if necessary, but the
+    # ISO explicitly installs the Noto coverage required by these greetings.
+    font = QFont(family)
+    font.setPixelSize(pixel_size)
+    font.setItalic(True)
+    return font
+
 
 class WelcomeAnimation(QDialog):
     def __init__(self,d,replay=False):
@@ -38,7 +57,7 @@ class WelcomeAnimation(QDialog):
             p.setBrush(QColor(170,235,235,12+i*3));offset=math.sin(t*.15+i)*w*.04;p.drawEllipse(QRectF(-w*.3+offset,h*.38+i*h*.12,w*1.7,h*.85))
         if t<16.0:
             words=['Hello','Bonjour','Hola','Hallo','Ciao','Olá','こんにちは','你好','안녕하세요','Hej','Cześć','नमस्ते'];step=16.0/len(words);index=min(len(words)-1,int(t/step));phase=(t%step)/step;opacity=min(1,phase*5,(1-phase)*5)
-            p.setOpacity(max(0,opacity));font=QFont('DejaVu Serif',max(28,int(h*.11)));font.setItalic(True);p.setFont(font);p.setPen(QColor('white'));p.drawText(QRectF(20,h*.31,w-40,h*.25),Qt.AlignCenter,words[index])
+            p.setOpacity(max(0,opacity));font=greeting_font(words[index],max(28,int(h*.11)));p.setFont(font);p.setPen(QColor('white'));p.drawText(QRectF(20,h*.31,w-40,h*.25),Qt.AlignCenter,words[index])
         else:
             opacity=min(1,(t-16.0)/1.1);p.setOpacity(opacity);size=int(h*.19);self.logo.paint(p,int((w-size)/2),int(h*.20),size,size)
             p.setPen(QColor('white'));p.setFont(QFont('DejaVu Sans',max(18,int(h*.043)),QFont.Bold));p.drawText(QRectF(20,h*.45,w-40,h*.11),Qt.AlignCenter,'Welcome to Macaque Classic')
