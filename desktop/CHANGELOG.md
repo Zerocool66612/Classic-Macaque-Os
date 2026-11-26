@@ -1,3 +1,8 @@
+## 0.50.00 — Linux diagnostics expansion
+
+- Add CPU, memory, storage, filesystem capacity and PCI inventory to Recovery & Diagnostics.
+- Retain existing desktop and installer functionality. Preview build; hardware validation pending.
+
 ## 0.42.3 — Full-screen from the first Install click
 
 - Fix the missed first screen: the desktop Install icon now opens disk/swap preparation as a real full-screen top-level window, rather than a 760 × 530 internal window.
